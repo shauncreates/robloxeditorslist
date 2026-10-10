@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>List Editor (private)</title>
+<style>
+  :root{--bg:#0c0e14;--panel:#141824;--panel2:#1a2030;--line:#252c40;--text:#eef0f7;--muted:#8a93ad;--accent:#8b5cf6;--ok:#4ade80;--bad:#f87171}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px 80px}
+  .top{position:sticky;top:0;z-index:5;background:#0a0c12ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .top .wrap{display:flex;gap:10px;align-items:center;padding-block:12px;flex-wrap:wrap}
+  .top h1{font-size:16px;flex:1;min-width:140px}
+  .status{font-size:13px;color:var(--muted)}
+  .status.ok{color:var(--ok)} .status.bad{color:var(--bad)} .status.dirty{color:#fbbf24}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
+  button:hover{border-color:var(--accent)}
+  button:disabled{opacity:.4;cursor:default}
+  button.pri{background:var(--accent);border-color:var(--accent)}
+  button.bad:hover{border-color:var(--bad);color:var(--bad)}
+  button.sm{padding:4px 10px;font-size:13px}
+  .tabs{display:flex;gap:8px;margin:18px 0;flex-wrap:wrap}
+  .tabs button.on{background:var(--accent);border-color:var(--accent)}
+  .msg{background:#4ade8014;border:1px solid #4ade8044;color:#bbf7d0;padding:10px 14px;border-radius:10px;font-size:13.5px;margin-bottom:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.08em}
+  input[type=text],input[type=url],input[type=password],textarea,select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14.5px;font-family:inherit;outline:none}
+  input[type=color]{width:46px;height:38px;background:none;border:1px solid var(--line);border-radius:9px;padding:2px}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+  textarea{min-height:70px;resize:vertical}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .flarepick{display:flex;gap:8px;flex-wrap:wrap}
+  .flarepick label{display:flex;align-items:center;gap:6px;margin:0;font-size:13px;text-transform:none;letter-spacing:0;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:5px 11px;cursor:pointer}
+  details.card summary{cursor:pointer;font-weight:800;display:flex;justify-content:space-between;gap:10px;align-items:center}
+  details.card summary span.sub{color:var(--muted);font-weight:500;font-size:13px}
+  .rrow{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:6px}
+  .rrow .n{width:34px;font-weight:900;color:var(--muted)}
+  .rrow .nm{flex:1;font-weight:700}
+  .srow{display:flex;gap:10px;align-items:center}
+  .srow input[type=text]{flex:1}
+  .hint{color:var(--muted);font-size:13.5px;margin:6px 0 14px}
+  .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+  .inline select{width:auto;min-width:200px;flex:1}
+  /* login gate */
+  #gate{max-width:360px;margin:15vh auto 0;padding:0 16px}
+  #gate h1{font-size:22px;margin-bottom:6px}
+  #gate p{color:var(--muted);font-size:14px;margin-bottom:14px}
+  #gate button{width:100%;margin-top:12px;padding:11px}
+  #gateErr{color:var(--bad);font-size:13.5px;margin-top:10px;min-height:20px}
+</style>
+</head>
+<body>
+
+<div id="gate" hidden>
+  <h1>🔒 Admin login</h1>
+  <p>Enter your admin password to edit the list.</p>
+  <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
+  <button class="pri" id="loginBtn">Log in</button>
+  <div id="gateErr"></div>
+</div>
+
+<div id="ui" hidden>
+  <div class="top"><div class="wrap">
+    <h1>🔒 List editor</h1>
+    <span class="status" id="status"></span>
+    <button id="reset" class="bad">Discard changes</button>
+    <button id="dl">Download data.js</button>
+    <button id="saveSite" class="pri" hidden>Save to site</button>
+  </div></div>
+
+  <div class="wrap">
+    <div class="msg" id="banner"></div>
+    <div class="tabs" id="tabs"></div>
+    <div id="app"></div>
+  </div>
+</div>
+
+<script src="../data.js"></script>
+<script>
+const KEY = "robloxeditors_admin_draft_v1";
+const clone = o => JSON.parse(JSON.stringify(o));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $ = s => document.querySelector(s);
+const LINKS = ["youtube","instagram","twitter","discord"];   // TikTok has its own username field
+let openIdx = -1;   // which editor card is expanded (kept open when the list redraws)
+const ONLINE = /^https?:$/.test(location.protocol);   // false when opened straight from a folder
+
+let S, PW = "", dirty = false, tab = "editors", rk = "main";
+const valid = d => d && d.site && Array.isArray(d.styles) && Array.isArray(d.editors) && d.lists;
+
+/* ---------- status / saving ---------- */
+function setStatus(text, cls){ const s = $("#status"); s.textContent = text || ""; s.className = "status " + (cls || ""); }
+function save(){
+  if (ONLINE) { dirty = true; setStatus("Unsaved changes", "dirty"); }
+  else { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+}
+window.addEventListener("beforeunload", ev => { if (ONLINE && dirty) { ev.preventDefault(); ev.returnValue = ""; } });
+
+async function api(path, body){
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  let j = {}; try { j = await r.json(); } catch (e) {}
+  return { ok: r.ok, status: r.status, j };
+}
+
+async function loadLive(){
+  try {
+    const r = await fetch("/api/data", { cache: "no-store" });
+    if (r.ok) { const j = await r.json(); if (valid(j)) return j; }
+  } catch (e) {}
+  return clone(window.SITE_DATA);   // nothing saved yet → start from data.js
+}
+
+/* ---------- login ---------- */
+function showGate(msg){
+  $("#gate").hidden = false; $("#ui").hidden = true;
+  $("#gateErr").textContent = msg || "";
+  $("#pw").focus();
+}
+async function tryLogin(pw){
+  $("#loginBtn").disabled = true; $("#gateErr").textContent = "";
+  try {
+    const { ok, status, j } = await api("/api/login", { password: pw });
+    if (ok) { PW = pw; try { sessionStorage.setItem("adm_pw", pw); } catch (e) {} return true; }
+    $("#gateErr").textContent = status === 401 ? "Wrong password." : (j.error || "Couldn't log in.");
+  } catch (e) { $("#gateErr").textContent = "Couldn't reach the server."; }
+  finally { $("#loginBtn").disabled = false; }
+  return false;
+}
+$("#loginBtn").addEventListener("click", async () => { if (await tryLogin($("#pw").value)) start(); });
+$("#pw").addEventListener("keydown", ev => { if (ev.key === "Enter") $("#loginBtn").click(); });
+
+/* ---------- data helpers ---------- */
+const byId = id => S.editors.find(e => e.id === id);
+function members(key){
+  if (key === "main") {
+    const seen = new Set();
+    return (S.lists.main || []).filter(id => byId(id) && !seen.has(id) && seen.add(id)).map(byId);
+  }
+  const order = S.lists[key] || [];
+  const pos = id => { const i = order.indexOf(id); return i < 0 ? 1e9 : i; };
+  return S.editors.filter(e => (e.flares || []).includes(key)).sort((a, b) => pos(a.id) - pos(b.id));
+}
+const slug = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "style";
+
+/* ---------- views ---------- */
+function view(){
+  $("#tabs").innerHTML = [["editors","Editors"],["styles","Styles / flares"],["rank","Rankings"],["site","Site"]]
+    .map(([k, n]) => `<button data-act="tab" data-v="${k}" class="${tab === k ? "on" : ""}">${n}</button>`).join("");
+  $("#app").innerHTML = ({ editors: vEditors, styles: vStyles, rank: vRank, site: vSite })[tab]();
+}
+
+function vEditors(){
+  return `<div class="inline"><button class="pri" data-act="addEditor">+ Add editor</button>${ONLINE ? `<button data-act="fetchAll">Fetch all missing pictures</button>` : ""}<span class="hint" style="margin:0">${S.editors.length} editors</span></div>` +
+    S.editors.map((e, i) => `
+    <details class="card" data-idx="${i}" ${openIdx === i ? "open" : ""}>
+      <summary><span>${esc(e.name || "(unnamed)")}</span><span class="sub">${esc((e.flares || []).map(f => S.styles.find(s => s.id === f)?.name).filter(Boolean).join(", "))}</span></summary>
+      <div class="two">
+        <div><label>Name</label><input type="text" data-t="e" data-i="${i}" data-f="name" value="${esc(e.name)}"></div>
+        <div><label>Handle (optional – shows TikTok name if empty)</label><input type="text" data-t="e" data-i="${i}" data-f="handle" value="${esc(e.handle)}"></div>
+      </div>
+      <div class="two">
+        <div><label>TikTok username (no @)</label><input type="text" data-t="e" data-i="${i}" data-f="tiktok" value="${esc(e.tiktok)}" placeholder="e.g. someeditor"></div>
+        <div><label>Profile picture</label>
+          <div class="inline" style="margin:0">
+            ${/^https?:\/\//.test(e.thumb || "") ? `<img src="${esc(e.thumb)}" alt="" referrerpolicy="no-referrer" style="width:38px;height:38px;border-radius:9px;object-fit:cover">` : ""}
+            ${ONLINE ? `<button class="sm" data-act="fetchPic" data-i="${i}">Fetch from TikTok</button>` : `<span class="hint" style="margin:0">Fetching works on the live /admin</span>`}
+          </div>
+        </div>
+      </div>
+      <label>Flares (styles)</label>
+      <div class="flarepick">${S.styles.map(s => `<label><input type="checkbox" data-t="flare" data-i="${i}" data-s="${esc(s.id)}" ${(e.flares || []).includes(s.id) ? "checked" : ""}> <span style="color:${esc(s.color)}">●</span> ${esc(s.name)}</label>`).join("") || `<span class="hint">Create styles in the Styles tab first.</span>`}</div>
+      <label>About / note</label>
+      <textarea data-t="e" data-i="${i}" data-f="note">${esc(e.note)}</textarea>
+      <div class="two">
+        <div><label>Profile picture URL (filled by Fetch, or paste your own)</label><input type="url" data-t="e" data-i="${i}" data-f="thumb" value="${esc(e.thumb)}" placeholder="https://…"></div>
+        <div><label>Showcase YouTube link (optional)</label><input type="url" data-t="e" data-i="${i}" data-f="video" value="${esc(e.video)}" placeholder="https://youtube.com/watch?v=…"></div>
+      </div>
+      <div class="two">${LINKS.map(k => `<div><label>${k}</label><input type="url" data-t="link" data-i="${i}" data-f="${k}" value="${esc((e.links || {})[k])}" placeholder="https://…"></div>`).join("")}</div>
+      <div style="margin-top:14px"><button class="bad sm" data-act="delEditor" data-i="${i}">Delete editor</button></div>
+    </details>`).join("");
+}
+
+function vStyles(){
+  return `<p class="hint">Each style becomes a flare and its own ranked list on the site.</p>` +
+    S.styles.map((s, i) => `
+    <div class="card srow">
+      <input type="color" data-t="s" data-i="${i}" data-f="color" value="${esc(s.color)}">
+      <input type="text" data-t="s" data-i="${i}" data-f="name" value="${esc(s.name)}">
+      <button class="bad sm" data-act="delStyle" data-i="${i}">Delete</button>
+    </div>`).join("") +
+    `<button class="pri" data-act="addStyle">+ Add style</button>`;
+}
+
+function vRank(){
+  if (rk !== "main" && !S.styles.find(s => s.id === rk)) rk = "main";
+  const list = members(rk);
+  const opts = [["main", "Overall Top 30"], ...S.styles.map(s => [s.id, s.name + " list"])]
+    .map(([k, n]) => `<option value="${esc(k)}" ${rk === k ? "selected" : ""}>${esc(n)}</option>`).join("");
+  let html = `<div class="inline"><select data-t="rk">${opts}</select></div>`;
+  if (rk === "main") {
+    const free = S.editors.filter(e => !list.some(x => x.id === e.id));
+    html += `<div class="inline"><select id="addSel">${free.map(e => `<option value="${esc(e.id)}">${esc(e.name)}</option>`).join("") || `<option value="">(everyone is already ranked)</option>`}</select><button data-act="addMain">Add to overall list</button></div>`;
+  } else {
+    html += `<p class="hint">Members come from the flare you tick on each editor. Use the arrows to set their order in this list.</p>`;
+  }
+  html += list.map((e, i) => `
+    <div class="rrow">
+      <div class="n">#${i + 1}</div><div class="nm">${esc(e.name)}</div>
+      <button class="sm" data-act="up" data-id="${esc(e.id)}" ${i === 0 ? "disabled" : ""}>↑</button>
+      <button class="sm" data-act="down" data-id="${esc(e.id)}" ${i === list.length - 1 ? "disabled" : ""}>↓</button>
+      <button class="sm" data-act="top" data-id="${esc(e.id)}" ${i === 0 ? "disabled" : ""}>Top</button>
+      ${rk === "main" ? `<button class="sm bad" data-act="rmMain" data-id="${esc(e.id)}">Remove</button>` : ""}
+    </div>`).join("") || `<p class="hint">No one in this list yet.</p>`;
+  return html;
+}
+
+function vSite(){
+  const f = (k, l) => `<label>${l}</label><input type="text" data-t="site" data-f="${k}" value="${esc(S.site[k])}">`;
+  return `<div class="card">${f("title","Site title")}${f("subtitle","Subtitle")}${f("updated","Last updated text")}${f("tiktok","Your TikTok username (no @) – shows a “DM me on TikTok” button for rank suggestions")}${f("contact","Backup contact link (mailto: or URL, used only if no TikTok username is set)")}</div>`;
+}
+
+/* ---------- events ---------- */
+function move(id, dir){
+  const ids = members(rk).map(e => e.id);
+  const i = ids.indexOf(id), j = dir === "top" ? 0 : i + dir;
+  if (i < 0 || j < 0 || j >= ids.length) return;
+  ids.splice(i, 1); ids.splice(j, 0, id);
+  S.lists[rk] = ids;
+}
+
+document.addEventListener("input", ev => {
+  const t = ev.target, k = t.dataset.t; if (!k) return;
+  const i = +t.dataset.i;
+  if (k === "e") S.editors[i][t.dataset.f] = t.value;
+  else if (k === "link") { (S.editors[i].links ||= {})[t.dataset.f] = t.value; }
+  else if (k === "s") S.styles[i][t.dataset.f] = t.value;
+  else if (k === "site") S.site[t.dataset.f] = t.value;
+  else return;
+  save();
+});
+
+document.addEventListener("change", ev => {
+  const t = ev.target, k = t.dataset.t;
+  if (k === "flare") {
+    const e = S.editors[+t.dataset.i], id = t.dataset.s;
+    e.flares = (e.flares || []).filter(x => x !== id);
+    if (t.checked) e.flares.push(id);
+    save();
+  } else if (k === "rk") { rk = t.value; view(); }
+});
+
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-act]"); if (!b) return;
+  const a = b.dataset.act, i = +b.dataset.i, id = b.dataset.id;
+  if (a === "tab") { tab = b.dataset.v; return view(); }
+  if (a === "addEditor") {
+    const e = { id: "e" + Date.now().toString(36), name: "New editor", handle: "", tiktok: "", flares: [], note: "", thumb: "", video: "", links: {} };
+    openIdx = S.editors.length;
+    S.editors.push(e); (S.lists.main ||= []).push(e.id);
+  }
+  if (a === "delEditor") {
+    if (!confirm("Delete " + S.editors[i].name + "?")) return;
+    const gone = S.editors[i].id; S.editors.splice(i, 1);
+    for (const k in S.lists) S.lists[k] = S.lists[k].filter(x => x !== gone);
+  }
+  if (a === "addStyle") {
+    let id = slug("style-" + Date.now().toString(36).slice(-4));
+    S.styles.push({ id, name: "New style", color: "#8b5cf6" });
+  }
+  if (a === "delStyle") {
+    if (!confirm("Delete the " + S.styles[i].name + " style and its list?")) return;
+    const gone = S.styles[i].id; S.styles.splice(i, 1);
+    S.editors.forEach(e => e.flares = (e.flares || []).filter(x => x !== gone));
+    delete S.lists[gone];
+  }
+  if (a === "fetchPic" || a === "fetchAll") { runFetch(a === "fetchAll" ? null : i); return; }
+  if (a === "up") move(id, -1);
+  if (a === "down") move(id, 1);
+  if (a === "top") move(id, "top");
+  if (a === "addMain") { const v = $("#addSel").value; if (v) (S.lists.main ||= []).push(v); }
+  if (a === "rmMain") S.lists.main = (S.lists.main || []).filter(x => x !== id);
+  save(); view();
+});
+
+/* ---------- TikTok profile pictures ---------- */
+const ttUser = e => String(e.tiktok || "").replace(/^@/, "").trim();
+document.addEventListener("toggle", ev => {
+  const d = ev.target;
+  if (!d.matches || !d.matches("details.card[data-idx]")) return;
+  const i = +d.dataset.idx;
+  if (d.open) openIdx = i; else if (openIdx === i) openIdx = -1;
+}, true);
+
+async function fetchOne(i){
+  const e = S.editors[i];
+  if (!ttUser(e)) return "no TikTok username";
+  try {
+    const { ok, status, j } = await api("/api/avatar", { password: PW, username: ttUser(e) });
+    if (ok && j.url) { e.thumb = j.url; save(); return ""; }
+    if (status === 401) return "session expired – log in again";
+    return j.error || "failed";
+  } catch (err) { return "couldn't reach the server"; }
+}
+
+// idx = one editor, or null = every editor that has a username but no picture yet
+async function runFetch(idx){
+  const todo = idx === null
+    ? S.editors.map((e, i) => i).filter(i => ttUser(S.editors[i]) && !S.editors[i].thumb)
+    : [idx];
+  if (!todo.length) return setStatus("Nothing to fetch (add TikTok usernames first)", "bad");
+  let fails = [];
+  for (let n = 0; n < todo.length; n++) {
+    setStatus(`Fetching pictures… ${n + 1}/${todo.length}`);
+    const err = await fetchOne(todo[n]);
+    if (err) fails.push(`${S.editors[todo[n]].name}: ${err}`);
+    if (n < todo.length - 1) await new Promise(r => setTimeout(r, 700));
+  }
+  view();
+  if (fails.length) { setStatus(`${todo.length - fails.length} fetched, ${fails.length} failed`, "bad"); alert("Couldn't fetch:\n\n" + fails.join("\n") + "\n\nYou can paste a picture URL by hand instead."); }
+  else setStatus("Pictures fetched – remember to Save to site", "dirty");
+}
+
+$("#saveSite").addEventListener("click", async () => {
+  const btn = $("#saveSite"); btn.disabled = true; setStatus("Saving…");
+  try {
+    const { ok, status, j } = await api("/api/save", { password: PW, data: S });
+    if (ok) { dirty = false; setStatus("Saved ✓ live on the site", "ok"); }
+    else if (status === 401) { setStatus("Session expired – log in again", "bad"); try { sessionStorage.removeItem("adm_pw"); } catch (e) {} showGate("Please log in again."); }
+    else setStatus(j.error || "Save failed", "bad");
+  } catch (e) { setStatus("Couldn't reach the server", "bad"); }
+  btn.disabled = false;
+});
+
+$("#dl").addEventListener("click", () => {
+  const out = "/* Generated by the admin editor – replace your data.js with this file. */\nwindow.SITE_DATA = " + JSON.stringify(S, null, 2) + ";\n";
+  const url = URL.createObjectURL(new Blob([out], { type: "text/javascript" }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: "data.js" });
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+$("#reset").addEventListener("click", async () => {
+  if (!confirm("Throw away your unsaved changes?")) return;
+  if (ONLINE) { S = await loadLive(); dirty = false; setStatus(""); }
+  else { try { localStorage.removeItem(KEY); } catch (e) {} S = clone(window.SITE_DATA); }
+  view();
+});
+
+/* ---------- start ---------- */
+async function start(){
+  $("#gate").hidden = true; $("#ui").hidden = false;
+  if (ONLINE) {
+    S = await loadLive();
+    $("#saveSite").hidden = false;
+    $("#banner").innerHTML = "Edit anything, then click <b>Save to site</b>. Your changes go live straight away.";
+  } else {
+    try { S = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { S = null; }
+    if (!valid(S)) S = clone(window.SITE_DATA);
+    $("#banner").innerHTML = "You opened this from a folder, so changes only save as a draft in this browser. Click <b>Download data.js</b> when you're done and replace <b>data.js</b> in the project folder. (On the live site at /admin you'll get a <b>Save to site</b> button instead.)";
+  }
+  view();
+}
+
+(async function boot(){
+  if (!ONLINE) return start();
+  let pw = ""; try { pw = sessionStorage.getItem("adm_pw") || ""; } catch (e) {}
+  if (pw && await tryLogin(pw)) return start();
+  showGate();
+})();
+</script>
+</body>
+</html>
