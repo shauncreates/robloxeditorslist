@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roblox Funk Editors</title>
+<meta name="description" content="Ranked list of the best Roblox funk editors, with separate lists for each editing style.">
+<style>
+  :root{
+    --bg:#0c0e14; --panel:#141824; --panel2:#1a2030; --line:#252c40;
+    --text:#eef0f7; --muted:#8a93ad; --accent:#8b5cf6; --accent2:#22d3ee;
+    --gold:#facc15; --silver:#cbd5e1; --bronze:#fb923c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;min-height:100vh}
+  a{color:inherit}
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px}
+
+  /* top bar */
+  .topbar{border-bottom:1px solid var(--line);background:#0a0c12cc;backdrop-filter:blur(8px);position:sticky;top:0;z-index:10}
+  .topbar .wrap{display:flex;align-items:center;gap:18px;height:56px}
+  .logo{font-weight:900;letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+  .logo span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .topbar .sp{flex:1}
+  .topbar .contact{font-size:13px;color:var(--muted);text-decoration:none}
+  .topbar .contact:hover{color:var(--text)}
+
+  /* hero */
+  .hero{padding:36px 0 14px}
+  .hero h1{font-size:clamp(26px,5vw,40px);font-weight:900;letter-spacing:-.02em}
+  .hero p{color:var(--muted);margin-top:6px;max-width:620px}
+
+  /* tabs */
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:14px 0;scrollbar-width:thin}
+  .tab{flex:none;text-decoration:none;font-size:14px;font-weight:700;padding:8px 14px;border-radius:10px;background:var(--panel);border:1px solid var(--line);color:var(--muted);transition:.15s}
+  .tab:hover{color:var(--text);border-color:#3a4366}
+  .tab.on{color:#fff;background:var(--accent);border-color:var(--accent)}
+  .tab .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px}
+  .tab.on .dot{box-shadow:0 0 0 2px #ffffff55}
+
+  /* search */
+  .bar{display:flex;gap:10px;align-items:center;margin:6px 0 14px}
+  .bar input{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);padding:11px 14px;border-radius:12px;font-size:15px;outline:none}
+  .bar input:focus{border-color:var(--accent)}
+  .count{font-size:13px;color:var(--muted);white-space:nowrap}
+
+  /* list rows */
+  .list{display:flex;flex-direction:column;gap:8px;padding-bottom:60px}
+  .row{display:grid;grid-template-columns:56px 52px 1fr auto;gap:14px;align-items:center;text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 16px 10px 8px;transition:.15s}
+  .row:hover{border-color:var(--accent);transform:translateX(3px);background:var(--panel2)}
+  .rank{text-align:center;font-weight:900;font-size:20px;color:var(--muted)}
+  .row.r1 .rank{color:var(--gold)} .row.r2 .rank{color:var(--silver)} .row.r3 .rank{color:var(--bronze)}
+  .row.r1{border-color:#facc1544} .row.r2{border-color:#cbd5e133} .row.r3{border-color:#fb923c33}
+  .av{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#3b2a78,#0f4a63);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;overflow:hidden;flex:none}
+  .av img{width:100%;height:100%;object-fit:cover;display:block}
+  .who .nm{font-weight:800;font-size:17px}
+  .who .hd{color:var(--muted);font-size:13px}
+  .flares{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .flare{font-size:11.5px;font-weight:800;letter-spacing:.02em;padding:3px 9px;border-radius:99px;border:1px solid;text-decoration:none;white-space:nowrap;transition:.15s}
+  .flare:hover{filter:brightness(1.35)}
+  .empty{text-align:center;color:var(--muted);padding:50px 0}
+
+  /* editor page */
+  .back{display:inline-block;margin:24px 0 14px;color:var(--muted);text-decoration:none;font-size:14px}
+  .back:hover{color:var(--text)}
+  .prof{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  .prof .av{width:92px;height:92px;border-radius:20px;font-size:38px}
+  .prof h1{font-size:clamp(26px,5vw,38px);font-weight:900;letter-spacing:-.02em;line-height:1.1}
+  .prof .hd{color:var(--muted)}
+  .prof .flares{justify-content:flex-start;margin-top:10px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0 60px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .card.full{grid-column:1/-1}
+  .card h3{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:12px}
+  .ranks{display:flex;flex-direction:column;gap:8px}
+  .rk{display:flex;align-items:center;justify-content:space-between;text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;transition:.15s}
+  .rk:hover{border-color:var(--accent)}
+  .rk b{font-size:18px}
+  .links{display:flex;gap:8px;flex-wrap:wrap}
+  .links a{background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;transition:.15s}
+  .links a:hover{border-color:var(--accent2);color:var(--accent2)}
+  .vid{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+  .vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .note{white-space:pre-wrap}
+  .muted{color:var(--muted)}
+
+  footer{border-top:1px solid var(--line);padding:24px 0 40px;text-align:center;color:var(--muted);font-size:13px}
+
+  @media(max-width:620px){
+    .row{grid-template-columns:40px 44px 1fr;gap:10px}
+    .row .flares{grid-column:3;justify-content:flex-start}
+    .av{width:44px;height:44px;font-size:17px}
+    .grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <a class="logo" href="#/list/main"><span id="logoText">Roblox Funk Editors</span></a>
+  <div class="sp"></div>
+  <a class="contact" id="contact" href="#">Suggest an editor</a>
+</div></div>
+
+<main class="wrap" id="app"></main>
+
+<footer><div class="wrap">Rankings are opinion-based. Last updated <span id="updated"></span>.</div></footer>
+
+<script src="data.js"></script>
+<script>
+let D, byId, styleById;   // filled in by init() once the data has loaded
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : "";
+const safeContact = u => /^(https?:\/\/|mailto:)/i.test(u || "") ? u : "#";
+const LABELS = { youtube:"YouTube", tiktok:"TikTok", instagram:"Instagram", twitter:"X / Twitter", discord:"Discord" };
+let query = "";
+
+/* ---- list logic ---- */
+function members(key){
+  if (key === "main") {
+    const seen = new Set();
+    return (D.lists.main || []).filter(id => byId[id] && !seen.has(id) && seen.add(id)).map(id => byId[id]);
+  }
+  const order = D.lists[key] || [];
+  const pos = id => { const i = order.indexOf(id); return i < 0 ? 1e9 : i; };
+  return D.editors.filter(e => (e.flares || []).includes(key)).sort((a, b) => pos(a.id) - pos(b.id));
+}
+const rankIn = (e, key) => members(key).findIndex(x => x.id === e.id) + 1;
+const listName = key => key === "main" ? "Overall Top 30" : (styleById[key]?.name + " List");
+
+/* ---- small renderers ---- */
+function avatar(e){
+  const u = safeUrl(e.thumb);
+  return `<div class="av">${u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : esc((e.name || "?").trim().charAt(0).toUpperCase())}</div>`;
+}
+function flareChip(id, link = true){
+  const s = styleById[id]; if (!s) return "";
+  const c = /^#[0-9a-f]{3,8}$/i.test(s.color) ? s.color : "#8b5cf6";
+  const st = `color:${c};border-color:${c}66;background:${c}1a`;
+  return link ? `<a class="flare" style="${st}" href="#/list/${esc(s.id)}">${esc(s.name)}</a>` : `<span class="flare" style="${st}">${esc(s.name)}</span>`;
+}
+// TikTok page for an editor: built from the username you typed in /admin
+// (falls back to an old-style tiktok link if there is one).
+function ttUrl(e){
+  const user = String(e.tiktok || "").replace(/^@/, "").trim();
+  if (/^[A-Za-z0-9._]{1,40}$/.test(user)) return "https://www.tiktok.com/@" + user;
+  return safeUrl((e.links || {}).tiktok);
+}
+const shownHandle = e => e.handle || (e.tiktok ? "@" + String(e.tiktok).replace(/^@/, "") : "");
+function ytId(u){
+  const m = String(u || "").match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : "";
+}
+
+/* ---- pages ---- */
+function renderTabs(active){
+  const tabs = [`<a class="tab ${active === "main" ? "on" : ""}" href="#/list/main">Overall</a>`]
+    .concat(D.styles.map(s => `<a class="tab ${active === s.id ? "on" : ""}" href="#/list/${esc(s.id)}"><span class="dot" style="background:${esc(s.color)}"></span>${esc(s.name)}</a>`));
+  return `<nav class="tabs">${tabs.join("")}</nav>`;
+}
+
+function renderList(key){
+  $("#app").innerHTML = `
+    <section class="hero">
+      <h1>${esc(listName(key))}</h1>
+      <p>${key === "main" ? esc(D.site.subtitle) : `The best editors in the ${esc(styleById[key].name)} style, ranked.`}</p>
+    </section>
+    ${renderTabs(key)}
+    <div class="bar"><input id="q" type="search" placeholder="Search editors…" autocomplete="off" value="${esc(query)}"><span class="count" id="count"></span></div>
+    <div class="list" id="rows"></div>`;
+  const draw = () => {
+    const all = members(key);
+    const q = query.trim().toLowerCase();
+    const rows = all.map((e, i) => ({ e, rank: i + 1 })).filter(({ e }) => !q || (e.name + " " + (e.handle || "")).toLowerCase().includes(q));
+    $("#count").textContent = rows.length + " / " + all.length;
+    $("#rows").innerHTML = rows.length ? rows.map(({ e, rank }) => { const tt = ttUrl(e); return `
+      <a class="row ${rank <= 3 ? "r" + rank : ""}" ${tt ? `href="${esc(tt)}" target="_blank" rel="noopener noreferrer"` : `href="#/editor/${esc(e.id)}"`}>
+        <div class="rank">#${rank}</div>
+        ${avatar(e)}
+        <div class="who"><div class="nm">${esc(e.name)}</div><div class="hd">${esc(shownHandle(e))}${tt ? " · TikTok ↗" : ""}</div></div>
+        <div class="flares">${(e.flares || []).map(f => flareChip(f, false)).join("")}</div>
+      </a>`; }).join("") : `<div class="empty">${all.length ? "No editors match your search." : "Nobody here yet."}</div>`;
+  };
+  $("#q").addEventListener("input", ev => { query = ev.target.value; draw(); });
+  draw();
+}
+
+function renderEditor(e){
+  const ranks = ["main", ...D.styles.map(s => s.id)].map(k => ({ k, r: rankIn(e, k) })).filter(x => x.r > 0);
+  const links = Object.entries({ ...(e.links || {}), tiktok: ttUrl(e) }).map(([k, v]) => safeUrl(v) ? `<a href="${esc(v)}" target="_blank" rel="noopener noreferrer">${esc(LABELS[k] || k)}</a>` : "").join("");
+  const vid = ytId(e.video);
+  $("#app").innerHTML = `
+    <a class="back" href="#/list/main">← Back to list</a>
+    <div class="prof">
+      ${avatar(e)}
+      <div>
+        <h1>${esc(e.name)}</h1>
+        <div class="hd">${esc(shownHandle(e))}</div>
+        <div class="flares">${(e.flares || []).map(f => flareChip(f)).join("")}</div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>Rankings</h3><div class="ranks">${ranks.length ? ranks.map(x => `<a class="rk" href="#/list/${esc(x.k)}"><span>${esc(listName(x.k))}</span><b>#${x.r}</b></a>`).join("") : `<span class="muted">Unranked</span>`}</div></div>
+      <div class="card"><h3>Links</h3>${links ? `<div class="links">${links}</div>` : `<span class="muted">No links yet.</span>`}</div>
+      ${e.note ? `<div class="card full"><h3>About</h3><div class="note">${esc(e.note)}</div></div>` : ""}
+      ${vid ? `<div class="card full"><h3>Showcase</h3><div class="vid"><iframe src="https://www.youtube-nocookie.com/embed/${esc(vid)}" allowfullscreen loading="lazy"></iframe></div></div>` : ""}
+    </div>`;
+  window.scrollTo(0, 0);
+}
+
+function route(){
+  const h = location.hash.replace(/^#\/?/, "").split("/");
+  if (h[0] === "editor" && byId[h[1]]) return renderEditor(byId[h[1]]);
+  const key = (h[0] === "list" && (h[1] === "main" || styleById[h[1]])) ? h[1] : "main";
+  renderList(key);
+}
+
+/* ---- boot ---- */
+const valid = d => d && d.site && Array.isArray(d.styles) && Array.isArray(d.editors) && d.lists;
+
+async function init(){
+  // On the live site the data comes from /api/data (what you saved in /admin).
+  // If that isn't available (running from a folder, or nothing saved yet), fall back to data.js.
+  let data = null;
+  if (/^https?:$/.test(location.protocol)) {
+    try {
+      const r = await fetch("/api/data", { cache: "no-store" });
+      if (r.ok) { const j = await r.json(); if (valid(j)) data = j; }
+    } catch (e) {}
+  }
+  D = data || window.SITE_DATA;
+  byId = Object.fromEntries(D.editors.map(e => [e.id, e]));
+  styleById = Object.fromEntries(D.styles.map(s => [s.id, s]));
+
+  document.title = D.site.title + " – Top 30";
+  $("#logoText").textContent = D.site.title;
+  $("#updated").textContent = D.site.updated;
+  $("#contact").href = safeContact(D.site.contact);
+  window.addEventListener("hashchange", route);
+  route();
+}
+$("#app").innerHTML = '<div class="empty">Loading…</div>';
+init();
+</script>
+</body>
+</html>
