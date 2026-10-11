@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <title>List Editor (private)</title>
 <style>
-  :root{--bg:#0c0e14;--panel:#141824;--panel2:#1a2030;--line:#252c40;--text:#eef0f7;--muted:#8a93ad;--accent:#8b5cf6;--ok:#4ade80;--bad:#f87171}
+  :root{--bg:#0c0e12;--panel:#14181f;--panel2:#1a1f28;--line:#262d38;--text:#eef1f6;--muted:#a0aab8;--accent:#ff6f00;--on-accent:#120d06;--ok:#4ade80;--bad:#f87171}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
   .wrap{max-width:900px;margin:0 auto;padding:0 16px 80px}
@@ -18,11 +18,11 @@
   button{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
   button:hover{border-color:var(--accent)}
   button:disabled{opacity:.4;cursor:default}
-  button.pri{background:var(--accent);border-color:var(--accent)}
+  button.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
   button.bad:hover{border-color:var(--bad);color:var(--bad)}
   button.sm{padding:4px 10px;font-size:13px}
   .tabs{display:flex;gap:8px;margin:18px 0;flex-wrap:wrap}
-  .tabs button.on{background:var(--accent);border-color:var(--accent)}
+  .tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
   .msg{background:#4ade8014;border:1px solid #4ade8044;color:#bbf7d0;padding:10px 14px;border-radius:10px;font-size:13.5px;margin-bottom:14px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
   label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.08em}
