@@ -1,423 +1,423 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Roblox Funk Editors</title>
-<meta name="description" content="Ranked list of Roblox funk editors, with a separate ranking for each editing style.">
-<meta name="theme-color" content="#0c0e12">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
-<style>
-  /*
-    Design reads as: ranked list for Roblox funk edit fans and the editors themselves,
-    dense dark leaderboard language modelled on aredl.net (as requested).
-    Dials: ENERGY 2 / RHYTHM 2 / MOTION 1.
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Roblox Editors</title>
+    <meta
+      name="description"
+      content="Discover the Roblox editing community and explore our ranked list of editors."
+    />
+    <link rel="icon" type="image/svg+xml" href="media/icon.svg" />
+    <meta name="theme-color" content="#050706" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Red+Hat+Text:ital,wght@0,300..700;1,300..700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap");
+      :root {
+        --bg: #050706;
+        --panel: #0b100c;
+        --panel-2: #111912;
+        --line: #202a22;
+        --text: #eef5ef;
+        --text-2: #cdd9cf;
+        --muted: #98a79b;
+        --accent: #7af500;
+        --on-accent: #061109;
+        --font:
+          "Red Hat Text", system-ui, -apple-system, "Segoe UI", Roboto,
+          sans-serif;
+        --font-num:
+          "Red Hat Text", system-ui, -apple-system, "Segoe UI", Roboto,
+          sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      .material-symbol {
+        font-family: "Material Symbols Rounded";
+        font-weight: normal;
+        font-style: normal;
+        font-size: 22px;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        font-feature-settings: "liga";
+        -webkit-font-smoothing: antialiased;
+        user-select: none;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 16px;
+        line-height: 1.45;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      a {
+        color: inherit;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .wrap {
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
 
-    Reasons, one line each:
-    - Dark, near-black base: asked for aredl.net's look, and the audience watches edits in dark apps.
-    - One accent (orange, same family as aredl.net): marks the active tab, the #1 rank, the main
-      button and focus. Nothing else is orange, so it always means "look here".
-    - Barlow Condensed for ranks and names: condensed bold numerals read like a scoreboard and
-      keep long names on one line. Barlow for body: plain, sign-like, easy to scan in a long list.
-    - Rows differ by rank (#1 large, #2 and #3 medium, rest compact): the top of a leaderboard is
-      the focal point, the rest is a scan list.
-    - Small radii (3 to 6px), 1px borders, no shadows, glow, blur or gradients: a table-like
-      list should feel flat and quick to read.
-    - Flare tags use a colour swatch plus neutral text: the swatch is the category key from your
-      data, the text stays readable whatever colour you pick.
-  */
-  :root{
-    --bg:#0c0e12;
-    --panel:#14181f;
-    --panel-2:#1a1f28;
-    --line:#262d38;
-    --text:#eef1f6;
-    --text-2:#cfd6e0;
-    --muted:#a0aab8;
-    --accent:#ff6f00;
-    --on-accent:#120d06;
-    --font:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    --font-num:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{-webkit-text-size-adjust:100%}
-  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.45;min-height:100vh;display:flex;flex-direction:column}
-  body.lock{overflow:hidden}
-  a{color:inherit}
-  button{font:inherit;color:inherit;cursor:pointer}
-  :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-  .wrap{width:100%;max-width:900px;margin:0 auto;padding:0 16px}
-  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-  .skip{position:absolute;left:8px;top:-60px;background:var(--accent);color:var(--on-accent);padding:10px 14px;border-radius:4px;font-weight:600;text-decoration:none;z-index:30}
-  .skip:focus{top:8px}
+      /* header */
+      .top {
+        background: var(--bg);
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 60px;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        min-width: 0;
+        text-decoration: none;
+        line-height: 1;
+      }
+      .brand img {
+        display: block;
+        width: auto;
+        max-width: min(220px, 55vw);
+        height: 34px;
+        object-fit: contain;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-weight: 600;
+        font-size: 15px;
+        text-decoration: none;
+        border-radius: 5px;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        background: #8cfb14;
+      }
 
-  /* header */
-  .top{background:var(--bg);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
-  .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px}
-  .brand{font-family:var(--font-num);font-weight:700;font-size:24px;letter-spacing:.02em;text-transform:uppercase;text-decoration:none;line-height:1.1;overflow-wrap:anywhere}
-  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:15px;text-decoration:none;border-radius:5px;white-space:nowrap}
-  .btn:hover{background:#ff8526}
-  .btn .short{display:none}
+      /* entrance animation */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .hero {
+        animation: fadeIn 300ms ease-out both;
+        padding: 68px 0 52px;
+        text-align: center;
+      }
+      .eyebrow {
+        display: inline-block;
+        margin-bottom: 14px;
+        color: var(--accent);
+        font-family: var(--font-num);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      h1 {
+        font-family: var(--font-num);
+        font-weight: 700;
+        font-size: clamp(32px, 7vw, 54px);
+        line-height: 1.05;
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+        overflow-wrap: anywhere;
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      .intro {
+        color: var(--muted);
+        margin: 18px auto 24px;
+        max-width: 54ch;
+        font-size: 17px;
+      }
+      .arrow {
+        margin-left: 6px;
+        line-height: 1;
+      }
 
-  /* hero */
-  .hero{padding:34px 0 6px}
-  h1{font-family:var(--font-num);font-weight:700;font-size:clamp(36px,8vw,58px);line-height:1;text-transform:uppercase;letter-spacing:.01em;overflow-wrap:anywhere}
-  .sub{color:var(--muted);margin-top:10px;max-width:60ch}
+      /* sections */
+      .section {
+        padding: 34px 0 56px;
+        border-top: 1px solid var(--line);
+      }
+      .section-heading {
+        margin-bottom: 20px;
+      }
+      h2 {
+        font-family: var(--font-num);
+        font-weight: 700;
+        font-size: clamp(22px, 4vw, 28px);
+        text-transform: uppercase;
+      }
 
-  /* tabs */
-  .tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);margin-top:22px;scrollbar-width:thin}
-  .tab{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 16px;font-family:var(--font-num);font-weight:600;font-size:18px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);text-decoration:none;border-bottom:3px solid transparent;margin-bottom:-1px}
-  .tab:hover{color:var(--text)}
-  .tab[aria-current="page"]{color:var(--text);border-bottom-color:var(--accent)}
-  .tab .n{font-family:var(--font);font-weight:500;font-size:13px;color:var(--muted)}
+      /* contributors grid */
+      .contributors {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .contributor {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        padding: 20px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: inherit;
+        text-decoration: none;
+        transition:
+          transform 180ms ease,
+          border-color 180ms ease,
+          background 180ms ease;
+      }
+      .contributor:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px) scale(1.05);
+        position: relative;
+        z-index: 1;
+      }
+      .contributor:first-child {
+        grid-column: 1 / -1;
+      }
+      .person {
+        min-width: 0;
+      }
+      .person-name {
+        display: block;
+        font-family: var(--font-num);
+        font-weight: 700;
+        font-size: 16px;
+        overflow-wrap: anywhere;
+      }
+      .contribution {
+        display: block;
+        margin-top: 4px;
+        color: var(--text-2);
+        font-size: 13px;
+        line-height: 1.4;
+      }
 
-  /* search */
-  .controls{display:flex;align-items:center;gap:14px;margin:18px 0 14px}
-  .controls input{flex:1;min-width:0;height:44px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:0 14px;font:inherit}
-  .controls input::placeholder{color:var(--muted);opacity:1}
-  .controls input:focus-visible{outline-offset:0;border-color:var(--accent)}
-  .count{color:var(--muted);font-size:14px;white-space:nowrap}
+      /* footer */
+      .foot {
+        margin-top: auto;
+        border-top: 1px solid var(--line);
+        padding: 22px 0 30px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .foot .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px 24px;
+      }
+      .foot a {
+        color: var(--text);
+        text-underline-offset: 3px;
+      }
 
-  /* list */
-  .list{list-style:none;display:flex;flex-direction:column;gap:8px;padding-bottom:56px}
-  .row{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
-  .main{--rankw:60px;--av:48px;flex:1 1 0;min-width:0;width:100%;display:grid;grid-template-columns:var(--rankw) var(--av) minmax(0,1fr) auto auto;grid-template-areas:"rank av who tags go";align-items:center;gap:14px;padding:10px 16px 10px 8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;color:inherit;text-decoration:none;text-align:left}
-  a.main:hover,button.main:hover{border-color:var(--accent);background:var(--panel-2)}
-  .rank{grid-area:rank;font-family:var(--font-num);font-weight:700;font-size:28px;line-height:1;text-align:center;color:var(--text-2);font-variant-numeric:tabular-nums}
-  .av{grid-area:av;width:var(--av);height:var(--av);border-radius:4px;background:var(--panel-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--font-num);font-weight:700;font-size:calc(var(--av) * .5);color:var(--text-2);overflow:hidden;flex:none}
-  .av img{width:100%;height:100%;object-fit:cover;display:block}
-  .who{grid-area:who;min-width:0}
-  .nm{display:block;font-family:var(--font-num);font-weight:700;font-size:22px;line-height:1.15;overflow-wrap:anywhere}
-  .hd{display:block;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
-  .tags{grid-area:tags;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
-  .tag{display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 9px;background:var(--panel-2);border:1px solid var(--line);border-radius:3px;font-size:13px;font-weight:500;color:var(--text-2);white-space:nowrap}
-  .tag .sw{width:8px;height:8px;border-radius:2px;flex:none}
-  .go{grid-area:go;color:var(--muted);font-size:14px;font-weight:500;white-space:nowrap}
-  a.main:hover .go{color:var(--text);text-decoration:underline}
-  .more{min-width:92px;min-height:44px;padding:0 16px;background:var(--panel);border:1px solid var(--line);border-radius:6px;font-weight:600;font-size:14px;align-self:center}
-  .more:hover{border-color:var(--accent);background:var(--panel-2)}
+      @media (max-width: 560px) {
+        .contributors {
+          grid-template-columns: 1fr;
+        }
+        .contributor:hover {
+          transform: none !important;
+        }
+        .hero {
+          padding: 48px 0 36px;
+        }
+      }
 
-  /* rank tiers: #1 is the focal point, #2 and #3 step down, the rest is a compact scan list */
-  .t1 .main{--rankw:76px;--av:76px;padding-block:16px;background:var(--panel-2);border-color:#5c3a1a}
-  .t1 .rank{font-size:52px;color:var(--accent)}
-  .t1 .nm{font-size:32px}
-  .t2 .main,.t3 .main{--rankw:68px;--av:60px;padding-block:12px}
-  .t2 .rank,.t3 .rank{font-size:38px;color:var(--text)}
-  .t2 .nm,.t3 .nm{font-size:26px}
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap bar">
+        <a class="brand" id="brand" href="/" aria-label="Roblox Funk Editors"
+          ><img src="media/logo.svg" alt="Roblox Funk Editors"
+        /></a>
+        <a class="btn" href="list/">View rankings</a>
+      </div>
+    </header>
 
-  /* states */
-  .sk .main{pointer-events:none}
-  .sk .bar1,.sk .bar2{display:block;height:14px;background:var(--panel-2);border-radius:3px}
-  .sk .bar1{width:42%;height:18px}
-  .sk .bar2{width:24%;margin-top:8px}
-  .sk .av{border-style:dashed}
-  .state{padding:48px 0;max-width:46ch}
-  .state h2{font-family:var(--font-num);font-weight:700;font-size:28px;text-transform:uppercase}
-  .state p{color:var(--muted);margin:8px 0 18px}
-  .state .btn{border:0}
-  .state .ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
-  .empty{padding:36px 0;color:var(--muted)}
+    <main class="wrap">
+      <section class="hero">
+        <h1>Welcome to the Roblox Editor List</h1>
+        <p class="intro">
+          Discover the editors behind the style. Explore our ranked list of
+          editors, with separate rankings for each editing style.
+        </p>
+        <a class="btn" href="list/">
+          View rankings
+          <span class="material-symbol arrow" aria-hidden="true"
+            >arrow_forward</span
+          >
+        </a>
+      </section>
 
-  /* profile drawer */
-  dialog{border:0;padding:0;margin:0 0 0 auto;width:min(460px,100%);max-width:none;height:100vh;height:100dvh;max-height:none;background:var(--panel);color:var(--text);border-left:1px solid var(--line)}
-  dialog::backdrop{background:rgba(0,0,0,.65)}
-  .d{display:flex;flex-direction:column;height:100%}
-  .d-head{display:flex;gap:14px;align-items:center;padding:18px;border-bottom:1px solid var(--line)}
-  .d-head .av{--av:64px}
-  .d-head .t{flex:1;min-width:0}
-  .d-head h2{font-family:var(--font-num);font-weight:700;font-size:28px;line-height:1.1;overflow-wrap:anywhere}
-  .d-head .hd{margin-top:2px}
-  .d-head .flares{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-  .x{min-height:44px;min-width:44px;padding:0 14px;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;font-weight:600;font-size:14px;align-self:flex-start}
-  .x:hover{border-color:var(--accent)}
-  .d-body{flex:1;overflow:auto;padding:6px 18px 28px}
-  .d-body section{margin-top:22px}
-  .d-body h3{font-size:15px;font-weight:600;color:var(--muted);margin-bottom:10px}
-  .pl{list-style:none;display:flex;flex-direction:column;gap:6px}
-  .pl a{display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:0 14px;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;text-decoration:none}
-  .pl a:hover{border-color:var(--accent)}
-  .pl b{font-family:var(--font-num);font-size:22px}
-  .note{white-space:pre-wrap;overflow-wrap:anywhere}
-  .vid{position:relative;aspect-ratio:16/9;background:#000;border-radius:5px;overflow:hidden}
-  .vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-  .ext{display:flex;flex-wrap:wrap;gap:8px}
-  .ext a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;font-weight:600;text-decoration:none}
-  .ext a.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-  .ext a:hover{border-color:var(--accent)}
+      <section class="section">
+        <div class="section-heading">
+          <h2>The contributors</h2>
+        </div>
+        <div class="contributors" id="contributors"></div>
+      </section>
+    </main>
 
-  /* footer */
-  .foot{margin-top:auto;border-top:1px solid var(--line);padding:22px 0 30px;color:var(--muted);font-size:14px}
-  .foot .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px}
-  .foot a{color:var(--text);text-underline-offset:3px}
+    <footer class="foot">
+      <div class="wrap">
+        <p id="footNote">Rankings are one person's opinion.</p>
+        <p id="footCta"></p>
+      </div>
+    </footer>
 
-  @media (max-width:640px){
-    .brand{font-size:20px}
-    .btn .long{display:none}
-    .btn .short{display:inline}
-    .hero{padding-top:24px}
-    .main,.t1 .main,.t2 .main,.t3 .main{grid-template-columns:var(--rankw) var(--av) minmax(0,1fr);grid-template-areas:"rank av who" "tags tags go";gap:10px 12px;padding-right:12px}
-    .main{--rankw:44px;--av:44px}
-    .t1 .main{--rankw:56px;--av:60px}
-    .t2 .main,.t3 .main{--rankw:50px;--av:52px}
-    .rank{font-size:24px}.t1 .rank{font-size:40px}.t2 .rank,.t3 .rank{font-size:30px}
-    .nm{font-size:20px}.t1 .nm{font-size:26px}.t2 .nm,.t3 .nm{font-size:22px}
-    .tags{justify-content:flex-start}
-    .go{align-self:center}
-    .more{width:100%}
-    .controls{flex-wrap:wrap}
-    dialog{width:100%;border-left:0}
-  }
-</style>
-</head>
-<body>
-<a class="skip" href="#list">Skip to the list</a>
+    <script src="data.js"></script>
+    <script>
+      (function () {
+        "use strict";
 
-<header class="top"><div class="wrap bar">
-  <a class="brand" id="brand" href="#/list/main">Roblox Funk Editors</a>
-  <a class="btn" id="cta" href="#" hidden><span class="long">Suggest a rank change</span><span class="short">DM me</span></a>
-</div></header>
+        var $ = function (s, r) {
+          return (r || document).querySelector(s);
+        };
+        var esc = function (s) {
+          return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+            return {
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[c];
+          });
+        };
 
-<main class="wrap" id="app" aria-live="polite"></main>
+        var contributors = [
+          {
+            name: "Shaun",
+            contribution: "Created and maintains the website.",
+          },
+          {
+            name: "Bluff",
+            contribution: "Helped with ideas and site features.",
+          },
+          {
+            name: "Balloon",
+            contribution: "Helped with the website design.",
+          },
+        ];
 
-<footer class="foot"><div class="wrap">
-  <p id="footNote"></p>
-  <p id="footCta"></p>
-</div></footer>
+        $("#contributors").innerHTML = contributors
+          .map(function (person) {
+            var content =
+              '<span class="person"><span class="person-name">' +
+              esc(person.name) +
+              '</span><span class="contribution">' +
+              esc(person.contribution) +
+              "</span></span>";
 
-<dialog id="drawer" aria-labelledby="dName"></dialog>
+            return person.url
+              ? '<a class="contributor" href="' +
+                  esc(person.url) +
+                  '" target="_blank" rel="noopener noreferrer">' +
+                  content +
+                  "</a>"
+              : '<div class="contributor">' + content + "</div>";
+          })
+          .join("");
 
-<script src="data.js"></script>
-<script>
-(function () {
-  "use strict";
+        var site = window.SITE_DATA && window.SITE_DATA.site;
+        if (site) {
+          document.title = site.title || "Roblox Funk Editors";
+          var brandImg = $("#brand img");
+          if (brandImg) brandImg.alt = site.title || "Roblox Funk Editors";
 
-  var $ = function (s, r) { return (r || document).querySelector(s); };
-  var esc = function (s) {
-    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  };
-  var safeUrl = function (u) { return /^https?:\/\//i.test(u || "") ? u : ""; };
-  var HEX = /^#[0-9a-f]{3,8}$/i;
-  var LABELS = { youtube: "YouTube", instagram: "Instagram", twitter: "X", discord: "Discord" };
+          var updated = String(site.updated || "").trim();
+          $("#footNote").textContent =
+            "Rankings are one person's opinion." +
+            (updated ? " Last updated " + updated + "." : "");
 
-  var D = null, byId = {}, styleById = {}, key = "main", query = "", hashBound = false;
+          var username = String(site.tiktok || "")
+            .replace(/^@/, "")
+            .trim();
+          var contact = String(site.contact || "").trim();
+          var url = "";
+          var label = "";
 
-  /* ---------- data helpers ---------- */
-  var valid = function (d) { return d && d.site && Array.isArray(d.styles) && Array.isArray(d.editors) && d.lists; };
+          if (/^[A-Za-z0-9._]{1,40}$/.test(username)) {
+            url = "https://www.tiktok.com/@" + username;
+            label = "DM @" + username + " on TikTok";
+          } else if (
+            /^(https?:\/\/|mailto:)/i.test(contact) &&
+            !/example\.com/i.test(contact)
+          ) {
+            url = contact;
+            label = "Get in touch";
+          }
 
-  function members(k) {
-    if (k === "main") {
-      var seen = {};
-      return (D.lists.main || []).filter(function (id) {
-        if (!byId[id] || seen[id]) return false;
-        seen[id] = true; return true;
-      }).map(function (id) { return byId[id]; });
-    }
-    var order = D.lists[k] || [];
-    var pos = function (id) { var i = order.indexOf(id); return i < 0 ? 1e9 : i; };
-    return D.editors.filter(function (e) { return (e.flares || []).indexOf(k) > -1; })
-      .sort(function (a, b) { return pos(a.id) - pos(b.id); });
-  }
-  function rankIn(e, k) {
-    var m = members(k);
-    for (var i = 0; i < m.length; i++) if (m[i].id === e.id) return i + 1;
-    return 0;
-  }
-  function listName(k) { return k === "main" ? "Overall ranking" : styleById[k].name + " ranking"; }
-
-  function ttUser(e) { return String(e.tiktok || "").replace(/^@/, "").trim(); }
-  function ttUrl(e) {
-    var u = ttUser(e);
-    if (/^[A-Za-z0-9._]{1,40}$/.test(u)) return "https://www.tiktok.com/@" + u;
-    return safeUrl((e.links || {}).tiktok);
-  }
-  function shownHandle(e) { return e.handle || (ttUser(e) ? "@" + ttUser(e) : ""); }
-  function ytId(u) {
-    var m = String(u || "").match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([A-Za-z0-9_-]{11})/);
-    return m ? m[1] : "";
-  }
-  function extraLinks(e) {
-    return Object.keys(e.links || {}).filter(function (k) { return k !== "tiktok" && safeUrl(e.links[k]); })
-      .map(function (k) { return { label: LABELS[k] || k, url: e.links[k] }; });
-  }
-  function hasProfile(e) { return !!(String(e.note || "").trim() || ytId(e.video) || extraLinks(e).length); }
-
-  /* ---------- small renderers ---------- */
-  function avatar(e) {
-    var u = safeUrl(e.thumb);
-    return '<span class="av">' + (u
-      ? '<img src="' + esc(u) + '" alt="" loading="lazy" referrerpolicy="no-referrer">'
-      : esc((e.name || "?").trim().charAt(0).toUpperCase())) + "</span>";
-  }
-  function tag(id) {
-    var s = styleById[id]; if (!s) return "";
-    var c = HEX.test(s.color) ? s.color : "#8a93a1";
-    return '<span class="tag"><span class="sw" style="background:' + c + '"></span>' + esc(s.name) + "</span>";
-  }
-
-  /* ---------- header and footer, built from site settings ---------- */
-  function setupChrome() {
-    var site = D.site || {};
-    document.title = site.title || "Roblox Funk Editors";
-    $("#brand").textContent = site.title || "Roblox Funk Editors";
-
-    var me = String(site.tiktok || "").replace(/^@/, "").trim();
-    var url = "", external = false, who = "";
-    if (/^[A-Za-z0-9._]{1,40}$/.test(me)) { url = "https://www.tiktok.com/@" + me; external = true; who = "@" + me; }
-    else {
-      var c = String(site.contact || "");
-      if (/^(https?:\/\/|mailto:)/i.test(c) && !/example\.com/i.test(c)) url = c;
-    }
-    var cta = $("#cta");
-    if (url) {
-      cta.href = url; cta.hidden = false;
-      if (external) { cta.target = "_blank"; cta.rel = "noopener noreferrer"; }
-      $("#footCta").innerHTML = external
-        ? 'Disagree with a placement? <a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">DM ' + esc(who) + " on TikTok</a>."
-        : 'Disagree with a placement? <a href="' + esc(url) + '">Get in touch</a>.';
-    } else { cta.hidden = true; $("#footCta").textContent = ""; }
-
-    $("#footNote").textContent = "Rankings are one person's opinion." + (site.updated ? " Last updated " + site.updated + "." : "");
-  }
-
-  /* ---------- pages ---------- */
-  function tabsHtml(active) {
-    var all = [{ k: "main", n: "Overall", c: members("main").length }].concat(D.styles.map(function (s) {
-      return { k: s.id, n: s.name, c: members(s.id).length };
-    }));
-    return '<nav class="tabs" aria-label="Rankings">' + all.map(function (t) {
-      return '<a class="tab" href="#/list/' + esc(t.k) + '"' + (t.k === active ? ' aria-current="page"' : "") + ">" +
-        esc(t.n) + ' <span class="n">' + t.c + "</span></a>";
-    }).join("") + "</nav>";
-  }
-
-  function rowHtml(e, rank) {
-    var tier = rank <= 3 ? "t" + rank : "";
-    var tt = ttUrl(e), prof = hasProfile(e);
-    var inner =
-      '<span class="rank">#' + rank + "</span>" + avatar(e) +
-      '<span class="who"><span class="nm">' + esc(e.name) + '</span><span class="hd">' + esc(shownHandle(e)) + "</span></span>" +
-      '<span class="tags">' + (e.flares || []).map(tag).join("") + "</span>" +
-      (tt ? '<span class="go">TikTok<span class="sr"> (opens in a new tab)</span></span>' : (prof ? '<span class="go">Profile</span>' : ""));
-    var main;
-    if (tt) main = '<a class="main" href="' + esc(tt) + '" target="_blank" rel="noopener noreferrer">' + inner + "</a>";
-    else if (prof) main = '<button type="button" class="main" data-profile="' + esc(e.id) + '">' + inner + "</button>";
-    else main = '<div class="main">' + inner + "</div>";
-    var more = (tt && prof) ? '<button type="button" class="more" data-profile="' + esc(e.id) + '">Profile<span class="sr"> of ' + esc(e.name) + "</span></button>" : "";
-    return '<li class="row ' + tier + '">' + main + more + "</li>";
-  }
-
-  function renderList() {
-    var s = key === "main" ? null : styleById[key];
-    $("#app").innerHTML =
-      '<section class="hero"><h1>' + esc(listName(key)) + "</h1>" +
-      '<p class="sub">' + (s ? "Editors tagged " + esc(s.name) + ", ranked within this style." : esc(D.site.subtitle || "")) + "</p></section>" +
-      tabsHtml(key) +
-      '<div class="controls"><label class="sr" for="q">Search editors</label>' +
-      '<input id="q" type="search" placeholder="Search by name or handle" autocomplete="off" value="' + esc(query) + '">' +
-      '<p class="count" id="count" role="status"></p></div>' +
-      '<ol class="list" id="list" tabindex="-1"></ol>';
-    document.title = listName(key) + " | " + (D.site.title || "Roblox Funk Editors");
-
-    var draw = function () {
-      var all = members(key), q = query.trim().toLowerCase();
-      var rows = all.map(function (e, i) { return { e: e, rank: i + 1 }; }).filter(function (r) {
-        return !q || (r.e.name + " " + shownHandle(r.e)).toLowerCase().indexOf(q) > -1;
-      });
-      $("#count").textContent = all.length ? (q ? rows.length + " of " + all.length + " shown" : all.length + (all.length === 1 ? " editor" : " editors")) : "";
-      $("#list").innerHTML = rows.length ? rows.map(function (r) { return rowHtml(r.e, r.rank); }).join("")
-        : '<li class="empty">' + (all.length ? "No editors match that search." : (s ? "No editors are tagged " + esc(s.name) + " yet." : "No editors have been ranked yet.")) + "</li>";
-    };
-    $("#q").addEventListener("input", function (ev) { query = ev.target.value; draw(); });
-    draw();
-  }
-
-  function showLoading() {
-    var rows = "";
-    for (var i = 0; i < 6; i++) rows += '<li class="row sk"><div class="main"><span class="rank"></span><span class="av"></span><span class="who"><span class="bar1"></span><span class="bar2"></span></span></div></li>';
-    $("#app").innerHTML = '<section class="hero"><h1>Loading</h1><p class="sub">Getting the latest ranking.</p></section><ol class="list" aria-busy="true" style="margin-top:24px">' + rows + "</ol>";
-  }
-  function showError() {
-    $("#app").innerHTML = '<div class="state"><h2>The list did not load</h2><p>The ranking could not be fetched. Check your connection, then try again.</p><button type="button" class="btn" id="retry">Try again</button></div>';
-    $("#retry").addEventListener("click", init);
-  }
-
-  /* ---------- profile drawer ---------- */
-  function openProfile(id) {
-    var e = byId[id], dlg = $("#drawer"); if (!e) return;
-    var ranks = ["main"].concat(D.styles.map(function (s) { return s.id; })).map(function (k) { return { k: k, r: rankIn(e, k) }; })
-      .filter(function (x) { return x.r > 0; });
-    var tt = ttUrl(e), vid = ytId(e.video), links = extraLinks(e), note = String(e.note || "").trim();
-    var ext = (tt ? '<a class="primary" href="' + esc(tt) + '" target="_blank" rel="noopener noreferrer">TikTok page<span class="sr"> (opens in a new tab)</span></a>' : "") +
-      links.map(function (l) { return '<a href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(l.label) + '<span class="sr"> (opens in a new tab)</span></a>'; }).join("");
-    dlg.innerHTML =
-      '<div class="d"><div class="d-head">' + avatar(e) +
-      '<div class="t"><h2 id="dName">' + esc(e.name) + '</h2><div class="hd">' + esc(shownHandle(e)) + "</div>" +
-      '<div class="flares">' + (e.flares || []).map(tag).join("") + "</div></div>" +
-      '<button type="button" class="x" data-close>Close</button></div>' +
-      '<div class="d-body">' +
-      (ranks.length ? '<section><h3>Placements</h3><ul class="pl">' + ranks.map(function (x) {
-        return '<li><a href="#/list/' + esc(x.k) + '" data-nav><span>' + esc(listName(x.k)) + "</span><b>#" + x.r + "</b></a></li>";
-      }).join("") + "</ul></section>" : "") +
-      (note ? '<section><h3>About</h3><p class="note">' + esc(note) + "</p></section>" : "") +
-      (vid ? '<section><h3>Showcase</h3><div class="vid"><iframe src="https://www.youtube-nocookie.com/embed/' + esc(vid) + '" title="Showcase edit by ' + esc(e.name) + '" allowfullscreen loading="lazy"></iframe></div></section>' : "") +
-      (ext ? '<section><h3>Links</h3><div class="ext">' + ext + "</div></section>" : "") +
-      "</div></div>";
-    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
-    document.body.classList.add("lock");
-    var first = $("[data-close]", dlg); if (first) first.focus();
-  }
-  function closeProfile() {
-    var dlg = $("#drawer");
-    if (dlg.close) dlg.close(); else dlg.removeAttribute("open");
-    document.body.classList.remove("lock");
-  }
-
-  /* ---------- routing and boot ---------- */
-  function route() {
-    var h = location.hash.replace(/^#\/?/, "").split("/");
-    key = (h[0] === "list" && (h[1] === "main" || styleById[h[1]])) ? h[1] : "main";
-    renderList();
-  }
-
-  // Live site: the list you saved in /admin. First run (nothing saved yet) or opened from a
-  // folder: data.js. Any other failure is shown as an error, never as placeholder names.
-  async function loadData() {
-    if (!/^https?:$/.test(location.protocol)) return window.SITE_DATA;
-    var r = await fetch("/api/data", { cache: "no-store" });
-    if (r.status === 404) return window.SITE_DATA;
-    if (!r.ok) throw new Error("status " + r.status);
-    var j = await r.json();
-    if (!valid(j)) throw new Error("bad data");
-    return j;
-  }
-
-  async function init() {
-    showLoading();
-    try { D = await loadData(); if (!valid(D)) throw new Error("bad data"); }
-    catch (err) { showError(); return; }
-    byId = {}; D.editors.forEach(function (e) { byId[e.id] = e; });
-    styleById = {}; D.styles.forEach(function (s) { styleById[s.id] = s; });
-    setupChrome();
-    route();
-    if (!hashBound) { window.addEventListener("hashchange", function () { if (D) route(); }); hashBound = true; }
-  }
-
-  document.addEventListener("click", function (ev) {
-    var p = ev.target.closest && ev.target.closest("[data-profile]");
-    if (p) { openProfile(p.getAttribute("data-profile")); }
-  });
-  var dlg = $("#drawer");
-  dlg.addEventListener("click", function (ev) {
-    if (ev.target === dlg || (ev.target.closest && ev.target.closest("[data-close]")) || (ev.target.closest && ev.target.closest("[data-nav]"))) closeProfile();
-  });
-  dlg.addEventListener("close", function () { document.body.classList.remove("lock"); });
-
-  init();
-})();
-</script>
-</body>
+          if (url) {
+            var link = document.createElement("a");
+            link.href = url;
+            link.textContent = label;
+            if (/^https?:\/\//i.test(url)) {
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+            }
+            var cta = $("#footCta");
+            if (cta) {
+              cta.append("Disagree with a placement? ", link, ".");
+            }
+          }
+        }
+      })();
+    </script>
+  </body>
 </html>
