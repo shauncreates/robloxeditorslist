@@ -5,7 +5,7 @@
    ===================================================================== */
 window.SITE_DATA = {
   "site": {
-    "title": "Roblox Funk Editors",
+    "title": "Roblox Editors",
     "subtitle": "The ranked list of the best funk edit creators in the Roblox scene.",
     "updated": "Oct 2026",
     "tiktok": "",
