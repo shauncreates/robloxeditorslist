@@ -233,7 +233,7 @@ function vRank(){
 }
 
 function vApplications(){
-  return \`<div class="inline"><div><h2>Editor applications</h2><p class="hint" style="margin:5px 0 0">Review submissions here without changing public rankings.</p></div><button data-act="refreshApplications">Refresh applications</button><select id="applicationFilter" aria-label="Filter applications" style="max-width:190px"><option value="all">All statuses</option><option value="pending">Pending review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div><p id="applicationNotice" class="hint">Loading applications…</p><div id="applicationList"></div>\`;
+  return `<div class="inline"><div><h2>Editor applications</h2><p class="hint" style="margin:5px 0 0">Review submissions here without changing public rankings.</p></div><button data-act="refreshApplications">Refresh applications</button><select id="applicationFilter" aria-label="Filter applications" style="max-width:190px"><option value="all">All statuses</option><option value="pending">Pending review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div><p id="applicationNotice" class="hint">Loading applications…</p><div id="applicationList"></div>`;
 }
 let applicationsCache = [];
 async function loadApplications(){
@@ -254,21 +254,21 @@ function renderApplications(){
   list.innerHTML = shown.map(a => {
     const status = ["pending","approved","rejected"].includes(a.status) ? a.status : "pending";
     const date = a.created_at ? new Date(a.created_at).toLocaleString() : "Unknown date";
-    return \`<article class="app-card">
-      <div class="inline" style="justify-content:space-between;margin:0"><div><h3>\${esc(a.display_name)}</h3><p class="hint" style="margin:4px 0 0">Submitted \${esc(date)}</p></div><span class="app-status \${status}">\${status}</span></div>
+    return `<article class="app-card">
+      <div class="inline" style="justify-content:space-between;margin:0"><div><h3>${esc(a.display_name)}</h3><p class="hint" style="margin:4px 0 0">Submitted ${esc(date)}</p></div><span class="app-status ${status}">${status}</span></div>
       <div class="app-grid">
-        <div class="app-detail"><strong>Main account · \${esc(a.platform)}</strong><a href="\${esc(a.profile_url)}" target="_blank" rel="noopener noreferrer">Open profile ↗</a></div>
-        <div class="app-detail"><strong>Editing software</strong><span>\${esc(a.software)}</span></div>
-        <div class="app-detail"><strong>Editing styles</strong><span>\${esc(Array.isArray(a.styles)?a.styles.join(", "):"")}</span></div>
-        <div class="app-detail"><strong>Editing examples</strong><a href="\${esc(a.examples_url)}" target="_blank" rel="noopener noreferrer">View examples ↗</a></div>
-        \${a.notes ? \`<div class="app-detail" style="grid-column:1/-1"><strong>Additional notes</strong><span>\${esc(a.notes)}</span></div>\` : ""}
+        <div class="app-detail"><strong>Main account · ${esc(a.platform)}</strong><a href="${esc(a.profile_url)}" target="_blank" rel="noopener noreferrer">Open profile ↗</a></div>
+        <div class="app-detail"><strong>Editing software</strong><span>${esc(a.software)}</span></div>
+        <div class="app-detail"><strong>Editing styles</strong><span>${esc(Array.isArray(a.styles)?a.styles.join(", "):"")}</span></div>
+        <div class="app-detail"><strong>Editing examples</strong><a href="${esc(a.examples_url)}" target="_blank" rel="noopener noreferrer">View examples ↗</a></div>
+        ${a.notes ? `<div class="app-detail" style="grid-column:1/-1"><strong>Additional notes</strong><span>${esc(a.notes)}</span></div>` : ""}
       </div>
       <div class="app-actions">
-        \${status !== "approved" ? \`<button class="approve" data-act="applicationStatus" data-id="\${esc(a.id)}" data-status="approved">✓ Approve</button>\` : ""}
-        \${status !== "rejected" ? \`<button class="reject" data-act="applicationStatus" data-id="\${esc(a.id)}" data-status="rejected">✕ Reject</button>\` : ""}
-        \${status !== "pending" ? \`<button data-act="applicationStatus" data-id="\${esc(a.id)}" data-status="pending">Return to pending</button>\` : ""}
+        ${status !== "approved" ? `<button class="approve" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="approved">✓ Approve</button>` : ""}
+        ${status !== "rejected" ? `<button class="reject" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="rejected">✕ Reject</button>` : ""}
+        ${status !== "pending" ? `<button data-act="applicationStatus" data-id="${esc(a.id)}" data-status="pending">Return to pending</button>` : ""}
       </div>
-    </article>\`;
+    </article>`;
   }).join("");
 }
 
