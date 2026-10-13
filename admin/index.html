@@ -79,6 +79,10 @@
 
 <script src="../data.js"></script>
 <script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script>
 const KEY = "robloxeditors_admin_draft_v1";
 const clone = o => JSON.parse(JSON.stringify(o));
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
