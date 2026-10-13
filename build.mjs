@@ -1,4 +1,4 @@
-import { cp, mkdir, rm } from "node:fs/promises";
+import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 
 const output = new URL("./dist/", import.meta.url);
 await rm(output, { recursive: true, force: true });
@@ -9,5 +9,12 @@ for (const path of ["index.html", "data.js", "list", "admin", "media"]) {
     recursive: true,
   });
 }
+
+// Only API requests should invoke Pages Functions. Static pages, images and scripts
+// remain static requests and do not consume the Functions request allowance.
+await writeFile(
+  new URL("./dist/_routes.json", import.meta.url),
+  JSON.stringify({ version: 1, include: ["/api/*"], exclude: [] }, null, 2) + "\n",
+);
 
 console.log("Static site copied to dist/ for Cloudflare Pages.");
