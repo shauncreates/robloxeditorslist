@@ -80,8 +80,12 @@
           ? "Showing the 100 most recent applications."
           : applications.length + " application(s) loaded.";
       } catch (error) {
-        notice.className = "error";
-        notice.textContent = error.message;
+        if (app.classList.contains("hidden")) {
+          loginError.textContent = error.message;
+        } else {
+          notice.className = "error";
+          notice.textContent = error.message;
+        }
       }
     }
 
