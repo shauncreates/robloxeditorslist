@@ -3,14 +3,10 @@ import { json, supabaseRequest } from "../_lib.js";
 const MAX_BODY = 16000;
 const allowedPlatforms = new Set(["TikTok", "YouTube"]);
 const allowedStyles = new Set([
+  "Modern Hypic",
+  "Block Glitch",
+  "Transition/3D",
   "Velocity",
-  "Montages",
-  "AMVs",
-  "Motion graphics",
-  "3D edits",
-  "Short-form edits",
-  "Transitions",
-  "Other",
 ]);
 
 function safeHttpsUrl(value) {
@@ -66,8 +62,12 @@ export async function onRequestPost({ request, env }) {
   if (software.length < 2 || software.length > 120) {
     return json({ error: "Tell us which editing software you use (2–120 characters)." }, 400);
   }
-  if (!styles.length || styles.length > 8 || !styles.every((style) => allowedStyles.has(style))) {
-    return json({ error: "Choose between 1 and 8 editing styles." }, 400);
+  const validStyles = styles.length > 0 && styles.length <= 5 && styles.every((style) =>
+    typeof style === "string" &&
+    (allowedStyles.has(style) || (/^Other: .{1,80}$/.test(style) && style.slice(7).trim().length > 0))
+  );
+  if (!validStyles) {
+    return json({ error: "Choose at least one listed style, and enter a name for any other style." }, 400);
   }
   if (!safeHttpsUrl(examplesUrl)) {
     return json({ error: "Your examples link must be a valid HTTPS URL." }, 400);
