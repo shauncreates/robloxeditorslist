@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Apply to be considered for the Roblox Editors community list.">
+  <meta name="theme-color" content="#050706">
+  <title>Apply — Roblox Editors</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Red+Hat+Text:wght@400;500;600;700;800&display=swap");
+    :root{color-scheme:dark;--bg:#050706;--panel:#0b100c;--line:#202a22;--text:#eef5ef;--muted:#98a79b;--accent:#7af500;--ink:#061109}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 "Red Hat Text",system-ui,sans-serif}
+    a{color:var(--accent)}.wrap{width:min(760px,100%);margin:auto;padding:22px 16px 64px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 0 28px;border-bottom:1px solid var(--line)}
+    header a{font-weight:800;text-decoration:none}.back{color:var(--muted);font-size:14px}
+    .eyebrow{margin:32px 0 8px;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+    h1{font-size:clamp(32px,7vw,48px);line-height:1.08;margin:0 0 12px;letter-spacing:-.03em}
+    .intro{color:var(--muted);margin:0 0 24px;max-width:620px}
+    form,.success{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:clamp(16px,4vw,28px)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.field{margin-bottom:18px}.full{grid-column:1/-1}
+    label,.legend{display:block;font-size:13px;font-weight:700;margin-bottom:7px}
+    input,select,textarea{width:100%;border:1px solid #2b382d;border-radius:9px;background:#060907;color:var(--text);padding:12px;font:inherit;min-height:46px}
+    textarea{min-height:100px;resize:vertical}input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+    .hint{font-size:12px;color:var(--muted);margin:6px 0 0}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .choice{display:flex;gap:9px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-weight:500;margin:0;cursor:pointer}
+    .choice input{width:17px;height:17px;min-height:0;accent-color:var(--accent)}
+    .consent{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:13px}.consent input{width:17px;height:17px;min-height:0;margin-top:3px;accent-color:var(--accent)}
+    button{width:100%;min-height:48px;border:0;border-radius:9px;background:var(--accent);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
+    button:disabled{opacity:.6;cursor:wait}.message{display:none;margin:0 0 16px;padding:12px;border-radius:9px;font-size:14px}.message.error{display:block;background:#3a1111;border:1px solid #6e2828;color:#ffd1d1}.message.ok{display:block;background:#10240a;border:1px solid #345c1b;color:#d8ffc2}
+    .trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}.fine{font-size:12px;color:var(--muted);margin-top:14px}
+    @media(max-width:560px){.grid{grid-template-columns:1fr}.choices{grid-template-columns:1fr 1fr}header{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header><a href="/">ROBLOX EDITORS</a><a class="back" href="/">← Back to the list</a></header>
+    <p class="eyebrow">Join the community</p>
+    <h1>Apply to be listed.</h1>
+    <p class="intro">Tell us about your editing account and share some of your work. Every application is reviewed manually. Applying or being approved does not automatically add you to the rankings.</p>
+    <form id="applicationForm">
+      <div id="message" class="message" role="status" aria-live="polite"></div>
+      <div class="trap" aria-hidden="true"><label for="website">Leave this field empty</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+      <div class="grid">
+        <div class="field full"><label for="displayName">Editor / display name *</label><input id="displayName" name="displayName" required minlength="2" maxlength="50" autocomplete="nickname" placeholder="The name people know you by"></div>
+        <div class="field"><label for="platform">Main platform *</label><select id="platform" name="platform" required><option value="">Choose one</option><option>TikTok</option><option>YouTube</option></select></div>
+        <div class="field"><label for="profileUrl">Profile link *</label><input id="profileUrl" name="profileUrl" type="url" required placeholder="https://..." autocomplete="url"><p class="hint">Use the full HTTPS link to your TikTok or YouTube profile.</p></div>
+        <div class="field full"><label for="software">Editing software *</label><input id="software" name="software" required minlength="2" maxlength="120" placeholder="e.g. After Effects, CapCut, Premiere Pro"></div>
+        <fieldset class="field full" style="border:0;padding:0;margin-left:0;margin-right:0"><legend class="legend">What styles do you edit? * <span class="hint">(Choose at least one)</span></legend><div class="choices">
+          <label class="choice"><input type="checkbox" name="styles" value="Velocity">Velocity</label>
+          <label class="choice"><input type="checkbox" name="styles" value="Montages">Montages</label>
+          <label class="choice"><input type="checkbox" name="styles" value="AMVs">AMVs</label>
+          <label class="choice"><input type="checkbox" name="styles" value="Motion graphics">Motion graphics</label>
+          <label class="choice"><input type="checkbox" name="styles" value="3D edits">3D edits</label>
+          <label class="choice"><input type="checkbox" name="styles" value="Short-form edits">Short-form edits</label>
+          <label class="choice"><input type="checkbox" name="styles" value="Transitions">Transitions</label>
+          <label class="choice"><input type="checkbox" name="styles" value="Other">Other</label>
+        </div></fieldset>
+        <div class="field full"><label for="examplesUrl">Link to editing examples *</label><input id="examplesUrl" name="examplesUrl" type="url" required placeholder="https://..."><p class="hint">A public playlist, showreel, or folder that reviewers can open.</p></div>
+        <div class="field full"><label for="notes">Anything else we should know? (optional)</label><textarea id="notes" name="notes" maxlength="1000" placeholder="A little about your experience or what makes your edits yours."></textarea></div>
+      </div>
+      <label class="consent"><input id="consent" type="checkbox" required><span>I confirm these links are mine or that I have permission to share them, and I understand my application will be reviewed manually.</span></label>
+      <p style="margin:18px 0 0"><button id="submitButton" type="submit">Submit application</button></p>
+      <p class="fine">Your submission is private to the site administrators and is not displayed publicly.</p>
+    </form>
+  </main>
+  <script>
+    const form = document.querySelector("#applicationForm");
+    const message = document.querySelector("#message");
+    const button = document.querySelector("#submitButton");
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const selected = [...form.querySelectorAll('input[name="styles"]:checked')].map((input) => input.value);
+      if (!selected.length) {
+        message.className = "message error";
+        message.textContent = "Choose at least one editing style.";
+        return;
+      }
+      if (selected.length > 8) {
+        message.className = "message error";
+        message.textContent = "Choose no more than eight editing styles.";
+        return;
+      }
+      const payload = {
+        displayName: form.displayName.value.trim(),
+        platform: form.platform.value,
+        profileUrl: form.profileUrl.value.trim(),
+        software: form.software.value.trim(),
+        styles: selected,
+        examplesUrl: form.examplesUrl.value.trim(),
+        notes: form.notes.value.trim(),
+        website: form.website.value
+      };
+      button.disabled = true;
+      button.textContent = "Submitting…";
+      message.className = "message";
+      try {
+        const response = await fetch("/api/applications", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || "We couldn't submit your application.");
+        form.reset();
+        message.className = "message ok";
+        message.textContent = "Application received! The team will review it manually.";
+      } catch (error) {
+        message.className = "message error";
+        message.textContent = error.message || "Something went wrong. Please try again.";
+      } finally {
+        button.disabled = false;
+        button.textContent = "Submit application";
+      }
+    });
+  </script>
+</body>
+</html>
