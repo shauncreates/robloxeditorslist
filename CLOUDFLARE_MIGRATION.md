@@ -31,9 +31,11 @@ The existing Seeshaun Hub Supabase project can be reused if desired; this migrat
 
 ## Data migration
 
-Before switching traffic, open the current Vercel admin page and use **Download data.js** to create a backup. Keep that backup private because it contains your full list data.
+Before switching traffic, open the current Vercel admin page and use **Download data.js** to create a backup of the live list. Keep that backup private because it contains your full list data.
 
-After the Cloudflare Preview deployment is ready, visit its `/admin` page, sign in using the Cloudflare `ADMIN_PASSWORD`, and save the backed-up list through the admin interface. The first save creates the database row.
+On your PC, check out this branch and replace the repository's existing `data.js` with the downloaded backup file. Commit that change to `cloudflare-migration` before deploying the Preview. The admin page uses `data.js` as its fallback until the first database save.
+
+After the Preview is deployed, visit its `/admin` page, sign in using the Cloudflare `ADMIN_PASSWORD`, and click **Save to site**. That first save creates the Supabase database row. Confirm the public pages show your current live rankings before proceeding.
 
 ## Verification checklist
 
