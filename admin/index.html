@@ -4,25 +4,39 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>List Editor (private)</title>
+<title>Admin — Roblox Editors</title>
 <style>
-  :root{--bg:#0c0e12;--panel:#14181f;--panel2:#1a1f28;--line:#262d38;--text:#eef1f6;--muted:#a0aab8;--accent:#ff6f00;--on-accent:#120d06;--ok:#4ade80;--bad:#f87171}
+  :root{--bg:#050706;--panel:#0b100c;--panel2:#111912;--line:#202a22;--text:#eef5ef;--muted:#98a79b;--accent:#7af500;--on-accent:#061109;--ok:#7af500;--bad:#ff7373}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+  @import url("https://fonts.googleapis.com/css2?family=Red+Hat+Text:wght@400;500;600;700;800&display=swap");
+  body{background:var(--bg);color:var(--text);font-family:"Red Hat Text",system-ui,sans-serif;line-height:1.5;min-height:100vh}
   .wrap{max-width:900px;margin:0 auto;padding:0 16px 80px}
   .top{position:sticky;top:0;z-index:5;background:#0a0c12ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
   .top .wrap{display:flex;gap:10px;align-items:center;padding-block:12px;flex-wrap:wrap}
   .top h1{font-size:16px;flex:1;min-width:140px}
   .status{font-size:13px;color:var(--muted)}
   .status.ok{color:var(--ok)} .status.bad{color:var(--bad)} .status.dirty{color:#fbbf24}
-  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
-  button:hover{border-color:var(--accent)}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:9px 14px;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+  button:hover{border-color:var(--accent);transform:translateY(-1px)}
   button:disabled{opacity:.4;cursor:default}
   button.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
   button.bad:hover{border-color:var(--bad);color:var(--bad)}
   button.sm{padding:4px 10px;font-size:13px}
-  .tabs{display:flex;gap:8px;margin:18px 0;flex-wrap:wrap}
+  .tabs{display:flex;gap:7px;margin:22px 0;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px}
+  .tabs button{background:transparent;border-color:transparent;color:var(--muted);border-radius:6px}
   .tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  .eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin:24px 0 7px}
+  .page-title{font-size:clamp(26px,5vw,38px);line-height:1.08;letter-spacing:-.03em;text-transform:uppercase}
+  .page-subtitle{color:var(--muted);margin:9px 0 20px}
+  .rank-list{display:grid;gap:8px}.rrow{transition:transform .22s cubic-bezier(.2,.8,.2,1),border-color .18s ease,background .18s ease}
+  .rrow[draggable="true"]{cursor:grab;touch-action:pan-y}.rrow.dragging{opacity:.42;transform:scale(.985)}.rrow.drop-target{border-color:var(--accent);background:#7af50012}
+  .drag-handle{font-size:18px;color:var(--muted);cursor:grab;user-select:none;letter-spacing:-3px;padding-right:5px}
+  .app-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin:10px 0;animation:rise .22s ease both}
+  .app-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.app-detail{min-width:0}.app-detail strong{display:block;color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase}.app-detail span,.app-detail a{overflow-wrap:anywhere}
+  .app-status{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);padding:4px 8px;border-radius:99px}.app-status.pending{color:#ffd166}.app-status.approved{color:var(--accent)}.app-status.rejected{color:var(--bad)}
+  .app-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.app-actions button{flex:1}.app-actions .approve{border-color:#345c1b;color:var(--accent)}.app-actions .reject{border-color:#663333;color:var(--bad)}
+  .empty-state{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}@keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  @media(max-width:560px){.app-grid{grid-template-columns:1fr}.rrow{flex-wrap:wrap}.rrow .nm{min-width:100px}}
   .msg{background:#4ade8014;border:1px solid #4ade8044;color:#bbf7d0;padding:10px 14px;border-radius:10px;font-size:13.5px;margin-bottom:14px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
   label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.08em}
@@ -63,7 +77,7 @@
 
 <div id="ui" hidden>
   <div class="top"><div class="wrap">
-    <h1>🔒 List editor</h1>
+    <h1><span style="color:var(--accent)">ROBLOX EDITORS</span> / Admin</h1>
     <span class="status" id="status"></span>
     <button id="reset" class="bad">Discard changes</button>
     <button id="dl">Download data.js</button>
@@ -71,6 +85,7 @@
   </div></div>
 
   <div class="wrap">
+    <p class="eyebrow">Control room</p><h2 class="page-title">Manage the list.</h2><p class="page-subtitle">Edit profiles, curate rankings and review community applications.</p>
     <div class="msg" id="banner"></div>
     <div class="tabs" id="tabs"></div>
     <div id="app"></div>
@@ -146,9 +161,10 @@ const slug = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^
 
 /* ---------- views ---------- */
 function view(){
-  $("#tabs").innerHTML = [["editors","Editors"],["styles","Styles / flares"],["rank","Rankings"],["site","Site"]]
+  $("#tabs").innerHTML = [["editors","Editors"],["styles","Styles / flares"],["rank","Rankings"],["applications","Applications"],["site","Site"]]
     .map(([k, n]) => `<button data-act="tab" data-v="${k}" class="${tab === k ? "on" : ""}">${n}</button>`).join("");
-  $("#app").innerHTML = ({ editors: vEditors, styles: vStyles, rank: vRank, site: vSite })[tab]();
+  $("#app").innerHTML = ({ editors: vEditors, styles: vStyles, rank: vRank, applications: vApplications, site: vSite })[tab]();
+  if (tab === "applications") loadApplications();
 }
 
 function vEditors(){
@@ -205,15 +221,55 @@ function vRank(){
   } else {
     html += `<p class="hint">Members come from the flare you tick on each editor. Use the arrows to set their order in this list.</p>`;
   }
-  html += list.map((e, i) => `
-    <div class="rrow">
-      <div class="n">#${i + 1}</div><div class="nm">${esc(e.name)}</div>
+  html += '<div class="rank-list" id="rankList">' + list.map((e, i) => `
+    <div class="rrow" draggable="true" data-rank-id="${esc(e.id)}">
+      <div class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder">⠿</div><div class="n">#${i + 1}</div><div class="nm">${esc(e.name)}</div>
       <button class="sm" data-act="up" data-id="${esc(e.id)}" ${i === 0 ? "disabled" : ""}>↑</button>
       <button class="sm" data-act="down" data-id="${esc(e.id)}" ${i === list.length - 1 ? "disabled" : ""}>↓</button>
       <button class="sm" data-act="top" data-id="${esc(e.id)}" ${i === 0 ? "disabled" : ""}>Top</button>
       ${rk === "main" ? `<button class="sm bad" data-act="rmMain" data-id="${esc(e.id)}">Remove</button>` : ""}
     </div>`).join("") || `<p class="hint">No one in this list yet.</p>`;
   return html;
+}
+
+function vApplications(){
+  return \`<div class="inline"><div><h2>Editor applications</h2><p class="hint" style="margin:5px 0 0">Review submissions here without changing public rankings.</p></div><button data-act="refreshApplications">Refresh applications</button><select id="applicationFilter" aria-label="Filter applications" style="max-width:190px"><option value="all">All statuses</option><option value="pending">Pending review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div><p id="applicationNotice" class="hint">Loading applications…</p><div id="applicationList"></div>\`;
+}
+let applicationsCache = [];
+async function loadApplications(){
+  const notice = $("#applicationNotice"), list = $("#applicationList");
+  if (!notice || !list) return;
+  notice.textContent = "Loading applications…";
+  const {ok,status,j} = await api("/api/applications/admin", {password:PW,action:"list"});
+  if (!ok) { notice.className = "hint status bad"; notice.textContent = status === 401 ? "Session expired. Please log in again." : (j.error || "Could not load applications."); list.innerHTML = ""; return; }
+  applicationsCache = j.applications || [];
+  notice.className = "hint"; notice.textContent = applicationsCache.length + " application(s) loaded.";
+  renderApplications();
+}
+function renderApplications(){
+  const list = $("#applicationList"), filter = $("#applicationFilter");
+  if (!list || !filter) return;
+  const shown = applicationsCache.filter(a => filter.value === "all" || a.status === filter.value);
+  if (!shown.length) { list.innerHTML = '<div class="empty-state">No applications in this view.</div>'; return; }
+  list.innerHTML = shown.map(a => {
+    const status = ["pending","approved","rejected"].includes(a.status) ? a.status : "pending";
+    const date = a.created_at ? new Date(a.created_at).toLocaleString() : "Unknown date";
+    return \`<article class="app-card">
+      <div class="inline" style="justify-content:space-between;margin:0"><div><h3>\${esc(a.display_name)}</h3><p class="hint" style="margin:4px 0 0">Submitted \${esc(date)}</p></div><span class="app-status \${status}">\${status}</span></div>
+      <div class="app-grid">
+        <div class="app-detail"><strong>Main account · \${esc(a.platform)}</strong><a href="\${esc(a.profile_url)}" target="_blank" rel="noopener noreferrer">Open profile ↗</a></div>
+        <div class="app-detail"><strong>Editing software</strong><span>\${esc(a.software)}</span></div>
+        <div class="app-detail"><strong>Editing styles</strong><span>\${esc(Array.isArray(a.styles)?a.styles.join(", "):"")}</span></div>
+        <div class="app-detail"><strong>Editing examples</strong><a href="\${esc(a.examples_url)}" target="_blank" rel="noopener noreferrer">View examples ↗</a></div>
+        \${a.notes ? \`<div class="app-detail" style="grid-column:1/-1"><strong>Additional notes</strong><span>\${esc(a.notes)}</span></div>\` : ""}
+      </div>
+      <div class="app-actions">
+        \${status !== "approved" ? \`<button class="approve" data-act="applicationStatus" data-id="\${esc(a.id)}" data-status="approved">✓ Approve</button>\` : ""}
+        \${status !== "rejected" ? \`<button class="reject" data-act="applicationStatus" data-id="\${esc(a.id)}" data-status="rejected">✕ Reject</button>\` : ""}
+        \${status !== "pending" ? \`<button data-act="applicationStatus" data-id="\${esc(a.id)}" data-status="pending">Return to pending</button>\` : ""}
+      </div>
+    </article>\`;
+  }).join("");
 }
 
 function vSite(){
@@ -243,6 +299,7 @@ document.addEventListener("input", ev => {
 
 document.addEventListener("change", ev => {
   const t = ev.target, k = t.dataset.t;
+  if (t.id === "applicationFilter") { renderApplications(); return; }
   if (k === "flare") {
     const e = S.editors[+t.dataset.i], id = t.dataset.s;
     e.flares = (e.flares || []).filter(x => x !== id);
@@ -251,9 +308,18 @@ document.addEventListener("change", ev => {
   } else if (k === "rk") { rk = t.value; view(); }
 });
 
-document.addEventListener("click", ev => {
+document.addEventListener("click", async ev => {
   const b = ev.target.closest("[data-act]"); if (!b) return;
   const a = b.dataset.act, i = +b.dataset.i, id = b.dataset.id;
+  if (a === "refreshApplications") { await loadApplications(); return; }
+  if (a === "applicationStatus") {
+    b.disabled = true;
+    const {ok,j} = await api("/api/applications/admin", {password:PW,action:"update",id,status:b.dataset.status});
+    if (!ok) { alert(j.error || "Could not update application."); b.disabled = false; return; }
+    const item = applicationsCache.find(x => x.id === id); if (item) item.status = b.dataset.status;
+    renderApplications(); const notice = $("#applicationNotice"); if (notice) notice.textContent = "Application updated.";
+    return;
+  }
   if (a === "tab") { tab = b.dataset.v; return view(); }
   if (a === "addEditor") {
     const e = { id: "e" + Date.now().toString(36), name: "New editor", handle: "", tiktok: "", flares: [], note: "", thumb: "", video: "", links: {} };
@@ -282,6 +348,31 @@ document.addEventListener("click", ev => {
   if (a === "addMain") { const v = $("#addSel").value; if (v) (S.lists.main ||= []).push(v); }
   if (a === "rmMain") S.lists.main = (S.lists.main || []).filter(x => x !== id);
   save(); view();
+});
+
+
+let draggedRankId = null;
+document.addEventListener("dragstart", ev => {
+  const row = ev.target.closest(".rrow[data-rank-id]"); if (!row) return;
+  draggedRankId = row.dataset.rankId; row.classList.add("dragging");
+  if (ev.dataTransfer) { ev.dataTransfer.effectAllowed = "move"; ev.dataTransfer.setData("text/plain", draggedRankId); }
+});
+document.addEventListener("dragover", ev => {
+  const row = ev.target.closest(".rrow[data-rank-id]");
+  if (!row || !draggedRankId || row.dataset.rankId === draggedRankId) return;
+  ev.preventDefault(); document.querySelectorAll(".rrow.drop-target").forEach(x => x.classList.remove("drop-target")); row.classList.add("drop-target");
+});
+document.addEventListener("drop", ev => {
+  const target = ev.target.closest(".rrow[data-rank-id]");
+  if (!target || !draggedRankId || target.dataset.rankId === draggedRankId) return;
+  ev.preventDefault(); const ids = members(rk).map(e => e.id);
+  const from = ids.indexOf(draggedRankId), to = ids.indexOf(target.dataset.rankId);
+  if (from < 0 || to < 0) return;
+  ids.splice(from,1); ids.splice(to,0,draggedRankId); S.lists[rk] = ids; save(); view();
+});
+document.addEventListener("dragend", () => {
+  draggedRankId = null;
+  document.querySelectorAll(".rrow.dragging,.rrow.drop-target").forEach(x => x.classList.remove("dragging","drop-target"));
 });
 
 /* ---------- TikTok profile pictures ---------- */
