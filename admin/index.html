@@ -368,7 +368,14 @@ document.addEventListener("drop", ev => {
   ev.preventDefault(); const ids = members(rk).map(e => e.id);
   const from = ids.indexOf(draggedRankId), to = ids.indexOf(target.dataset.rankId);
   if (from < 0 || to < 0) return;
+  const before = new Map([...document.querySelectorAll(".rrow[data-rank-id]")].map(row => [row.dataset.rankId, row.getBoundingClientRect()]));
   ids.splice(from,1); ids.splice(to,0,draggedRankId); S.lists[rk] = ids; save(); view();
+  for (const row of document.querySelectorAll(".rrow[data-rank-id]")) {
+    const prior = before.get(row.dataset.rankId); if (!prior || !row.animate) continue;
+    const next = row.getBoundingClientRect();
+    const dx = prior.left - next.left, dy = prior.top - next.top;
+    if (dx || dy) row.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: "translate(0,0)" }], { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" });
+  }
 });
 document.addEventListener("dragend", () => {
   draggedRankId = null;
