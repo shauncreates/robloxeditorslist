@@ -46,14 +46,12 @@
         <div class="field"><label for="profileUrl">Profile link *</label><input id="profileUrl" name="profileUrl" type="url" required placeholder="https://..." autocomplete="url"><p class="hint">Use the full HTTPS link to your TikTok or YouTube profile.</p></div>
         <div class="field full"><label for="software">Editing software *</label><input id="software" name="software" required minlength="2" maxlength="120" placeholder="e.g. After Effects, CapCut, Premiere Pro"></div>
         <fieldset class="field full" style="border:0;padding:0;margin-left:0;margin-right:0"><legend class="legend">What styles do you edit? * <span class="hint">(Choose at least one)</span></legend><div class="choices">
+          <label class="choice"><input type="checkbox" name="styles" value="Modern Hypic">Modern Hypic</label>
+          <label class="choice"><input type="checkbox" name="styles" value="Block Glitch">Block Glitch</label>
+          <label class="choice"><input type="checkbox" name="styles" value="Transition/3D">Transition/3D</label>
           <label class="choice"><input type="checkbox" name="styles" value="Velocity">Velocity</label>
-          <label class="choice"><input type="checkbox" name="styles" value="Montages">Montages</label>
-          <label class="choice"><input type="checkbox" name="styles" value="AMVs">AMVs</label>
-          <label class="choice"><input type="checkbox" name="styles" value="Motion graphics">Motion graphics</label>
-          <label class="choice"><input type="checkbox" name="styles" value="3D edits">3D edits</label>
-          <label class="choice"><input type="checkbox" name="styles" value="Short-form edits">Short-form edits</label>
-          <label class="choice"><input type="checkbox" name="styles" value="Transitions">Transitions</label>
-          <label class="choice"><input type="checkbox" name="styles" value="Other">Other</label>
+          <label class="choice"><input id="otherStyleCheckbox" type="checkbox" name="styles" value="Other">Other</label>
+        </div><div id="otherStyleField" class="field" hidden style="margin:10px 0 0"><label for="otherStyle">What other style do you edit? *</label><input id="otherStyle" name="otherStyle" maxlength="80" placeholder="Describe your editing style"><p class="hint">Only fill this in if your style isn't listed above.</p></div>
         </div></fieldset>
         <div class="field full"><label for="examplesUrl">Link to editing examples *</label><input id="examplesUrl" name="examplesUrl" type="url" required placeholder="https://..."><p class="hint">A public playlist, showreel, or folder that reviewers can open.</p></div>
         <div class="field full"><label for="notes">Anything else we should know? (optional)</label><textarea id="notes" name="notes" maxlength="1000" placeholder="A little about your experience or what makes your edits yours."></textarea></div>
@@ -67,17 +65,33 @@
     const form = document.querySelector("#applicationForm");
     const message = document.querySelector("#message");
     const button = document.querySelector("#submitButton");
+    const otherCheckbox = document.querySelector("#otherStyleCheckbox");
+    const otherField = document.querySelector("#otherStyleField");
+    const otherInput = document.querySelector("#otherStyle");
+    function syncOtherStyle() {
+      otherField.hidden = !otherCheckbox.checked;
+      otherInput.required = otherCheckbox.checked;
+      if (!otherCheckbox.checked) otherInput.value = "";
+    }
+    otherCheckbox.addEventListener("change", syncOtherStyle);
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const selected = [...form.querySelectorAll('input[name="styles"]:checked')].map((input) => input.value);
+      const otherStyle = otherInput.value.trim();
       if (!selected.length) {
         message.className = "message error";
         message.textContent = "Choose at least one editing style.";
         return;
       }
-      if (selected.length > 8) {
+      if (otherCheckbox.checked && !otherStyle) {
         message.className = "message error";
-        message.textContent = "Choose no more than eight editing styles.";
+        message.textContent = "Please enter your other editing style.";
+        otherInput.focus();
+        return;
+      }
+      if (otherStyle.length > 80) {
+        message.className = "message error";
+        message.textContent = "Your other style must be 80 characters or fewer.";
         return;
       }
       const payload = {
@@ -85,7 +99,7 @@
         platform: form.platform.value,
         profileUrl: form.profileUrl.value.trim(),
         software: form.software.value.trim(),
-        styles: selected,
+        styles: selected.map((style) => style === "Other" ? "Other: " + otherStyle : style),
         examplesUrl: form.examplesUrl.value.trim(),
         notes: form.notes.value.trim(),
         website: form.website.value
