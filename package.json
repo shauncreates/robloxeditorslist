@@ -2,8 +2,7 @@
   "name": "robloxeditors",
   "private": true,
   "type": "module",
-  "dependencies": {
-    "@vercel/analytics": "^2.0.1",
-    "@vercel/blob": "latest"
+  "scripts": {
+    "build": "node build.mjs"
   }
 }
