@@ -8,7 +8,7 @@ Cloudflare project `robloxeditorslist` deploys from `main` only, with feature-br
 
 Both `robloxeditors.com` and `www.robloxeditors.com` are attached to Pages. Their web CNAMEs point to `robloxeditorslist.pages.dev`; a Cloudflare redirect sends www requests to the primary HTTPS domain with the path/query preserved. The old www CNAME pointed at Vercel and caused the paused/HTTP 402 page. Vercel hosting configuration and analytics scripts are removed. Existing Blob image URLs remain because editor pictures still depend on those files.
 
-Production already has `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `NODE_VERSION=24`. Keep the service-role key secret. The shared-password authentication has been removed from this source. Remove its obsolete deployment secret after the new source is live.
+Production has `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `NODE_VERSION=24`. Keep the service-role key secret. Supabase Auth is live; shared-password source and the obsolete `ADMIN_PASSWORD` deployment setting have been removed.
 
 Before switching existing traffic, back up and verify authoritative live rankings. Do not replace `data.js`, initialize the live database from placeholders, overwrite the saved rankings or delete the former Vercel/Blob data as part of setup. The new admin blocks saving when live data is unavailable, and writes require a valid revision against an existing database row.
 
