@@ -25,6 +25,7 @@ export async function onRequest({ request, env, next }) {
     const upstream = await next();
     const response = new Response(upstream.body, upstream);
     response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
     return cookies(response);
   } catch (error) {
     if (error instanceof HttpError && error.status === 401) {

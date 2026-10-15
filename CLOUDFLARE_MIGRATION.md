@@ -4,7 +4,9 @@ The site uses Cloudflare Pages Functions and Supabase Auth/Postgres/Storage. Bui
 
 See [DEPLOY_AND_TEST.md](DEPLOY_AND_TEST.md) for the current setup and rollout steps. The approved C428 import and Auth/roles migration were applied on 14 October 2026. The saved ranking JSON was verified unchanged by the migration; do not rerun it on the live project.
 
-Cloudflare project `robloxeditorslist` now deploys from `main` only, with feature-branch previews disabled. The implementation remains locally on `feat/applications-stage-1` and has not been merged/pushed/deployed. Pushing to main will trigger a production deployment.
+Cloudflare project `robloxeditorslist` deploys from `main` only, with feature-branch previews disabled. On 15 October 2026 the user authorized merging the tested feature branch into main and deploying the new account/application system. Pushing to main triggers the production deployment; see `PROGRESS.md` for verification and the current release status.
+
+Both `robloxeditors.com` and `www.robloxeditors.com` are attached to Pages. Their web CNAMEs point to `robloxeditorslist.pages.dev`; a Cloudflare redirect sends www requests to the primary HTTPS domain with the path/query preserved. The old www CNAME pointed at Vercel and caused the paused/HTTP 402 page. Vercel hosting configuration and analytics scripts are removed. Existing Blob image URLs remain because editor pictures still depend on those files.
 
 Production already has `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `NODE_VERSION=24`. Keep the service-role key secret. The shared-password authentication has been removed from this source. Remove its obsolete deployment secret after the new source is live.
 

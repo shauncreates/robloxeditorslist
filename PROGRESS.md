@@ -1,5 +1,15 @@
 # REL progress
 
+## 15 October 2026: authorized production release and Vercel cleanup
+
+The user explicitly authorized merging into main and deploying this work. Read-only Supabase checks confirmed the Auth/roles, application-review, review-lock/profile-link and signup-username/cooldown prerequisites are already installed. No migration was executed by the agent. The live data has 21 editors and four styles; its pre-release fingerprint is `550362c84587bbf015f8c200f90f02a1`, revision `c0587d34-e371-40f2-aa4d-6e261e6338ec`.
+
+- Removed `vercel.json` and the two Vercel analytics script tags. The admin's indexing protection remains in its HTML and now also in the Cloudflare response header. Existing Blob image URLs and all editor/ranking data are preserved.
+- Found and corrected the stale www CNAME, which pointed to `f521553ce88354df.vercel-dns-017.com` and returned Vercel HTTP 402. Added www to the Pages project, pointed its proxied CNAME at `robloxeditorslist.pages.dev`, and added an exact-host Cloudflare 308 redirect to the primary HTTPS domain. Live checks passed for home, application, admin and confirmation paths, with query strings preserved. Mail/DKIM/SPF records were not changed.
+- Dated the public changelog for the approved 15 October release. Existing visual design is unchanged; no additional UI assets or dependencies were introduced.
+
+Pre-release checks: all 34 tests, static build, Functions compilation and whitespace checks passed. `data.js` and the original REL SVG are unchanged. Next steps in this release: commit/push cleanup, merge into main, verify the resulting Cloudflare deployment and public/security endpoints, compare the live ranking fingerprint, and remove the obsolete shared-password environment variable after Auth is live. Future feature work remains on `feat/applications-stage-1` unless the user requests another branch.
+
 ## 15 October 2026: mandatory signup usernames and seven-day changes
 
 - Signup now requires a unique username of 3 to 40 letters, digits, underscores or hyphens, starting with a letter or digit. Names are normalized to lowercase. The Cloudflare API forwards only this validated display name, email and password; caller-supplied roles, editor links and arbitrary metadata remain ignored.

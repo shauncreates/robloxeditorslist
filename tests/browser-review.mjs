@@ -90,7 +90,7 @@ const contexts = [];
 try {
   const publicPage = await newPage();contexts.push(publicPage);
   await navigate(publicPage,"/changelog/");await checkLayout(publicPage,"changelog");
-  assert.equal(await evaluate(publicPage,"document.querySelector('article').textContent.includes('Unreleased')"),true);
+  assert.equal(await evaluate(publicPage,"document.querySelector('article').textContent.includes('Released')"),true);
   const slashless=await fetch(base+'/apply',{redirect:'manual'});assert.equal(slashless.status,301);assert.equal(slashless.headers.get('location'),'/apply/');
   await navigate(publicPage,"/");await checkLayout(publicPage,"home");
   assert.equal(await evaluate(publicPage,"document.querySelector('a[href=\"/apply/\"]').textContent"),"Apply to Be on the List");
