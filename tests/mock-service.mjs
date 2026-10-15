@@ -4,7 +4,7 @@ import { onRequest as middleware } from "../functions/api/_middleware.js";
 
 export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server"};
 export async function mockService(){
-  const {db,rpc}=await fixture();
+  const {db,rpc}=await fixture({profiles:true});
   const originalFetch=globalThis.fetch;
   const users=new Map(Object.keys(ids).map(name=>[name,{id:ids[name],email:name+"@example.test",email_confirmed_at:"2026-10-14T00:00:00Z"}]));
   const sessions=new Map(users);
@@ -78,6 +78,14 @@ export async function mockService(){
       return new Response(null,{status:204});
     }
     if(url.pathname.startsWith("/rest/v1/rpc/")){
+      if(["rel_public_profile","rel_public_contributors"].includes(url.pathname.split('/').pop())&&token===env.SUPABASE_SERVICE_ROLE_KEY){
+        if(failures.profiles)return response({},failures.profiles);
+        const name=url.pathname.split('/').pop(),args=JSON.parse(options.body);
+        try{return response(await db.transaction(async tx=>{
+          await tx.exec("set local role service_role");
+          return (await tx.query(`select public.${name}(${Object.keys(args).map((key,i)=>key+'=> $'+(i+1)).join(',')}) as result`,Object.values(args))).rows[0].result;
+        }))}catch(error){return response({message:error.message,code:error.code},400)}
+      }
       if(url.pathname.endsWith("/rel_signup_username_available") && token===env.SUPABASE_SERVICE_ROLE_KEY){
         if(failures.availability)return response({},failures.availability);
         return response(await db.transaction(async tx=>{
@@ -100,11 +108,11 @@ export async function mockService(){
     throw new Error("Unexpected test request "+url.pathname);
   };
   const routes={
-    "/api/data":"data", "/api/save":"save", "/api/avatar":"avatar", "/api/applications":"applications",
+    "/api/data":"data", "/api/save":"save", "/api/avatar":"avatar", "/api/applications":"applications", "/api/profiles":"profiles", "/api/contributors":"contributors",
     "/api/applications/admin":"applications/admin",
     "/api/applications/pending":"applications/pending",
     ...Object.fromEntries(["signin","signup","session","refresh","signout","forgot-password","reset-password","confirmation"].map(name=>["/api/auth/"+name,"auth/"+name])),
-    ...Object.fromEntries(["site","profile","claim","users","username","links"].map(name=>["/api/account/"+name,"account/"+name])),
+    ...Object.fromEntries(["site","profile","claim","users","username","links","contributor"].map(name=>["/api/account/"+name,"account/"+name])),
   };
   async function handle(request){
     const route=routes[new URL(request.url).pathname];

@@ -346,18 +346,22 @@
 
         var contributors = [
           {
+            id: "seeshaun",
             name: "@seeshaun",
             contribution: "Website owner.",
           },
           {
+            id: "balloond",
             name: "@balloond",
             contribution: "Dev - UI/UX designer.",
           },
           {
+            id: "b-luff",
             name: "@b.luff",
             contribution: "Admin - top list contributor.",
           },
           {
+            id: "maxx-vfxs",
             name: "@maxx.vfxs",
             contribution: "List contributor.",
           },
@@ -372,13 +376,11 @@
               esc(person.contribution) +
               "</span></span>";
 
-            return person.url
-              ? '<a class="contributor" href="' +
-                  esc(person.url) +
-                  '" target="_blank" rel="noopener noreferrer">' +
+            return '<a class="contributor" href="/profile/?contributor=' +
+                  encodeURIComponent(person.id) +
+                  '">' +
                   content +
-                  "</a>"
-              : '<div class="contributor">' + content + "</div>";
+                  "</a>";
           })
           .join("");
 

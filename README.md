@@ -3,6 +3,7 @@
 A static HTML/CSS/JavaScript ranking site hosted on Cloudflare Pages, using Pages Functions and Supabase Postgres, Auth and Storage.
 
 - `index.html`, `list/`: public homepage and rankings.
+- `profile/`: shareable public profiles for REL accounts, ranked editors and contributor credits. See [PUBLIC_PROFILES.md](PUBLIC_PROFILES.md) for the proposed database setup and Owner verification flow.
 - `apply/`: private application submission form.
 - `signin/`, `assets/`: public email/password signup and sign-in, with session helpers.
 - `admin/`: role-aware profile, ranking, application and Owner user management.

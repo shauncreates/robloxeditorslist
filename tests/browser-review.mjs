@@ -1,11 +1,16 @@
 // Runs only against the isolated fixture, never a production URL or database.
 import assert from "node:assert/strict";
-import {mkdir, writeFile} from "node:fs/promises";
+import {mkdir, readFile, writeFile} from "node:fs/promises";
 import {setTimeout as delay} from "node:timers/promises";
 
 const port=Number(process.env.REL_PREVIEW_PORT||8789);
 assert.ok(Number.isInteger(port)&&port>=1024&&port<=65535);
 const base = "http://127.0.0.1:"+port;
+const offlineFonts=process.env.REL_BROWSER_FONT_DIR ? await Promise.all(["normal","italic"].map(async style=>({
+  style,data:(await readFile(process.env.REL_BROWSER_FONT_DIR+"/red-hat-text-latin-wght-"+style+".woff2")).toString("base64"),
+}))) : null;
+if(offlineFonts)console.log("Using local Red Hat Text fixtures; Google Fonts delivery is not tested.");
+const offlineSymbols=process.env.REL_BROWSER_SYMBOL_FONT ? (await readFile(process.env.REL_BROWSER_SYMBOL_FONT)).toString("base64") : null;
 const data = await (await fetch(base + "/api/data")).json();
 assert.deepEqual(data.editors.map(editor => editor.name).sort(), ["One", "Two"]);
 const version = await (await fetch("http://127.0.0.1:9223/json/version")).json();
@@ -32,6 +37,8 @@ async function newPage() {
   const {targetId} = await send("Target.createTarget", {url:"about:blank",browserContextId});
   const {sessionId} = await send("Target.attachToTarget", {targetId,flatten:true});
   await send("Page.enable",{},sessionId);await send("Runtime.enable",{},sessionId);
+  if(offlineFonts)await send("Page.addScriptToEvaluateOnNewDocument",{source:`for(const item of ${JSON.stringify(offlineFonts)}){const font=new FontFace('Red Hat Text','url(data:font/woff2;base64,'+item.data+')',{style:item.style,weight:'300 700'});document.fonts.add(font);void font.load();}`},sessionId);
+  if(offlineSymbols)await send("Page.addScriptToEvaluateOnNewDocument",{source:`{const font=new FontFace('Material Symbols Rounded','url(data:font/woff2;base64,${offlineSymbols})',{weight:'100 700'});document.fonts.add(font);void font.load();}`},sessionId);
   return {sessionId,browserContextId};
 }
 async function evaluate(page, expression) {
@@ -45,7 +52,7 @@ async function waitFor(page, expression) {
 }
 async function navigate(page, path) {
   await send("Page.navigate",{url:base + path},page.sessionId);
-  await waitFor(page, `location.pathname === ${JSON.stringify(path)} && document.readyState === 'complete'`);
+  await waitFor(page, `location.pathname + location.search === ${JSON.stringify(path)} && document.readyState === 'complete'`);
   await evaluate(page,"document.fonts.ready.then(() => true)");
 }
 async function click(page, selector) {
@@ -55,15 +62,18 @@ async function fill(page, selector, value) {
   await evaluate(page, `(()=>{const input=document.querySelector(${JSON.stringify(selector)});input.value=${JSON.stringify(value)};input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}))})()`);
 }
 async function key(page, key, code, windowsVirtualKeyCode) {
-  for(const type of ["keyDown","keyUp"])await send("Input.dispatchKeyEvent",{type,key,code,windowsVirtualKeyCode},page.sessionId);
+  for(const type of ["keyDown","keyUp"])await send("Input.dispatchKeyEvent",{type,key,code,windowsVirtualKeyCode,...(type==='keyDown'&&key==='Enter'?{text:'\r',unmodifiedText:'\r'}:{})},page.sessionId);
 }
 async function screenshot(page, name) {
   const {data} = await send("Page.captureScreenshot",{format:"png",captureBeyondViewport:false},page.sessionId);
   await writeFile(new URL(`../.wrangler/ui-review/${name}.png`,import.meta.url),Buffer.from(data,"base64"));
 }
 async function checkLayout(page, name, widths = [1440,768,390,320]) {
+  await waitFor(page,"document.readyState==='complete'");
+  await evaluate(page,"document.fonts.ready.then(() => true)");
   for(const width of widths) {
     await send("Emulation.setDeviceMetricsOverride",{width,height:900,deviceScaleFactor:1,mobile:width<500},page.sessionId);
+    await waitFor(page,`innerWidth===${width}`);
     await delay(100);
     const state = await evaluate(page, `(()=>({
       width:innerWidth,scrollWidth:document.documentElement.scrollWidth,
@@ -72,7 +82,7 @@ async function checkLayout(page, name, widths = [1440,768,390,320]) {
     }))()`);
     assert.ok(state.scrollWidth <= state.width, `${name} overflow at ${width}: ${JSON.stringify(state)}`);
     assert.deepEqual(state.fonts,[],`${name} font mismatch`);
-    assert.equal(state.loaded,true,`${name} Google font did not load`);
+    assert.equal(state.loaded,true,`${name} Red Hat Text did not load`);
     if(width===1440||width===390||width===320)await screenshot(page,`${name}-${width}`);
   }
   console.log(`PASS ${name}: fonts and layout at ${widths.join(', ')}px`);
@@ -82,7 +92,7 @@ async function signIn(page, name) {
   await fill(page,"#email",name+"@example.test");await fill(page,"#password","test-password-123");
   await click(page,"#submit");
   const member=name==='member'||name==='stranger';
-  await waitFor(page,member?"location.pathname==='/account/' && document.querySelector('#profile').textContent.length>0":"location.pathname==='/admin/' && document.querySelector('#ui') && !document.querySelector('#ui').hidden");
+  await waitFor(page,member?"location.pathname==='/account/' && document.querySelector('#profile')?.textContent.length>0":"location.pathname==='/admin/' && document.querySelector('#ui') && !document.querySelector('#ui').hidden");
 }
 
 await mkdir(new URL("../.wrangler/ui-review/",import.meta.url),{recursive:true});
@@ -92,7 +102,37 @@ try {
   await navigate(publicPage,"/changelog/");await checkLayout(publicPage,"changelog");
   assert.equal(await evaluate(publicPage,"document.querySelector('article').textContent.includes('Released')"),true);
   const slashless=await fetch(base+'/apply',{redirect:'manual'});assert.equal(slashless.status,301);assert.equal(slashless.headers.get('location'),'/apply/');
+  const profileRedirect=await fetch(base+'/profile?editor=editor1',{redirect:'manual'});assert.equal(profileRedirect.status,301);assert.equal(profileRedirect.headers.get('location'),'/profile/?editor=editor1');
   await navigate(publicPage,"/");await checkLayout(publicPage,"home");
+  assert.equal(await evaluate(publicPage,"document.querySelectorAll('#contributors a[href^=\"/profile/?contributor=\"]').length"),4);
+  await evaluate(publicPage,"document.querySelector('#contributors a').focus()");await key(publicPage,"Enter","Enter",13);
+  await waitFor(publicPage,"location.search==='?contributor=seeshaun' && document.querySelector('#publicProfile')?.getAttribute('aria-busy')==='false'");
+  assert.match(await evaluate(publicPage,"document.querySelector('main').textContent"),/account has not been linked/);
+  await checkLayout(publicPage,"public-credit");
+  await navigate(publicPage,"/profile/?account=00000000-0000-4000-8000-000000000005");
+  await waitFor(publicPage,"document.querySelector('h1').textContent==='stranger'");await checkLayout(publicPage,"public-unranked-account");
+  await navigate(publicPage,"/profile/?editor=editor1");
+  await waitFor(publicPage,"document.querySelector('h1').textContent==='member'");
+  assert.equal(await evaluate(publicPage,"document.querySelector('.placements strong').textContent"),"#2");await checkLayout(publicPage,"public-editor");
+  await evaluate(publicPage,"document.querySelector('.placements a').focus()");await key(publicPage,"Enter","Enter",13);
+  await waitFor(publicPage,"location.pathname==='/list/' && location.hash==='#main' && document.querySelector('[data-profile=editor1]')!==null");
+  await click(publicPage,'[data-profile="editor1"]');await waitFor(publicPage,"document.querySelector('#drawer').open");
+  await click(publicPage,'#drawer a[href="/profile/?editor=editor1"]');await waitFor(publicPage,"location.pathname==='/profile/' && document.querySelector('h1')?.textContent==='member'");
+  await send("Page.reload",{},publicPage.sessionId);await waitFor(publicPage,"document.querySelector('h1')?.textContent==='member'");
+  await evaluate(publicPage,"document.querySelector('.profile-wrap').style.zoom='2'");
+  assert.equal(await evaluate(publicPage,"document.documentElement.scrollWidth<=innerWidth"),true);
+  await screenshot(publicPage,"public-profile-200-percent");await evaluate(publicPage,"document.querySelector('.profile-wrap').style.zoom=''");
+  const hostileFixture=await send("Page.addScriptToEvaluateOnNewDocument",{source:`{const original=window.fetch;window.fetch=async(...args)=>{const response=await original(...args);if(!String(args[0]).startsWith('/api/profiles')||!response.ok)return response;const data=await response.json();data.editor.note='<img src=x onerror=window.relXss=true>';data.editor.links={unsafe:'javascript:window.relXss=true',credentials:'https://user:password@example.test/',plain:'http://example.test/',safe:'https://example.test/fixture'};data.editor.video='https://youtube.com.untrusted.test/watch?v=abcdefghijk';return new Response(JSON.stringify(data))}}`},publicPage.sessionId);
+  await navigate(publicPage,"/profile/?editor=editor1");await waitFor(publicPage,"document.querySelector('h1').textContent==='member'");
+  assert.equal(await evaluate(publicPage,"window.relXss===undefined && document.querySelector('main').textContent.includes('<img src=x onerror=') && !document.querySelector('main img[src=x]') && !document.querySelector('.showcase')"),true);
+  assert.deepEqual(await evaluate(publicPage,"[...document.querySelectorAll('.profile-links a')].map(a=>a.href)"),['https://example.test/fixture']);
+  await checkLayout(publicPage,"public-profile-safe-content");
+  await send("Page.removeScriptToEvaluateOnNewDocument",{identifier:hostileFixture.identifier},publicPage.sessionId);
+  await navigate(publicPage,"/profile/?editor=missing");await waitFor(publicPage,"document.querySelector('h1').textContent==='Profile not found'");await checkLayout(publicPage,"public-profile-missing");
+  await send("Page.addScriptToEvaluateOnNewDocument",{source:"{const original=window.fetch;let failed=false;window.fetch=(...args)=>{if(!failed&&String(args[0]).startsWith('/api/profiles')){failed=true;return Promise.resolve(new Response(JSON.stringify({error:'Fixture profiles unavailable.'}),{status:503}))}return original(...args)}}"},publicPage.sessionId);
+  await navigate(publicPage,"/profile/?editor=editor1");await waitFor(publicPage,"document.querySelector('#retryProfile')!==null");await checkLayout(publicPage,"public-profile-error");
+  await click(publicPage,"#retryProfile");await waitFor(publicPage,"document.querySelector('h1').textContent==='member'");
+  await navigate(publicPage,"/");
   assert.equal(await evaluate(publicPage,"document.querySelector('a[href=\"/apply/\"]').textContent"),"Apply to Be on the List");
   await click(publicPage,'a[href="/apply/"]');await waitFor(publicPage,"location.pathname==='/apply/'");
   await checkLayout(publicPage,"application");
@@ -158,6 +198,17 @@ try {
   assert.equal(await evaluate(owner,"document.querySelector('input[data-f=thumb]').value.includes('/storage/v1/object/public/editor-avatars/')"),true);
   await checkLayout(owner,"owner-profile");
   await click(owner,'[data-act="tab"][data-v="users"]');await waitFor(owner,"document.querySelector('form[data-user]')!==null");
+  await evaluate(owner,"window.confirm=()=>true");
+  const creditForm='form[data-credit-user="00000000-0000-4000-8000-000000000001"]';
+  await fill(owner,creditForm+' select',"seeshaun");
+  await evaluate(owner,`document.querySelector(${JSON.stringify(creditForm+' button')}).focus()`);await key(owner,"Enter","Enter",13);
+  await waitFor(owner,"document.querySelector('#status').textContent==='Contributor link saved.'");
+  assert.equal(await evaluate(owner,`document.querySelector(${JSON.stringify(creditForm+' select')}).value`),"seeshaun");
+  const linkedPage=await newPage();contexts.push(linkedPage);
+  await navigate(linkedPage,"/profile/?contributor=seeshaun");await waitFor(linkedPage,"document.querySelector('h1').textContent==='member'");
+  assert.match(await evaluate(linkedPage,"document.querySelector('main').textContent"),/Website owner/);await checkLayout(linkedPage,"public-linked-contributor");
+  assert.equal(await evaluate(linkedPage,"document.body.textContent.includes('@example.test')"),false);
+  await fill(owner,creditForm+' select',"");await click(owner,creditForm+' button');await waitFor(owner,"document.querySelector('#status').textContent==='Contributor link saved.'");
   assert.equal(await evaluate(owner,"document.querySelector('[data-act=previousUsers]').disabled && document.querySelector('[data-act=nextUsers]').disabled"),true);
   await evaluate(owner, `(()=>{const original=window.fetch;window.fetch=async(...args)=>{const response=await original(...args);if(args[0]==='/api/account/users' && response.ok){const data=await response.clone().json();if(data.users){if(window.relReviewCase==='error')return new Response(JSON.stringify({error:'Fixture list unavailable.'}),{status:503});if(window.relReviewCase==='empty'){data.users=[];data.total=0}else data.users[0].username='very-long-fixture-username-'.repeat(8);return new Response(JSON.stringify(data),{headers:{'Content-Type':'application/json'}})}}return response}})()`);
   await click(owner,'[data-act="refreshUsers"]');await waitFor(owner,"document.querySelector('#usersList').textContent.includes('very-long-fixture')");
@@ -175,6 +226,7 @@ try {
   await waitFor(owner,"document.querySelector('form[data-user]')!==null");
 
   const member = await newPage();contexts.push(member);await signIn(member,"member");
+  assert.equal(await evaluate(member,"document.querySelector('#publicProfileLink').getAttribute('href')"),"/profile/?account=00000000-0000-4000-8000-000000000001");
   assert.equal(await evaluate(member,"document.querySelector('#manage').hidden"),true);
   await fill(member,"#accountUsername","owner");await click(member,"#usernameForm button");
   await waitFor(member,"document.querySelector('#usernameNotice').textContent.includes('already taken')");
@@ -311,7 +363,7 @@ try {
   await checkLayout(recoveryPage,"recovery-success");
   assert.equal(await evaluate(recoveryPage,"document.querySelector('#resetForm').hidden"),true);
   assert.equal(await evaluate(recoveryPage,"document.querySelector('#password').value"),"");
-  await click(recoveryPage,'a[href="/signin/"]');await waitFor(recoveryPage,"location.pathname==='/signin/'");
+  await click(recoveryPage,'a[href="/signin/"]');await waitFor(recoveryPage,"location.pathname==='/signin/' && document.readyState==='complete' && document.querySelector('#authForm')!==null");
   await fill(recoveryPage,"#email","reviewer@example.test");await fill(recoveryPage,"#password","Abcdef12");
   await click(recoveryPage,"#submit");await waitFor(recoveryPage,"location.pathname==='/admin/' && document.querySelector('#signout')!==null");
   await click(recoveryPage,"#signout");await waitFor(recoveryPage,"location.pathname==='/signin/'");

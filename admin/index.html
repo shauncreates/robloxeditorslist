@@ -72,6 +72,8 @@
   .app-detail a{color:var(--accent);display:inline-flex;align-items:center;min-height:44px}
   .app-card :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .account-panel input,.account-panel select,.account-panel textarea{min-width:0}
+  .public-profile-link{display:inline-flex;align-items:center;min-height:44px;color:var(--accent)}
+  [data-credit-user] select,[data-credit-user] button{border-color:#68796b}
   .account-panel button,.account-panel select,.account-panel .flarepick label,.account-panel form>label:has(input[type=checkbox]),#signout,#saveSite,.tabs [data-act=tab],input[data-f=software]{min-height:44px}
   .account-panel .flarepick label,.account-panel form>label:has(input[type=checkbox]){text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:8px}
   .account-panel :focus-visible,#signout:focus-visible,#saveSite:focus-visible,.tabs [data-act=tab]:focus-visible,input[data-f=software]:focus-visible,.rel-brand:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -118,7 +120,7 @@ const valid = d => d && d.site && Array.isArray(d.styles) && Array.isArray(d.edi
 /* ---------- status / saving ---------- */
 function setStatus(text, cls){ const s = $("#status"); s.textContent = text || ""; s.className = "status " + (cls || ""); }
 function save(){editVersion++;dirty=true;autosave.change()}
-window.addEventListener("beforeunload",ev=>{if(dirty||applicationDrafts.size||$("form[data-user][data-dirty]")){ev.preventDefault();ev.returnValue=""}});
+window.addEventListener("beforeunload",ev=>{if(dirty||applicationDrafts.size||$("form[data-user][data-dirty],form[data-credit-user][data-dirty]")){ev.preventDefault();ev.returnValue=""}});
 const api=accountApi;
 async function loadLive(){
   revision=null;
@@ -337,17 +339,19 @@ async function loadUsers(quiet=false){
   if(!quiet)updatePagination("Users",usersOffset,usersTotal,true);
   notice.className="hint";if(!quiet){notice.textContent="Loading users…";list.innerHTML="";}
   try{
-    const {ok,j}=await api("/api/account/users",{action:"list",offset:usersOffset});
+    const [{ok,j},creditsResponse]=await Promise.all([api("/api/account/users",{action:"list",offset:usersOffset}),accountFetch("/api/contributors")]);
+    const credits=creditsResponse.ok?await creditsResponse.json():null;
     if($("#usersNotice")!==notice||offset!==usersOffset)return;
     if(!ok)throw Error(j.error||"Could not load users.");usersTotal=j.total;
-    notice.textContent=j.users.length+" accounts on this page, "+usersTotal+" total.";
+    notice.textContent=j.users.length+" accounts on this page, "+usersTotal+" total."+(credits?"":" Contributor links are unavailable; use Refresh users to retry.");
     const html=j.users.map(user=>{
       let editors=S?.editors||[];
       if(user.editor_id&&!editors.some(e=>e.id===user.editor_id))editors=[...editors,{id:user.editor_id,name:user.editor_id}];
-      return `<article class="card"><h3>${esc(user.username||"Member")}</h3><p class="hint">${esc(user.id)}</p>
+      return `<article class="card"><h3>${esc(user.username||"Member")}</h3><p class="hint">${esc(user.id)}</p><a class="public-profile-link" href="/profile/?account=${encodeURIComponent(user.id)}">View public profile</a>
         <form data-user="${esc(user.id)}"><div class="flarepick">${Object.entries(roleLabels).map(([role,label])=>`<label><input name="roles" type="checkbox" value="${role}" ${user.roles.includes(role)?"checked":""}>${label}</label>`).join("")}</div>
         <label for="linked-editor-${esc(user.id)}">Linked editor profile</label><select id="linked-editor-${esc(user.id)}" name="editorId"><option value="">No profile linked</option>${editors.map(e=>`<option value="${esc(e.id)}" ${e.id===user.editor_id?"selected":""}>${esc(e.name)}</option>`).join("")}</select>
         <label><input name="disabled" type="checkbox" ${user.disabled?"checked":""}>Disable REL access</label><button class="pri">Save account permissions</button></form>
+        ${credits?`<form data-credit-user="${esc(user.id)}"><label for="contributor-${esc(user.id)}">Homepage contributor credit</label><p class="hint">Verify this person's identity before linking a credit. This does not grant account permissions.</p><select id="contributor-${esc(user.id)}" name="credit"><option value="">No contributor credit</option>${credits.map(credit=>`<option value="${esc(credit.id)}" ${credit.account?.id===user.id?'selected':''}>${esc(credit.name)}${credit.account&&credit.account.id!==user.id?' (linked to '+esc(credit.account.username)+')':''}</option>`).join('')}</select><button type="submit">Save contributor link</button></form>`:''}
         ${user.claim_status==="pending"?`<p class="hint">Profile-link request: ${esc((S?.editors||[]).find(e=>e.id===user.requested_editor_id)?.name||user.requested_editor_id)}</p><p>${esc(user.claim_message)}</p><div class="inline"><button data-act="approveClaim" data-id="${esc(user.id)}">Approve verified link</button><button data-act="rejectClaim" data-id="${esc(user.id)}">Reject request</button></div>`:""}
       </article>`;
     }).join("") || '<div class="empty-state">No accounts on this page.</div>';
@@ -357,6 +361,17 @@ async function loadUsers(quiet=false){
 }
 document.addEventListener("submit",async event=>{
   const form=event.target;
+  if(form.dataset.creditUser){
+    event.preventDefault();
+    if(!confirm("Save this verified contributor link? Any previous account link for the selected credit will be replaced."))return;
+    const button=form.querySelector('button');button.disabled=true;form.elements.credit.disabled=true;setStatus("Saving contributor link…");
+    try{
+      const {ok,j}=await api("/api/account/contributor",{userId:form.dataset.creditUser,credit:form.elements.credit.value||null});
+      if(!ok)throw Error(j.error||"Could not save contributor link.");
+      delete form.dataset.dirty;await loadUsers();announceChange();setStatus("Contributor link saved.","ok");
+    }catch(error){setStatus(error.message,"bad")}finally{button.disabled=false;form.elements.credit.disabled=false}
+    return;
+  }
   if(form.id!=="claimForm"&&!form.dataset.user)return;
   event.preventDefault();const button=form.querySelector('button');button.disabled=true;
   try{
@@ -402,7 +417,7 @@ function move(id, dir){
 
 document.addEventListener("input", ev => {
   const t = ev.target, k = t.dataset.t;
-  if(t.closest("form[data-user]"))t.closest("form[data-user]").dataset.dirty="true";
+  if(t.closest("form[data-user],form[data-credit-user]"))t.closest("form[data-user],form[data-credit-user]").dataset.dirty="true";
   if(t.dataset.reason){if(t.value===(applicationsCache.find(a=>a.id===t.dataset.reason)?.review_reason||""))applicationDrafts.delete(t.dataset.reason);else applicationDrafts.set(t.dataset.reason,t.value);return}
   if (!k) return;
   const i = +t.dataset.i;
@@ -416,7 +431,7 @@ document.addEventListener("input", ev => {
 
 document.addEventListener("change", ev => {
   const t = ev.target, k = t.dataset.t;
-  if(t.closest("form[data-user]"))t.closest("form[data-user]").dataset.dirty="true";
+  if(t.closest("form[data-user],form[data-credit-user]"))t.closest("form[data-user],form[data-credit-user]").dataset.dirty="true";
   if (t.id === "applicationFilter") { renderApplications(); return; }
   if (t.id === "linkFilter") { linksOffset=0;void loadProfileLinks();return; }
   if (k === "flare") {
@@ -646,7 +661,7 @@ $("#reset").addEventListener("click",async()=>{
       if(tab==="editors"&&can("list_contributor"))await loadPending();
       const editing=$("#app").contains(document.activeElement)&&document.activeElement.matches("input,textarea,select");
       if(tab==="applications" && !applicationDrafts.size && !editing){await loadApplications(true);return}
-      if(tab==="users" && !$("form[data-user][data-dirty]") && !editing){await loadUsers(true);return}
+      if(tab==="users" && !$("form[data-user][data-dirty],form[data-credit-user][data-dirty]") && !editing){await loadUsers(true);return}
       if(tab==="links"&&!editing){await loadProfileLinks(true);return}
       if(dirty||autosave.busy||editing||pictureFetchRunning)return;
       const response=await accountFetch("/api/account/site");if(!response.ok)return;

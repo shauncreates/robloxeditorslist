@@ -15,4 +15,4 @@ To update antislop later: `npx antislop-ai --update`, or run `npx antislop-ai` a
 
 ## Git checkpoints
 
-After each completed request that changes files, run the relevant checks, commit the changes and push `feat/applications-stage-1` unless the user asks otherwise. Exclude credentials, private backups and generated output. Do not merge into main or deploy without explicit permission. Preserve actual editor data, rankings and `data.js`; live database migrations require explicit permission.
+Start new feature work on a new branch from freshly fetched `origin/main`, preserving existing local work. Do not continue on the outdated `feat/applications-stage-1` branch. After each completed request that changes files, run the relevant checks, commit the changes and push the current feature branch unless the user asks otherwise. Exclude credentials, private backups and generated output. Do not merge into main or deploy without explicit permission. Preserve actual editor data, rankings and `data.js`; live database migrations require explicit permission.

@@ -39,6 +39,8 @@ const autosave = createAutosave({
 
 function render() {
   $("#identity").textContent = account.username || "Member";
+  $("#publicProfileLink").href = "/profile/?account=" + encodeURIComponent(account.id);
+  $("#publicProfileLink").hidden = false;
   $("#usernameForm").hidden = false;
   if(document.activeElement!==$("#accountUsername") && !$("#usernameForm").dataset.dirty) $("#accountUsername").value=account.username||"";
   updateUsernameAvailability();
