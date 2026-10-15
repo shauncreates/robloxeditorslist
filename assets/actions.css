@@ -58,7 +58,7 @@ a.rel-action--enhanced {
 
 .rel-action--reveal > span {
   max-width: none;
-  margin-left: 9px;
+  margin-left: 0;
   opacity: 1;
   overflow: visible;
   white-space: normal;
@@ -108,6 +108,7 @@ button.rel-action--account {
 
 .rel-action:hover,
 .rel-action:focus-visible {
+  transform: none;
   border-color: #a6c5ab;
   background-color: #132117;
   text-decoration: none;
@@ -131,6 +132,53 @@ button.rel-action--account {
 
 .rel-action[hidden] {
   display: none !important;
+}
+
+header:has(.rel-action--reveal),
+.top .wrap:has(.rel-action--reveal),
+.tabs:has(.rel-action--reveal) {
+  container: rel-navigation / inline-size;
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) {
+  .tabs:has(.rel-action--reveal) {
+    flex-wrap: nowrap;
+  }
+
+  @container rel-navigation (min-width: 620px) {
+    :is(nav, .admin-actions, .tabs):has(.rel-action--reveal) {
+      flex-wrap: nowrap;
+    }
+
+    .top .admin-actions {
+      min-width: min(100%, 40rem);
+    }
+
+    :is(nav, .admin-actions, .tabs) .rel-action--reveal {
+      gap: 0;
+      flex-shrink: 0;
+    }
+
+    :is(nav, .admin-actions, .tabs) .rel-action--reveal > span {
+      display: block;
+      flex: 0 0 auto;
+      width: 0;
+      opacity: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      transition:
+        width 280ms cubic-bezier(.2, .8, .2, 1),
+        margin-left 280ms cubic-bezier(.2, .8, .2, 1),
+        opacity 180ms ease;
+    }
+
+    :is(nav, .admin-actions, .tabs) .rel-action--reveal:hover > span,
+    :is(nav, .admin-actions, .tabs) .rel-action--reveal:focus-visible > span {
+      width: var(--rel-label-width, 12em);
+      margin-left: 9px;
+      opacity: 1;
+    }
+  }
 }
 
 .rel-text-link {
@@ -175,6 +223,7 @@ button.rel-action--account {
   a.rel-action,
   button.rel-action,
   .rel-action--reveal > span,
+  :is(nav, .admin-actions, .tabs) .rel-action--reveal > span,
   .rel-text-link .rel-icon {
     transition: none;
   }

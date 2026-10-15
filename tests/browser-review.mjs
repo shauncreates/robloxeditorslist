@@ -358,10 +358,12 @@ try {
   assert.equal(await evaluate(recoveryPage,"document.querySelector('#password').checkValidity()"),false);
   await fill(recoveryPage,"#password","Abcdef12");await fill(recoveryPage,"#confirmPassword","Abcdef12");
   await click(recoveryPage,"#submit");
-  await waitFor(recoveryPage,"document.querySelector('#message').textContent.includes('Password changed')");
+  await waitFor(recoveryPage,"document.querySelector('#message').textContent.includes('Your password has been updated.')");
   await checkLayout(recoveryPage,"recovery-success");
   assert.equal(await evaluate(recoveryPage,"document.querySelector('#resetForm').hidden"),true);
   assert.equal(await evaluate(recoveryPage,"document.querySelector('#password').value"),"");
+  assert.equal(await evaluate(recoveryPage,"document.querySelector('a[href=\"/signin/\"]').getClientRects().length>0"),true);
+  assert.equal(await evaluate(recoveryPage,"[...document.querySelectorAll('#recoveryActions button')].every(button=>button.hidden)"),true);
   await click(recoveryPage,'a[href="/signin/"]');await waitFor(recoveryPage,"location.pathname==='/signin/' && document.readyState==='complete' && document.querySelector('#authForm')!==null");
   await fill(recoveryPage,"#email","reviewer@example.test");await fill(recoveryPage,"#password","Abcdef12");
   await click(recoveryPage,"#submit");await waitFor(recoveryPage,"location.pathname==='/admin/' && document.querySelector('#signout')!==null");

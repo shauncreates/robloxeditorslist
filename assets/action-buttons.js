@@ -102,6 +102,13 @@ function enhanceAction(element) {
   element.classList.add("rel-action", "rel-action--enhanced");
 
   if (
+    element.closest("nav,.admin-actions,.tabs") &&
+    !element.closest(".account-secondary-links")
+  ) {
+    element.classList.add("rel-action--reveal");
+  }
+
+  if (
     element.classList.contains("pri") ||
     element.classList.contains("primary-link")
   ) {
@@ -111,6 +118,21 @@ function enhanceAction(element) {
 
 const selector = "button,a[data-icon]";
 
+function measureNavigationLabel(element) {
+  if (!element.closest("nav,.admin-actions,.tabs")) return;
+  const label = element.querySelector(":scope > span:not(.rel-sr)");
+  if (!label) return;
+  const range = document.createRange();
+  range.selectNodeContents(label);
+  const width = Math.ceil(range.getBoundingClientRect().width);
+  if (width) element.style.setProperty("--rel-label-width", width + "px");
+}
+
+function measureNavigation(root) {
+  if (root.matches(".rel-action--reveal")) measureNavigationLabel(root);
+  root.querySelectorAll(".rel-action--reveal").forEach(measureNavigationLabel);
+}
+
 function enhanceWithin(root) {
   if (root.nodeType !== Node.ELEMENT_NODE) return;
 
@@ -119,6 +141,7 @@ function enhanceWithin(root) {
   }
 
   root.querySelectorAll(selector).forEach(enhanceAction);
+  measureNavigation(root);
 }
 
 enhanceWithin(document.body);
@@ -139,8 +162,20 @@ new MutationObserver((records) => {
     }
   }
 
-  changed.forEach(enhanceAction);
+  changed.forEach((element) => {
+    enhanceAction(element);
+    measureNavigationLabel(element);
+  });
 }).observe(document.body, {
   childList: true,
   subtree: true,
 });
+
+let navigationFrame;
+function refreshNavigation() {
+  cancelAnimationFrame(navigationFrame);
+  navigationFrame = requestAnimationFrame(() => measureNavigation(document.body));
+}
+window.addEventListener("resize", refreshNavigation, { passive: true });
+document.fonts.ready.then(refreshNavigation);
+document.fonts.addEventListener("loadingdone", refreshNavigation);

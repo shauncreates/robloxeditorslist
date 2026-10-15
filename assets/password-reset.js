@@ -90,7 +90,10 @@ async function submit(resend = false) {
 
     if (resetting) {
       form.hidden = true;
-      $("#recoveryActions").hidden = true;
+      $("#recoveryActions").hidden = false;
+      for (const selector of ["#haveCode", "#resend", "#changeEmail"]) {
+        $(selector).hidden = true;
+      }
 
       $("#password").value = "";
       $("#confirmPassword").value = "";
