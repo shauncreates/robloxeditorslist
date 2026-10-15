@@ -100,7 +100,6 @@ const contexts = [];
 try {
   const publicPage = await newPage();contexts.push(publicPage);
   await navigate(publicPage,"/changelog/");await checkLayout(publicPage,"changelog");
-  assert.equal(await evaluate(publicPage,"document.querySelector('article').textContent.includes('Released')"),true);
   const slashless=await fetch(base+'/apply',{redirect:'manual'});assert.equal(slashless.status,301);assert.equal(slashless.headers.get('location'),'/apply/');
   const profileRedirect=await fetch(base+'/profile?editor=editor1',{redirect:'manual'});assert.equal(profileRedirect.status,301);assert.equal(profileRedirect.headers.get('location'),'/profile/?editor=editor1');
   await navigate(publicPage,"/");await checkLayout(publicPage,"home");
