@@ -12,7 +12,7 @@ a.rel-action--reveal,button.rel-action--reveal{gap:0;padding-inline:11px}
 .rel-reveal-slot{display:inline-flex;min-width:10em}
 @media(hover:hover) and (pointer:fine){
   .rel-action--reveal>span{max-width:0;margin-left:0;opacity:0;overflow:hidden;white-space:nowrap;transition:max-width 280ms cubic-bezier(.2,.8,.2,1),margin-left 280ms cubic-bezier(.2,.8,.2,1),opacity 180ms ease}
-  .rel-action--reveal:hover>span,.rel-action--reveal:focus-visible>span{max-width:12em;margin-left:9px;opacity:1}
+  .rel-action--reveal:hover>span,.rel-action--reveal:focus-visible>span{max-width:var(--rel-label-width,12em);margin-left:9px;opacity:1}
 }
 .rel-text-link{display:inline-flex;align-items:center;gap:8px;min-height:44px;max-width:100%;color:#7af500;text-decoration:none;font-weight:600}
 .rel-text-link .rel-icon{transition:transform 180ms ease}

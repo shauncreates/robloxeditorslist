@@ -1,0 +1,17 @@
+.wrap select{min-height:44px;border-color:#68796b}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@supports(appearance:base-select){
+  select,select::picker(select){appearance:base-select}
+  select{align-items:center;gap:12px}
+  select::picker-icon{color:var(--accent);transition:rotate 180ms ease}
+  select:open::picker-icon{rotate:180deg}
+  select::picker(select){background:var(--panel);color:var(--text);border:1px solid #68796b;border-radius:10px;padding:6px;margin-block:6px;min-width:anchor-size(width);max-width:min(36rem,calc(100vw - 32px));max-height:min(24rem,55dvh);overflow:auto;opacity:0;transform:translateY(-6px);transition:opacity 180ms ease,transform 180ms ease,display 180ms allow-discrete,overlay 180ms allow-discrete}
+  select:open::picker(select){opacity:1;transform:translateY(0)}
+  @starting-style{select:open::picker(select){opacity:0;transform:translateY(-6px)}}
+  select option{min-height:44px;padding:10px 12px;border-radius:6px;white-space:normal;overflow-wrap:anywhere;gap:10px}
+  select option:checked{background:#192d1b;color:var(--text)}
+  select option:hover,select option:focus{background:#253c27;color:var(--text);outline:2px solid var(--accent);outline-offset:-2px}
+  select option::checkmark{color:var(--accent)}
+  @media(prefers-reduced-motion:reduce){select::picker-icon,select::picker(select){transition:none}}
+  @media(forced-colors:active){select::picker(select){background:Canvas;color:CanvasText;border-color:ButtonText}select option:checked{background:Highlight;color:HighlightText}select option:focus{outline-color:Highlight}}
+}

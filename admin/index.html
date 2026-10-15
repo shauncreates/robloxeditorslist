@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="../assets/typography.css">
 <link rel="stylesheet" href="../assets/profile.css">
 <link rel="stylesheet" href="../assets/actions.css">
+<link rel="stylesheet" href="../assets/admin-selects.css">
 <style>
   [hidden]{display:none!important}
   :root{--bg:#050706;--panel:#0b100c;--panel2:#111912;--line:#202a22;--text:#eef5ef;--muted:#98a79b;--accent:#7af500;--on-accent:#061109;--ok:#7af500;--bad:#ff7373}
@@ -16,6 +17,10 @@
   .wrap{max-width:900px;margin:0 auto;padding:0 16px 80px}
   .top{position:sticky;top:0;z-index:5;background:#0a0c12ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
   .top .wrap{display:flex;gap:10px;align-items:center;padding-block:12px;flex-wrap:wrap}
+  .admin-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:min(100%,30rem)}
+  .top #status{flex-basis:100%;min-height:20px}
+  #dl{--rel-label-width:16em}
+  .admin-actions .rel-action.bad:hover,.admin-actions .rel-action.bad:focus-visible{color:#ffabab;border-color:#ffabab}
   .top h1{font-size:16px;flex:1;min-width:140px}
   .status{font-size:13px;color:var(--muted)}
   .status.ok{color:var(--ok)} .status.bad{color:var(--bad)} .status.dirty{color:#fbbf24}
@@ -26,8 +31,9 @@
   button.bad:hover{border-color:var(--bad);color:var(--bad)}
   button.sm{padding:4px 10px;font-size:13px}
   .tabs{display:flex;gap:7px;margin:22px 0;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px}
-  .tabs button{background:transparent;border-color:transparent;color:var(--muted);border-radius:6px}
-  .tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  .tabs button{background-color:var(--panel);border-color:#68796b;color:var(--muted);border-radius:6px}
+  .tabs button.on{background-color:var(--accent);border-color:transparent;color:var(--on-accent)}
+  @media(max-width:600px){.admin-actions{flex-basis:100%;justify-content:flex-start}.admin-actions .rel-action--reveal>span,.tabs .rel-action--reveal>span{max-width:none;margin-left:9px;opacity:1;overflow:visible;white-space:normal;transition:none}}
   .eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin:24px 0 7px}
   .page-title{font-size:clamp(26px,5vw,38px);line-height:1.08;letter-spacing:-.03em;text-transform:uppercase}
   .page-subtitle{color:var(--muted);margin:9px 0 20px}
@@ -89,10 +95,14 @@
 <div id="ui" hidden>
   <div class="top"><div class="wrap">
     <h1><a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a><span>/ Admin</span></h1>
+    <div class="admin-actions" role="group" aria-label="Admin actions">
+      <button id="reset" class="bad rel-action rel-action--reveal" aria-label="Discard changes"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#reset"/></svg><span>Discard changes</span></button>
+      <button id="dl" class="rel-action rel-action--reveal" aria-label="Download ranking backup"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#download"/></svg><span>Download ranking backup</span></button>
+      <button id="saveSite" class="pri rel-action rel-action--reveal" aria-label="Save now" hidden><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#save"/></svg><span>Save now</span></button>
+      <a class="rel-action rel-action--account rel-action--reveal" href="/account/" aria-label="My account"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#account"/></svg><span>My account</span></a>
+      <button id="signout" class="rel-action rel-action--reveal" aria-label="Sign out"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#signout"/></svg><span>Sign out</span></button>
+    </div>
     <span class="status" id="status" role="status" aria-live="polite"></span>
-    <button id="reset" class="bad">Discard changes</button>
-    <button id="dl">Download ranking backup</button>
-    <button id="saveSite" class="pri" hidden>Save now</button><span class="rel-reveal-slot"><a class="rel-action rel-action--account rel-action--reveal" href="/account/" aria-label="My account"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#account"/></svg><span>My account</span></a></span><button id="signout">Sign out</button>
   </div></div>
 
   <div class="wrap">
@@ -110,6 +120,8 @@ import {animateDisclosures} from "/assets/disclosure.js";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $ = s => document.querySelector(s);
 const LINKS = ["youtube","instagram","twitter","discord"];   // TikTok has its own username field
+const tabIcons={editors:"account",styles:"tag",rank:"rankings",applications:"applications",site:"globe",links:"link",users:"users"};
+const actionIcon=name=>`<svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#${name}"/></svg>`;
 let openIdx = -1;   // which editor card is expanded (kept open when the list redraws)
 const ONLINE = /^https?:$/.test(location.protocol);   // false when opened straight from a folder
 
@@ -160,7 +172,7 @@ function allowedTabs(){
 }
 function view(){
   const tabs=allowedTabs();if(!tabs.some(([k])=>k===tab))tab=tabs[0]?.[0];
-  $("#tabs").innerHTML=tabs.map(([k,n])=>'<button data-act="tab" data-v="'+k+'" class="'+(tab===k?'on':'')+'">'+n+'</button>').join("");
+  $("#tabs").innerHTML=tabs.map(([k,n])=>`<button data-act="tab" data-v="${k}" aria-label="${n}" aria-pressed="${tab===k}" class="rel-action rel-action--reveal ${tab===k?'on rel-action--account':''}">${actionIcon(tabIcons[k])}<span>${n}</span></button>`).join("");
   $("#saveSite").hidden=!canEdit();$("#saveSite").disabled=!revision;
   $("#dl").hidden=!S||!can("list_contributor");$("#reset").hidden=!S;
   $("#app").innerHTML=tab?({editors:vEditors,styles:vStyles,rank:vRank,applications:vApplications,site:vSite,users:vUsers,links:vProfileLinks,claim:vClaim})[tab]():'<p class="hint">Your account is ready. Reload to try loading the list again.</p>';
@@ -233,10 +245,10 @@ function vRank(){
   const list = members(rk);
   const opts = [["main", "Overall Top 30"], ...S.styles.map(s => [s.id, s.name + " list"])]
     .map(([k, n]) => `<option value="${esc(k)}" ${rk === k ? "selected" : ""}>${esc(n)}</option>`).join("");
-  let html = `<div class="inline"><select data-t="rk">${opts}</select></div>`;
+  let html = `<div class="inline"><label for="rankingList">Ranked list</label><select id="rankingList" data-t="rk">${opts}</select></div>`;
   if (rk === "main") {
     const free = S.editors.filter(e => !list.some(x => x.id === e.id));
-    html += `<div class="inline"><select id="addSel">${free.map(e => `<option value="${esc(e.id)}">${esc(e.name)}</option>`).join("") || `<option value="">(everyone is already ranked)</option>`}</select><button data-act="addMain">Add to overall list</button></div>`;
+    html += `<div class="inline"><label for="addSel">Editor to add</label><select id="addSel">${free.map(e => `<option value="${esc(e.id)}">${esc(e.name)}</option>`).join("") || `<option value="">(everyone is already ranked)</option>`}</select><button data-act="addMain">Add to overall list</button></div>`;
   } else {
     html += `<p class="hint">Members come from the flare you tick on each editor. Use the arrows to set their order in this list.</p>`;
   }
