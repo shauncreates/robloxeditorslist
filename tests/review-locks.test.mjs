@@ -44,6 +44,7 @@ test("decisions are final, reasoned and attributed from the account with stable 
     await assert.rejects(db.query("update public.editor_applications set review_reason='Replacement' where id=$1",[id]),/REL_APPLICATION_LOCKED/);
     await assert.rejects(db.query("delete from public.editor_applications where id=$1",[id]),/REL_APPLICATION_LOCKED/);
     await assert.rejects(asUser(ids.reviewer,"select * from rel_private.application_decisions"),/permission denied/);
+    await db.query("update rel_private.accounts set username_changed_at=now()-interval '168 hours' where id=$1",[ids.reviewer]);
     await rpc(ids.reviewer,"rel_username",{p_username:"renamed_reviewer"});
     const history=(await db.query("select * from rel_private.application_decisions where application_id=$1",[id])).rows[0];
     assert.equal(history.reviewer_username,"review_name");assert.equal(history.reviewer_id,ids.reviewer);
@@ -76,7 +77,7 @@ test("Owner link queue lists requests independently of user pagination and hides
   try{
     const site=await rpc(ids.owner,"rel_site");
     await db.query("update rel_private.accounts set created_at=now()-interval '2 days' where id=$1",[ids.stranger]);
-    await db.exec("insert into auth.users(id,email,email_confirmed_at,raw_user_meta_data) select gen_random_uuid(),'new-'||n::text||'@example.test',now(),'{}'::jsonb from generate_series(1,51) n");
+    await db.exec("insert into auth.users(id,email,email_confirmed_at,raw_user_meta_data) select gen_random_uuid(),'new-'||n::text||'@example.test',now(),jsonb_build_object('username','new_member_'||n::text) from generate_series(1,51) n");
     await rpc(ids.stranger,"rel_claim",{p_editor_id:"editor2",p_message:"Verify through the listed account"});
     const users=await rpc(ids.owner,"rel_users",{p_action:"list"});
     assert.equal(users.users.some(user=>user.id===ids.stranger),false);

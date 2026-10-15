@@ -119,6 +119,9 @@ try {
   assert.notEqual(await evaluate(publicPage,"getComputedStyle(document.activeElement).outlineStyle"),"none");
   await click(publicPage,"#switch");await checkLayout(publicPage,"signup");
   await fill(publicPage,"#email","browser-fixture@example.test");await fill(publicPage,"#password","SignupTest123");
+  await click(publicPage,"#submit");
+  assert.equal(await evaluate(publicPage,"document.querySelector('#signupUsername').validity.valueMissing"),true);
+  await fill(publicPage,"#signupUsername","Browser_Member");
   await click(publicPage,"#submit");await waitFor(publicPage,"document.querySelector('#message').textContent.includes('confirm') && !document.querySelector('#submit').disabled");
   await navigate(publicPage,"/test-email/signup/");await checkLayout(publicPage,"signup-email");
   assert.equal(await evaluate(publicPage,"document.querySelector('img').naturalWidth>0"),true);
@@ -160,13 +163,14 @@ try {
 
   const member = await newPage();contexts.push(member);await signIn(member,"member");
   assert.equal(await evaluate(member,"document.querySelector('#manage').hidden"),true);
+  await fill(member,"#accountUsername","owner");await click(member,"#usernameForm button");
+  await waitFor(member,"document.querySelector('#usernameNotice').textContent.includes('already taken')");
   await fill(member,"#accountUsername","Member_Editor");await click(member,"#usernameForm button");
   await waitFor(member,"document.querySelector('#usernameNotice').textContent==='Username saved.'");
   assert.equal(await evaluate(member,"document.querySelector('#identity').textContent"),"member_editor");
-  await fill(member,"#accountUsername","owner");await click(member,"#usernameForm button");
-  await waitFor(member,"document.querySelector('#usernameNotice').textContent.includes('already taken')");
-  await fill(member,"#accountUsername","member_editor");await click(member,"#usernameForm button");
-  await waitFor(member,"document.querySelector('#usernameNotice').textContent==='Username saved.'");
+  assert.equal(await evaluate(member,"document.querySelector('#accountUsername').readOnly && document.querySelector('#usernameForm button').disabled"),true);
+  assert.match(await evaluate(member,"document.querySelector('#usernameAvailability').textContent"),/again on/);
+  await checkLayout(member,"username-cooldown");
   await click(member,"details summary");await delay(300);assert.equal(await evaluate(member,"document.querySelector('details').open"),false);
   await click(member,"details summary");assert.equal(await evaluate(member,"document.getAnimations().length>0"),true);await delay(300);
   await send("Emulation.setEmulatedMedia",{features:[{name:"prefers-reduced-motion",value:"reduce"}]},member.sessionId);

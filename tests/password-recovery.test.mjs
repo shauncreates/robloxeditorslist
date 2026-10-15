@@ -12,11 +12,11 @@ test("signup enforces eight characters and all required character types server-s
   try{
     for(const password of ["Short1A","abcdefgh1","ABCDEFGH1","Abcdefgh",null,"Aa1"+"a".repeat(1022)]){
       service.clearLog();
-      assert.equal((await request(service,"signup",{email:"new@example.test",password})).status,400);
+      assert.equal((await request(service,"signup",{email:"new@example.test",password,username:"new_member"})).status,400);
       assert.equal(service.log().length,0);
     }
-    for(const password of ["Abcdef12","Abcdef12!","A much longer password 123"]){
-      assert.equal((await request(service,"signup",{email:"new@example.test",password})).status,201);
+    for(const [index,password] of ["Abcdef12","Abcdef12!","A much longer password 123"].entries()){
+      assert.equal((await request(service,"signup",{email:`new${index}@example.test`,password,username:`new_member${index}`})).status,201);
     }
   }finally{await service.close()}
 });

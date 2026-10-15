@@ -10,6 +10,10 @@
   <a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a>
   <h1 id="title">Sign in</h1><p id="intro">Manage your editor profile or contribute to the list.</p>
   <form id="authForm">
+    <div id="signupUsernameField" hidden>
+      <label for="signupUsername">Username</label><input id="signupUsername" minlength="3" maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9_\-]{2,39}" autocomplete="nickname" autocapitalize="none" spellcheck="false" disabled aria-describedby="signupUsernameHint">
+      <p class="hint" id="signupUsernameHint">Use 3 to 40 letters, digits, underscores or hyphens, starting with a letter or digit. Stored in lowercase. You can change it once every 7 days.</p>
+    </div>
     <label for="email">Email</label><input id="email" type="email" required maxlength="254" autocomplete="username">
     <label for="password">Password</label><input id="password" type="password" required maxlength="1024" autocomplete="current-password">
     <button class="pri" id="submit">Sign in</button>
@@ -35,6 +39,9 @@
     $("#submit").textContent = signup ? "Create account" : "Sign in";
     $("#switch").textContent = signup ? "Already have an account? Sign in" : "Create an account";
     $("#password").minLength = signup ? 8 : 1;
+    $("#signupUsernameField").hidden = !signup;
+    $("#signupUsername").disabled = !signup;
+    $("#signupUsername").required = signup;
     if (signup) $("#password").setAttribute("pattern", "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,1024}");
     else $("#password").removeAttribute("pattern");
     $("#forgotPassword").hidden = signup;
@@ -52,7 +59,8 @@
     try {
       const response = await fetch(submittingSignup ? "/api/auth/signup" : "/api/auth/signin", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: $("#email").value.trim(), password: $("#password").value }),
+        body: JSON.stringify({ email: $("#email").value.trim(), password: $("#password").value,
+          ...(submittingSignup ? { username: $("#signupUsername").value.trim() } : {}) }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Please try again.");

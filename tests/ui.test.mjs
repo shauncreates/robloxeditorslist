@@ -93,19 +93,24 @@ test("signup mode stays fixed while a request is pending and recovers after an e
     });
     return elements.get(selector);
   };
-  let finish,requested;
+  let finish,requested,requestBody;
   const context=vm.createContext({document:{querySelector:element},location:{hash:"",search:"",assign(){throw Error("Signup must not redirect to admin")}},
     sessionStorage:{removeItem(){}},URLSearchParams,
-    fetch:async url=>{requested=url;return new Promise(resolve=>{finish=resolve})},
+    fetch:async (url,options)=>{requested=url;requestBody=JSON.parse(options.body);return new Promise(resolve=>{finish=resolve})},
   });
   vm.runInContext(script,context);
   events.get('#switch:click')();
   assert.equal(element('#password').minLength,8);
   assert.match(element('#password').attributes.get('pattern'),/A-Z/);
   assert.equal(element('#forgotPassword').hidden,true);
+  assert.equal(element('#signupUsername').required,true);
+  assert.equal(element('#signupUsername').disabled,false);
+  assert.equal(element('#signupUsernameField').hidden,false);
+  element('#signupUsername').value='New_Member';
   element('#email').value='signup@example.test';element('#password').value='SignupTest123';
   const pending=events.get('#authForm:submit')({preventDefault(){}});
   assert.equal(requested,'/api/auth/signup');
+  assert.equal(requestBody.username,'New_Member');
   assert.equal(element('#switch').disabled,true);assert.equal(element('#submit').disabled,true);
   assert.equal(element('#authForm').attributes.get('aria-busy'),'true');
   // Even a programmatic mode change cannot change how the pending response is handled.
@@ -113,11 +118,15 @@ test("signup mode stays fixed while a request is pending and recovers after an e
   assert.equal(element('#password').minLength,1);
   assert.equal(element('#password').attributes.has('pattern'),false);
   assert.equal(element('#forgotPassword').hidden,false);
+  assert.equal(element('#signupUsername').required,false);
+  assert.equal(element('#signupUsername').disabled,true);
+  assert.equal(element('#signupUsernameField').hidden,true);
   finish({ok:true,json:async()=>({message:'Confirm your email.'})});await pending;
   assert.equal(element('#message').textContent,'Confirm your email.');
   assert.equal(element('#password').value,'');assert.equal(element('#switch').disabled,false);
   assert.equal(element('#authForm').attributes.has('aria-busy'),false);
   const failed=events.get('#authForm:submit')({preventDefault(){}});
+  assert.equal(requestBody.username,undefined);
   finish({ok:false,json:async()=>({error:'Please retry.'})});await failed;
   assert.equal(element('#message').textContent,'Please retry.');
   assert.equal(element('#submit').disabled,false);assert.equal(element('#switch').disabled,false);

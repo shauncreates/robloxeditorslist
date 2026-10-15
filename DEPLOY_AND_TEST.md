@@ -55,8 +55,9 @@ Open `http://127.0.0.1:8789/signin/`. These are invented accounts only:
 
 Sign out between accounts. Use a second browser/private window when testing two
 accounts simultaneously. Restart the fixture to discard all its test edits.
-Fixture signup returns a simulated success; it sends no email and does not create
-a working new account. Real confirmation is tested in later steps.
+Fixture signup creates an unconfirmed account only in the isolated test database.
+It sends no email, so that account cannot sign in. Real confirmation is tested in
+later steps.
 
 Perform these checks in the fixture:
 

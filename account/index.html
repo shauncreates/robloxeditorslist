@@ -25,7 +25,7 @@
 <body><main class="account-wrap">
   <header><a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a><nav aria-label="Account navigation"><a href="/list/">View rankings</a><a id="manage" href="/admin/" hidden>Manage REL</a><button id="signout" type="button" hidden>Sign out</button></nav></header>
   <h1>My account</h1><p id="identity" class="hint"></p>
-  <form id="usernameForm" hidden><label for="accountUsername">Username</label><input id="accountUsername" minlength="3" maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9_\-]{2,39}" required autocomplete="nickname" aria-describedby="usernameHint"><p class="hint" id="usernameHint">Use 3 to 40 letters, digits, underscores or hyphens. Reviews show your username; sign-in still uses your email.</p><button type="submit">Save username</button></form><p id="usernameNotice" role="status"></p>
+  <form id="usernameForm" hidden><label for="accountUsername">Username</label><input id="accountUsername" minlength="3" maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9_\-]{2,39}" required autocomplete="nickname" autocapitalize="none" spellcheck="false" aria-describedby="usernameHint usernameAvailability"><p class="hint" id="usernameHint">Use 3 to 40 letters, digits, underscores or hyphens, starting with a letter or digit. Stored in lowercase. Reviews show your username; sign-in still uses your email.</p><p class="hint" id="usernameAvailability" role="status"></p><button type="submit">Save username</button></form><p id="usernameNotice" role="status"></p>
   <p id="status" role="status">Loading your account…</p><div id="profile"></div>
 </main><script type="module" src="../assets/profile-page.js"></script></body>
 </html>

@@ -65,6 +65,7 @@ export async function userRpc(env, token, name, args = {}) {
       "REL_REASON_REQUIRED": [400, "Enter a review reason of 1 to 1,000 characters."],
       "REL_INVALID_USERNAME": [400, "Use 3 to 40 letters, digits, underscores or hyphens for your username."],
       "REL_USERNAME_TAKEN": [409, "That username is already taken. Choose another."],
+      "REL_USERNAME_COOLDOWN": [409, "You can change your username once every 7 days. Check your account for the next change date."],
     };
     const mapped = errors[data.message];
     if (mapped) throw new HttpError(...mapped);

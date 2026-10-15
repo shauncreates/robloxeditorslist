@@ -1,5 +1,15 @@
 # REL progress
 
+## 15 October 2026: mandatory signup usernames and seven-day changes
+
+- Signup now requires a unique username of 3 to 40 letters, digits, underscores or hyphens, starting with a letter or digit. Names are normalized to lowercase. The Cloudflare API forwards only this validated display name, email and password; caller-supplied roles, editor links and arbitrary metadata remain ignored.
+- Prepared `supabase/migrations/20261015001034_rel_signup_usernames.sql`. It requires the review-lock/username migration. New Auth users must supply a string username even when bypassing the REL signup form; the existing unique constraint rejects competing signups atomically. A server-only availability RPC exposes only a boolean and improves duplicate-name feedback. Missing migration/setup blocks signup rather than silently using generated names.
+- New users wait seven days from choosing their signup name before changing it. Existing accounts retain their usernames and can make their first change immediately. A checked RPC then enforces 168 hours between actual changes for all roles, including Owners. Same-name saves and rejected attempts do not restart the timer or add audit entries. Updating Supabase user metadata cannot rename the REL account or reset the timer.
+- `/account/` displays the next available change date in the user's local time and makes the username read-only while locked. Signup alone requires the username field; ordinary email/password sign-in, confirmation, recovery, profile linking and role controls are preserved.
+- Added the user's standing preference to `AGENTS.md`: test, commit and push completed file changes on the feature branch after each request, excluding credentials and generated/private files. Main merges, deployments and live migrations still require explicit permission.
+
+Verification: 34 automated tests passed, static build passed and Cloudflare Functions compiled. Isolated Chrome checks passed at 320/390/768/1440px, including empty signup usernames, duplicate usernames, successful changes and the locked date display. Database tests cover signup races, exact seven-day eligibility, simultaneous changes, forged metadata, permissions and preservation of existing accounts/submissions/ranks. Hint/input contrast and representative screenshots were checked; the input border meets the 3:1 non-text requirement. No live database/schema/configuration changes, email sends, merge or deployment occurred. `data.js` and the original SVG are unchanged. The new migration remains for manual application after reviewing its prerequisites. AntiSlop evidence: `anti-slop/review-006-2026-10-15.md`.
+
 ## 15 October 2026: GitHub checkpoint and Cloud handoff
 
 The user authorized committing and pushing the development work on `feat/applications-stage-1`. This checkpoint includes the Auth/roles implementation, application workflows, review locks, usernames, profile-link queue, UI refinements, changelog, migrations, email templates and isolated tests. Installed AntiSlop skills and project instructions are included so another checkout can use the same review rules.

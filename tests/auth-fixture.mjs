@@ -12,7 +12,7 @@ export const rankings = {
   editors:[{id:"editor1",name:"One",flares:["style"],note:"Original"},{id:"editor2",name:"Two",flares:[],note:"Original two"}],
   lists:{main:["editor2","editor1"],style:["editor1"]},
 };
-export async function fixture({reviews=true,decisions=reviews,legacyApplications=false}={}){
+export async function fixture({reviews=true,decisions=reviews,usernames=decisions,legacyApplications=false}={}){
   const db = new PGlite();
   await db.exec(`
     create role anon; create role authenticated; create role service_role bypassrls;
@@ -57,6 +57,7 @@ export async function fixture({reviews=true,decisions=reviews,legacyApplications
   await db.query("update rel_private.accounts set roles=$1 where id=$2",[["member","list_contributor"],ids.contributor]);
   await db.query("update rel_private.accounts set roles=$1 where id=$2",[["member","application_reviewer"],ids.reviewer]);
   await db.query("update rel_private.accounts set editor_id='editor1' where id=$1",[ids.member]);
+  if(usernames)await db.exec(await readFile(new URL("../supabase/migrations/20261015001034_rel_signup_usernames.sql",import.meta.url),"utf8"));
   const asUser = (id,sql,args=[])=>db.transaction(async tx=>{
     await tx.exec("set local role authenticated");
     await tx.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:id,session_id:sessionId(id),role:"authenticated"})]);

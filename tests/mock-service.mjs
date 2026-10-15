@@ -58,7 +58,17 @@ export async function mockService(){
       }else if(!sessions.has(accessToken))return response({},401);
       return response({access_token:accessToken,refresh_token:"refresh-"+accessToken,expires_in:3600});
     }
-    if(url.pathname==="/auth/v1/signup")return response({id:"pending-confirmation"});
+    if(url.pathname==="/auth/v1/signup"){
+      if(failures.signup)return response({},failures.signup);
+      const body=JSON.parse(options.body),id=randomUUID();
+      if([...users.values()].some(user=>user.email===body.email))return response({id:"pending-confirmation"});
+      try{
+        await db.query("insert into auth.users(id,email,raw_user_meta_data) values ($1,$2,$3)",[id,body.email,body.data]);
+        const user={id,email:body.email,email_confirmed_at:null};
+        users.set(body.email.split('@')[0],user);passwords.set(id,body.password);
+        return response(user);
+      }catch{return response({message:"Database error saving new user"},500)}
+    }
     if(url.pathname==="/auth/v1/logout"){
       if(failures.logout)return response({},failures.logout);
       if(user){
@@ -68,6 +78,13 @@ export async function mockService(){
       return new Response(null,{status:204});
     }
     if(url.pathname.startsWith("/rest/v1/rpc/")){
+      if(url.pathname.endsWith("/rel_signup_username_available") && token===env.SUPABASE_SERVICE_ROLE_KEY){
+        if(failures.availability)return response({},failures.availability);
+        return response(await db.transaction(async tx=>{
+          await tx.exec("set local role service_role");
+          return (await tx.query("select public.rel_signup_username_available($1) as available",[JSON.parse(options.body).p_username])).rows[0].available;
+        }));
+      }
       if(!user)return response({message:"REL_UNAUTHENTICATED"},401);
       try{return response(await rpc(user.id,url.pathname.split('/').pop(),JSON.parse(options.body)))}
       catch(error){return response({message:error.message,code:error.code},400)}

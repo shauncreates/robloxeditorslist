@@ -36,9 +36,9 @@ test("Cloudflare functions enforce authentication, ownership and roles with no s
     const loginBody=await login.json();assert.equal(loginBody.account.id,ids.owner);
     assert.equal(loginBody.access_token,undefined);assert.equal(loginBody.refresh_token,undefined);
     service.clearLog();
-    const signup=await request("/api/auth/signup",null,{email:"new@example.test",password:"SignupTest123",roles:["owner"],editorId:"editor2",data:{roles:["owner"]}});
+    const signup=await request("/api/auth/signup",null,{email:"new@example.test",password:"SignupTest123",username:"New_Member",roles:["owner"],editorId:"editor2",data:{roles:["owner"]}});
     assert.equal(signup.status,201);
-    assert.deepEqual(service.log()[0].body,{email:"new@example.test",password:"SignupTest123"});
+    assert.deepEqual(service.log().find(entry=>entry.path==="/auth/v1/signup").body,{email:"new@example.test",password:"SignupTest123",data:{username:"new_member"}});
     assert.equal((await request("/api/auth/signup",null,{email:"new@example.test",password:"short"})).status,400);
     const refresh=await request("/api/auth/refresh","member",{});assert.equal(refresh.status,200);assert.equal(refresh.headers.getSetCookie().length,2);
     const large=await request("/api/account/claim","member",{message:"a".repeat(20000)});assert.equal(large.status,413);

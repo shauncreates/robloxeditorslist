@@ -5,7 +5,16 @@ import { animateDisclosures } from "./disclosure.js";
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 const links = ["youtube", "instagram", "twitter", "discord"];
-let account, site, revision;
+let account, site, revision, usernameSaving = false;
+function updateUsernameAvailability() {
+  const nextChange = Date.parse(account.username_next_change_at);
+  const locked = Number.isFinite(nextChange) && nextChange > Date.now();
+  $("#usernameAvailability").textContent = locked
+    ? "You can change your username again on " + new Date(nextChange).toLocaleString() + "."
+    : "You can change your username now. After saving a change, wait 7 days before changing it again.";
+  $("#usernameForm button").disabled = usernameSaving || locked;
+  $("#accountUsername").readOnly = locked;
+}
 function status(message, error = false) { $("#status").textContent = message; $("#status").className = error ? "bad" : ""; }
 const autosave = createAutosave({
   async write() {
@@ -32,6 +41,7 @@ function render() {
   $("#identity").textContent = account.username || "Member";
   $("#usernameForm").hidden = false;
   if(document.activeElement!==$("#accountUsername") && !$("#usernameForm").dataset.dirty) $("#accountUsername").value=account.username||"";
+  updateUsernameAvailability();
   $("#manage").hidden = !account.roles.some(role => ["owner","list_contributor","application_reviewer"].includes(role));
   $("#signout").hidden = false;
   const editor = site.editors.find(editor => editor.id === account.editor_id);
@@ -73,18 +83,19 @@ function render() {
 
 $("#usernameForm").addEventListener("input",()=>{$("#usernameForm").dataset.dirty="true"});
 $("#usernameForm").addEventListener("submit",async event=>{
-  event.preventDefault();const button=event.currentTarget.querySelector("button");button.disabled=true;
+  event.preventDefault();usernameSaving=true;updateUsernameAvailability();
   $("#usernameNotice").textContent="Saving username…";
   try{
     const {ok,j}=await accountApi("/api/account/username",{username:$("#accountUsername").value});
     if(!ok)throw new Error(j.error||"Could not save your username.");
     account.username=j.username;$("#identity").textContent=j.username;$("#accountUsername").value=j.username;
+    account.username_next_change_at=j.username_next_change_at;
     delete $("#usernameForm").dataset.dirty;$("#usernameNotice").textContent="Username saved.";announceChange();
-  }catch(error){$("#usernameNotice").textContent=error.message}finally{button.disabled=false}
+  }catch(error){$("#usernameNotice").textContent=error.message}finally{usernameSaving=false;updateUsernameAvailability()}
 });
 
 $("#signout").addEventListener("click",async()=>{
-  if(autosave.busy){status("Wait for your save to finish before signing out.");return}
+  if(autosave.busy||usernameSaving){status("Wait for your save to finish before signing out.");return}
   if((autosave.dirty||$("#usernameForm").dataset.dirty)&&!confirm("Sign out and discard unsaved changes?"))return;
   autosave.pause();
   try{await signOut();delete $("#usernameForm").dataset.dirty;autosave.reset();location.replace("/signin/")}catch(error){status(error.message,true)}
@@ -92,6 +103,10 @@ $("#signout").addEventListener("click",async()=>{
 window.addEventListener("beforeunload",event=>{if(autosave.dirty||$("#usernameForm").dataset.dirty){event.preventDefault();event.returnValue=""}});
 async function refresh() {
   const nextAccount=await getAccount();if(!nextAccount)return;
+  if (!usernameSaving && account) {
+    account.username_next_change_at=nextAccount.username_next_change_at;
+    updateUsernameAvailability();
+  }
   const response=await accountFetch("/api/account/site");
   if(!response.ok)throw new Error("Could not load your profile. Saving is unavailable.");
   const next=await response.json();
