@@ -89,7 +89,7 @@ Cloudflare Pages project `robloxeditorslist` builds from `main` using `npm run b
 
 On 15 October 2026, Cloudflare reported deployment `c62ad187-4e38-45c5-8a4a-d063ff2ac3ac` successful for `9610640`. Live account/list HTML and shared assets were checked against that source, with Cloudflare's injected analytics excluded from the HTML comparison. Production public-read and protected-request rejection checks passed. This is a release record, not a claim that future main commits are deployed.
 
-Auth, public profiles and contributor account links are in use. The Contributor editor additionally requires [`20261015130000_rel_contributor_tiers.sql`](../supabase/migrations/20261015130000_rel_contributor_tiers.sql). Its live installation was not confirmed during this update; the latest inspected public contributor response still lacked tier fields. Follow [CONTRIBUTOR_TIERS.md](CONTRIBUTOR_TIERS.md) before assuming that editor is ready.
+Auth, public profiles and contributor account links are in use. The Contributor editor additionally requires [`20261015130000_rel_contributor_tiers.sql`](../supabase/migrations/20261015130000_rel_contributor_tiers.sql). A later read-only check on 15 October 2026 found saved tier fields in the live public contributor response. This confirms that public tier data is present; it does not test authenticated Owner editing. Follow [CONTRIBUTOR_TIERS.md](CONTRIBUTOR_TIERS.md) when preparing another environment or diagnosing an editor failure.
 
 Database migration status and SMTP/provider settings must be checked separately from the website build. Do not rerun old migrations or imports to repair a newly missing function.
 
