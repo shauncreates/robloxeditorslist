@@ -1,84 +1,225 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow"><title>Sign in | Roblox Editors</title>
-  <link rel="stylesheet" href="../assets/typography.css">
-  <link rel="stylesheet" href="../assets/account.css">
-  <link rel="stylesheet" href="../assets/actions.css">
-  <style>
-    .signin-actions .rel-action--reveal{gap:9px}
-    .signin-actions .rel-action--reveal>span{max-width:none;margin-left:0;opacity:1;overflow:visible;white-space:normal;transition:none}
-    .signin-actions .rel-action:hover,.signin-actions .rel-action:focus-visible{transform:none;background-position:0 50%}
-  </style>
-  <script type="module" src="../assets/action-buttons.js"></script>
-</head>
-<body><main class="account-wrap signin-actions">
-  <a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a>
-  <h1 id="title">Sign in</h1><p id="intro">Manage your editor profile or contribute to the list.</p>
-  <form id="authForm">
-    <div id="signupUsernameField" hidden>
-      <label for="signupUsername">Username</label><input id="signupUsername" minlength="3" maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9_\-]{2,39}" autocomplete="nickname" autocapitalize="none" spellcheck="false" disabled aria-describedby="signupUsernameHint">
-      <p class="hint" id="signupUsernameHint">Use 3 to 40 letters, digits, underscores or hyphens, starting with a letter or digit. Stored in lowercase. You can change it once every 7 days.</p>
-    </div>
-    <label for="email">Email</label><input id="email" type="email" required maxlength="254" autocomplete="username">
-    <label for="password">Password</label><input id="password" type="password" required maxlength="1024" autocomplete="current-password">
-    <button class="pri" id="submit">Sign in</button>
-  </form>
-  <a class="account-link" data-icon="key" id="forgotPassword" href="/reset-password/">Forgot password?</a>
-  <p id="message" role="status" aria-live="polite"></p>
-  <button id="switch" type="button">Create an account</button>
-  <p class="hint">New accounts are Members. An Owner verifies profile links and grants contributor or reviewer access.</p>
-</main>
-<script type="module">
-  let signup = false;
-  const $ = s => document.querySelector(s), form = $("#authForm");
-  // Confirmation authorizes no action here. Discard Supabase's URL fragment tokens.
-  if (location.hash || new URLSearchParams(location.search).has("confirmed")) {
-    const error = new URLSearchParams(location.hash.slice(1)).get("error_description");
-    history.replaceState(null, "", "/signin/");
-    $("#message").textContent = error || "If you followed your confirmation link, sign in to continue.";
-  }
-  try { sessionStorage.removeItem("adm_pw"); } catch {}
-  $("#switch").addEventListener("click", () => {
-    signup = !signup;
-    $("#title").textContent = signup ? "Create an account" : "Sign in";
-    $("#submit").textContent = signup ? "Create account" : "Sign in";
-    $("#switch").textContent = signup ? "Back to sign in" : "Create an account";
-    $("#password").minLength = signup ? 8 : 1;
-    $("#signupUsernameField").hidden = !signup;
-    $("#signupUsername").disabled = !signup;
-    $("#signupUsername").required = signup;
-    if (signup) $("#password").setAttribute("pattern", "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,1024}");
-    else $("#password").removeAttribute("pattern");
-    $("#forgotPassword").hidden = signup;
-    $("#password").autocomplete = signup ? "new-password" : "current-password";
-    $("#intro").textContent = signup ? "Use at least 8 characters, including an uppercase letter, a lowercase letter and a digit. Confirm your email before signing in." : "Manage your editor profile or contribute to the list.";
-    $("#message").textContent = "";
-  });
-  form.addEventListener("submit", async event => {
-    event.preventDefault();
-    const submittingSignup = signup;
-    $("#submit").disabled = true;
-    $("#switch").disabled = true;
-    form.setAttribute("aria-busy", "true");
-    $("#message").textContent = submittingSignup ? "Creating your account…" : "Signing in…";
-    try {
-      const response = await fetch(submittingSignup ? "/api/auth/signup" : "/api/auth/signin", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: $("#email").value.trim(), password: $("#password").value,
-          ...(submittingSignup ? { username: $("#signupUsername").value.trim() } : {}) }),
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+
+    <title>Account | Roblox Editors</title>
+
+    <link rel="stylesheet" href="../assets/typography.css" />
+    <link rel="stylesheet" href="../assets/account.css" />
+    <link rel="stylesheet" href="../assets/actions.css" />
+
+    <script type="module" src="../assets/action-buttons.js"></script>
+  </head>
+
+  <body class="account-page">
+    <main class="account-wrap">
+      <a class="rel-brand" href="/" aria-label="Roblox Editors List home">
+        <img src="../media/logo.svg" alt="Roblox Editors List" />
+      </a>
+
+      <h1 id="title">Sign in</h1>
+
+      <form id="authForm">
+        <div id="signupUsernameField" hidden>
+          <label for="signupUsername">Username</label>
+
+          <input
+            id="signupUsername"
+            minlength="3"
+            maxlength="40"
+            pattern="[A-Za-z0-9][A-Za-z0-9_\-]{2,39}"
+            autocomplete="nickname"
+            autocapitalize="none"
+            spellcheck="false"
+            disabled
+            aria-describedby="signupUsernameHint"
+          />
+
+          <p class="hint" id="signupUsernameHint">
+            Use 3 to 40 letters, digits, underscores or hyphens, starting with a
+            letter or digit. Stored in lowercase. You can change it once every 7
+            days.
+          </p>
+        </div>
+
+        <label for="email">Email</label>
+
+        <input
+          id="email"
+          type="email"
+          required
+          maxlength="254"
+          autocomplete="username"
+        />
+
+        <label for="password">Password</label>
+
+        <input
+          id="password"
+          type="password"
+          required
+          maxlength="1024"
+          autocomplete="current-password"
+        />
+
+        <button class="pri" id="submit" data-icon="account">Sign in</button>
+      </form>
+
+      <p id="message" role="status" aria-live="polite"></p>
+
+      <nav class="account-secondary-links" aria-label="Account options">
+        <button
+          id="switch"
+          type="button"
+          class="account-text-action"
+          data-no-icon
+        >
+          Create an account
+        </button>
+
+        <a
+          class="account-text-action"
+          id="forgotPassword"
+          href="/reset-password/"
+        >
+          Forgot password?
+        </a>
+      </nav>
+
+      <p class="hint">
+        New accounts are members until an owner grants additional access.
+      </p>
+    </main>
+
+    <script type="module">
+      let signup = false;
+
+      const $ = (selector) => document.querySelector(selector);
+      const form = $("#authForm");
+
+      // Confirmation authorizes no action here.
+      // Discard Supabase's URL fragment tokens.
+      if (
+        location.hash ||
+        new URLSearchParams(location.search).has("confirmed")
+      ) {
+        const error = new URLSearchParams(location.hash.slice(1)).get(
+          "error_description",
+        );
+
+        history.replaceState(null, "", "/signin/");
+
+        $("#message").textContent =
+          error ||
+          "If you followed your confirmation link, sign in to continue.";
+      }
+
+      try {
+        sessionStorage.removeItem("adm_pw");
+      } catch {}
+
+      $("#switch").addEventListener("click", () => {
+        signup = !signup;
+
+        $("#title").textContent = signup ? "Create an account" : "Sign in";
+
+        $("#submit").textContent = signup ? "Create account" : "Sign in";
+
+        $("#switch").textContent = signup
+          ? "Back to sign in"
+          : "Create an account";
+
+        $("#password").minLength = signup ? 8 : 1;
+
+        $("#signupUsernameField").hidden = !signup;
+        $("#signupUsername").disabled = !signup;
+        $("#signupUsername").required = signup;
+
+        if (signup) {
+          $("#password").setAttribute(
+            "pattern",
+            "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,1024}",
+          );
+        } else {
+          $("#password").removeAttribute("pattern");
+        }
+
+        $("#forgotPassword").hidden = signup;
+
+        $("#password").autocomplete = signup
+          ? "new-password"
+          : "current-password";
+
+        $("#message").textContent = "";
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Please try again.");
-      $("#password").value = "";
-      if (submittingSignup) $("#message").textContent = result.message;
-      else location.assign(result.account?.roles?.some(role => ["owner","list_contributor","application_reviewer"].includes(role)) ? "/admin/" : "/account/");
-    } catch (error) { $("#message").textContent = error.message; }
-    finally {
-      $("#submit").disabled = false;
-      $("#switch").disabled = false;
-      form.removeAttribute("aria-busy");
-    }
-  });
-</script></body></html>
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const submittingSignup = signup;
+
+        $("#submit").disabled = true;
+        $("#switch").disabled = true;
+
+        form.setAttribute("aria-busy", "true");
+
+        $("#message").textContent = submittingSignup
+          ? "Creating your account…"
+          : "Signing in…";
+
+        try {
+          const response = await fetch(
+            submittingSignup ? "/api/auth/signup" : "/api/auth/signin",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: $("#email").value.trim(),
+                password: $("#password").value,
+                ...(submittingSignup
+                  ? {
+                      username: $("#signupUsername").value.trim(),
+                    }
+                  : {}),
+              }),
+            },
+          );
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Please try again.");
+          }
+
+          $("#password").value = "";
+
+          if (submittingSignup) {
+            $("#message").textContent = result.message;
+          } else {
+            location.assign(
+              result.account?.roles?.some((role) =>
+                ["owner", "list_contributor", "application_reviewer"].includes(
+                  role,
+                ),
+              )
+                ? "/admin/"
+                : "/account/",
+            );
+          }
+        } catch (error) {
+          $("#message").textContent = error.message;
+        } finally {
+          $("#submit").disabled = false;
+          $("#switch").disabled = false;
+
+          form.removeAttribute("aria-busy");
+        }
+      });
+    </script>
+  </body>
+</html>
