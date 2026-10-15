@@ -6,10 +6,11 @@
   <link rel="stylesheet" href="../assets/typography.css">
   <link rel="stylesheet" href="../assets/account.css">
   <link rel="stylesheet" href="../assets/public-profile.css">
+  <link rel="stylesheet" href="../assets/actions.css">
 </head>
 <body>
   <div class="profile-wrap">
-    <header><a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a><nav aria-label="Profile navigation"><a href="/list/">View rankings</a><a href="/account/">My account</a></nav></header>
+    <header><a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a><nav aria-label="Profile navigation"><a class="rel-action" href="/list/"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#rankings"/></svg><span>View rankings</span></a><a class="rel-action rel-action--account" href="/account/"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#account"/></svg><span>My account</span></a></nav></header>
     <main id="publicProfile" aria-busy="true"><h1>Profile</h1><p role="status">Loading profile…</p></main>
     <noscript><p>Enable JavaScript to view public profiles.</p></noscript>
   </div>

@@ -1,0 +1,16 @@
+.rel-icon{width:20px;height:20px;flex:0 0 20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+a.rel-action,button.rel-action{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;min-width:44px;max-width:100%;padding:10px 14px;margin:0;border:1px solid #68796b;border-radius:8px;background:#0b100c;color:#eef5ef;font:600 15px/1.4 var(--font);text-decoration:none;cursor:pointer;transition:background-color 180ms ease,border-color 180ms ease,transform 180ms ease,background-position 350ms ease}
+.rel-action>span{min-width:0;overflow-wrap:anywhere}
+a.rel-action--account,button.rel-action--account{background-color:#7af500;background-image:linear-gradient(115deg,#a1f83e 0%,#7af500 48%,#50d83b 100%);background-size:115% 100%;background-position:0 50%;color:#061109;border-color:transparent}
+.rel-action:hover,.rel-action:focus-visible{background-color:#132117;border-color:#a6c5ab;transform:translateY(-2px);text-decoration:none}
+.rel-action--account:hover,.rel-action--account:focus-visible{background-position:100% 50%;border-color:#061109}
+.rel-action:active{transform:translateY(0)}
+.rel-action:focus-visible,.rel-text-link:focus-visible{outline:2px solid #7af500;outline-offset:3px}
+.rel-action[hidden]{display:none!important}
+.rel-text-link{display:inline-flex;align-items:center;gap:8px;min-height:44px;max-width:100%;color:#7af500;text-decoration:none;font-weight:600}
+.rel-text-link .rel-icon{transition:transform 180ms ease}
+.rel-text-link:hover,.rel-text-link:focus-visible{text-decoration:none;color:#b1ff68}
+.rel-text-link:hover .rel-icon,.rel-text-link:focus-visible .rel-icon{transform:translateX(3px)}
+.rel-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+@media(prefers-reduced-motion:reduce){a.rel-action,button.rel-action,.rel-text-link .rel-icon{transition:none}.rel-action:hover,.rel-action:focus-visible,.rel-action:active,.rel-text-link:hover .rel-icon,.rel-text-link:focus-visible .rel-icon{transform:none}}
+@media(forced-colors:active){a.rel-action,button.rel-action{background:none;color:LinkText;border-color:ButtonText}.rel-action:focus-visible,.rel-text-link:focus-visible{outline-color:Highlight}}

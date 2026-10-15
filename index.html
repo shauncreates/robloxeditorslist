@@ -11,6 +11,7 @@
     <link rel="icon" type="image/svg+xml" href="media/icon.svg" />
     <meta name="theme-color" content="#050706" />
     <link rel="stylesheet" href="assets/typography.css" />
+    <link rel="stylesheet" href="assets/actions.css" />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap");
       :root {
@@ -208,12 +209,17 @@
           border-color 180ms ease,
           background 180ms ease;
       }
-      .contributor:hover {
+      .contributor:hover,.contributor:focus-visible {
         border-color: var(--accent);
-        transform: translateY(-2px) scale(1.05);
+        transform: translateY(-2px);
         position: relative;
         z-index: 1;
       }
+      .contributor .person{flex:1}
+      .contributor>.rel-icon{margin-left:12px;transition:transform 180ms ease}
+      .contributor:hover>.rel-icon,.contributor:focus-visible>.rel-icon{transform:translateX(3px)}
+      .hero-actions{display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap;margin-top:16px}
+      @media(prefers-reduced-motion:reduce){.contributor>.rel-icon{transition:none}.contributor:hover,.contributor:focus-visible,.contributor:hover>.rel-icon,.contributor:focus-visible>.rel-icon{transform:none}}
       .contributor:first-child {
         grid-column: 1 / -1;
       }
@@ -299,9 +305,9 @@
             >arrow_forward</span
           >
         </a>
-        <p style="margin-top:16px">
-          <a href="/apply/" style="color:var(--accent);font-weight:700;text-decoration:none">Apply to Be on the List</a>
-          <a href="account/" style="color:var(--accent);font-weight:700;text-decoration:none;margin-left:18px">My account →</a>
+        <p class="hero-actions">
+          <a class="rel-text-link" href="/apply/">Apply to Be on the List<svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#arrow"/></svg></a>
+          <a class="rel-action rel-action--account" href="account/"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#account"/></svg><span>My account</span></a>
         </p>
       </section>
 
@@ -317,7 +323,7 @@
       <div class="wrap">
         <p id="footNote">Rankings are one person's opinion.</p>
         <p id="footCta"></p>
-        <a href="/changelog/" style="display:inline-flex;align-items:center;min-height:44px">Changelog</a>
+        <a class="rel-text-link" href="/changelog/">Changelog<svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#arrow"/></svg></a>
       </div>
     </footer>
 
@@ -379,7 +385,7 @@
             return '<a class="contributor" href="/profile/?contributor=' +
                   encodeURIComponent(person.id) +
                   '">' +
-                  content +
+                  content + '<svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#arrow"/></svg>' +
                   "</a>";
           })
           .join("");
