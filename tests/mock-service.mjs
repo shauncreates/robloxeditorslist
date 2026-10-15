@@ -112,7 +112,7 @@ export async function mockService(){
     "/api/applications/admin":"applications/admin",
     "/api/applications/pending":"applications/pending",
     ...Object.fromEntries(["signin","signup","session","refresh","signout","forgot-password","reset-password","confirmation"].map(name=>["/api/auth/"+name,"auth/"+name])),
-    ...Object.fromEntries(["site","profile","claim","users","username","links","contributor"].map(name=>["/api/account/"+name,"account/"+name])),
+    ...Object.fromEntries(["site","profile","claim","users","username","links","contributor","contributors"].map(name=>["/api/account/"+name,"account/"+name])),
   };
   async function handle(request){
     const route=routes[new URL(request.url).pathname];

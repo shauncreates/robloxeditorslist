@@ -188,20 +188,49 @@
         text-transform: uppercase;
       }
 
-      /* contributors grid */
       .contributors {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        gap: 12px;
       }
-      .contributor {
+      .contributor-tier {
+        display: grid;
+        gap: 14px;
+        min-width: 0;
+        padding: 18px 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+      }
+      .tier-heading {
         display: flex;
         align-items: center;
+        gap: 10px;
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .tier-heading .rel-icon { color: var(--muted); }
+      .tier-owners { border-color: #385c22; background: #0e180b; }
+      .tier-owners .tier-heading { color: var(--accent); }
+      .tier-owners .tier-heading .rel-icon { color: inherit; }
+      .tier-members {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
         min-width: 0;
-        padding: 20px;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 10px;
+      }
+      .contributor {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 44px;
+        min-width: 0;
+        max-width: 100%;
+        padding: 10px 12px;
+        background: var(--panel-2);
+        border: 1px solid #68796b;
+        border-radius: 8px;
         color: inherit;
         text-decoration: none;
         transition:
@@ -215,17 +244,10 @@
         position: relative;
         z-index: 1;
       }
-      .contributor .person{flex:1}
-      .contributor>.rel-icon{margin-left:12px;transition:transform 180ms ease}
+      .contributor>.rel-icon{color:var(--accent);transition:transform 180ms ease}
       .contributor:hover>.rel-icon,.contributor:focus-visible>.rel-icon{transform:translateX(3px)}
       .hero-actions{display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap;margin-top:16px}
       @media(prefers-reduced-motion:reduce){.contributor>.rel-icon{transition:none}.contributor:hover,.contributor:focus-visible,.contributor:hover>.rel-icon,.contributor:focus-visible>.rel-icon{transform:none}}
-      .contributor:first-child {
-        grid-column: 1 / -1;
-      }
-      .person {
-        min-width: 0;
-      }
       .person-name {
         display: block;
         font-family: var(--font-num);
@@ -233,13 +255,9 @@
         font-size: 16px;
         overflow-wrap: anywhere;
       }
-      .contribution {
-        display: block;
-        margin-top: 4px;
-        color: var(--text-2);
-        font-size: 13px;
-        line-height: 1.4;
-      }
+      .tier-empty { color: var(--muted); font-size: 14px; }
+      @media(min-width:620px){.contributor-tier{grid-template-columns:160px minmax(0,1fr);align-items:center;padding:20px}}
+      @media(min-width:850px){.contributor-tier{grid-template-columns:180px minmax(0,1fr);gap:24px;padding:22px 24px}}
 
       /* footer */
       .foot {
@@ -261,9 +279,6 @@
       }
 
       @media (max-width: 560px) {
-        .contributors {
-          grid-template-columns: 1fr;
-        }
         .contributor:hover {
           transform: none !important;
         }
@@ -315,7 +330,8 @@
         <div class="section-heading">
           <h2>The contributors</h2>
         </div>
-        <div class="contributors" id="contributors"></div>
+        <div class="contributors" id="contributors"><p class="tier-empty" role="status">Loading contributors…</p></div>
+        <noscript><p>Enable JavaScript to view contributors.</p></noscript>
       </section>
     </main>
 
@@ -349,46 +365,6 @@
             }[c];
           });
         };
-
-        var contributors = [
-          {
-            id: "seeshaun",
-            name: "@seeshaun",
-            contribution: "Website owner.",
-          },
-          {
-            id: "balloond",
-            name: "@balloond",
-            contribution: "Dev - UI/UX designer.",
-          },
-          {
-            id: "b-luff",
-            name: "@b.luff",
-            contribution: "Admin - top list contributor.",
-          },
-          {
-            id: "maxx-vfxs",
-            name: "@maxx.vfxs",
-            contribution: "List contributor.",
-          },
-        ];
-
-        $("#contributors").innerHTML = contributors
-          .map(function (person) {
-            var content =
-              '<span class="person"><span class="person-name">' +
-              esc(person.name) +
-              '</span><span class="contribution">' +
-              esc(person.contribution) +
-              "</span></span>";
-
-            return '<a class="contributor" href="/profile/?contributor=' +
-                  encodeURIComponent(person.id) +
-                  '">' +
-                  content + '<svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#arrow"/></svg>' +
-                  "</a>";
-          })
-          .join("");
 
         var site;
         if (/^https?:$/.test(location.protocol)) {
@@ -447,5 +423,6 @@
         }
       })();
     </script>
+    <script type="module" src="assets/contributors.js"></script>
   </body>
 </html>

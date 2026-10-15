@@ -4,6 +4,7 @@ A static HTML/CSS/JavaScript ranking site hosted on Cloudflare Pages, using Page
 
 - `index.html`, `list/`: public homepage and rankings.
 - `profile/`: shareable public profiles for REL accounts, ranked editors and contributor credits. See [PUBLIC_PROFILES.md](PUBLIC_PROFILES.md) for the proposed database setup and Owner verification flow.
+- Homepage contributor tiers are managed in Admin by Owners. See [CONTRIBUTOR_TIERS.md](CONTRIBUTOR_TIERS.md) for the editing flow and required migration before release.
 - `apply/`: private application submission form.
 - `signin/`, `assets/`: public email/password signup and sign-in, with session helpers.
 - `admin/`: role-aware profile, ranking, application and Owner user management.

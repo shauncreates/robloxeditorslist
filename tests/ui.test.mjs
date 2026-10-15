@@ -28,6 +28,7 @@ test("Members leave admin for account while Owners retain management controls",a
     const context=vm.createContext({
       document:{querySelector:element,addEventListener(){}},window:{addEventListener(){}},location:{protocol:"https:",replace:path=>{redirect=path}},sessionStorage:{removeItem(){}},
       createAutosave:mockAutosave,watchChanges(){},announceChange(){},animateDisclosures(){},
+      mountContributorEditor(){},contributorEditsPending:()=>false,clearContributorDraft(){},
       getAccount:async()=>({email:"test@example.test",roles,editor_id}),
       accountFetch:async path=>({ok:true,json:async()=>path.includes('/pending')?{applications:[],total:0}:{data:structuredClone(rankings),revision:"test-revision"}}),accountApi:async()=>({ok:true,j:{users:[],total:0}}),signOut:async()=>{},
     });
@@ -52,6 +53,7 @@ test("admin blocks saving and exporting when live rankings fail, without reading
     document:{querySelector:element,addEventListener(){}},window:{addEventListener(){},get SITE_DATA(){throw Error("Never load fallback ranking data")}},
     location:{protocol:"https:"},sessionStorage:{removeItem(){}},
     createAutosave:mockAutosave,watchChanges(){},announceChange(){},animateDisclosures(){},
+    mountContributorEditor(){},contributorEditsPending:()=>false,clearContributorDraft(){},
     getAccount:async()=>({email:"owner@example.test",roles:["member","owner"],editor_id:null}),
     accountFetch:async()=>({ok:false,status:503}),accountApi:async()=>{throw Error("Saving must never be called")},signOut:async()=>{},
   });
@@ -59,6 +61,7 @@ test("admin blocks saving and exporting when live rankings fail, without reading
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(element('#saveSite').hidden,true);assert.equal(element('#saveSite').disabled,true);assert.equal(element('#dl').hidden,true);
   assert.match(element('#banner').textContent,/Saving is blocked/);
+  assert.equal(element('#bootNotice').textContent,"");
   await events.get('#saveSite:click')();
 });
 

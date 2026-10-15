@@ -13,4 +13,7 @@
   <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></symbol>
   <symbol id="link" viewBox="0 0 24 24"><path d="m9 15 6-6m-7 4-1 1a4 4 0 0 0 6 6l3-3a4 4 0 0 0 0-6m0 0 1-1a4 4 0 0 0-6-6L8 7a4 4 0 0 0 0 6"/></symbol>
   <symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3m1-16a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 4v3"/></symbol>
+  <symbol id="owner" viewBox="0 0 24 24"><path d="m3 6 4 5 5-7 5 7 4-5-3 12H6zM6 21h12"/></symbol>
+  <symbol id="code" viewBox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18"/></symbol>
+  <symbol id="review" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H5V3zm8 0v5h5m-11 7 3 3 5-6"/></symbol>
 </svg>
