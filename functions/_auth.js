@@ -56,6 +56,7 @@ export async function userRpc(env, token, name, args = {}) {
       "REL_UNAUTHENTICATED": [401, "Please sign in again."],
       "REL_FORBIDDEN": [403, "You do not have permission for this action."],
       "REL_CONFLICT": [409, "Rankings changed since you loaded them. Reload before saving."],
+      "REL_CREDITS_CONFLICT": [409, "Contributor credits changed since you loaded them. Reload before saving."],
       "REL_MISSING_DATA": [409, "Live rankings are missing. Saving is blocked."],
       "REL_NOT_FOUND": [404, "Record not found."],
       "REL_LAST_OWNER": [409, "The last active Owner cannot be removed or disabled."],

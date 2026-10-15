@@ -87,6 +87,10 @@
   #banner,#status{overflow-wrap:anywhere}
   #pendingQueue button{min-height:44px}
   #pendingQueue a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent)}
+  .credit-fields,.credit-tiers{border:0;padding:0;min-width:0}.credit-tiers{margin:16px 0}.credit-tiers legend{color:var(--muted);margin-bottom:8px;font-size:14px}
+  .credit-fields input[type=text]{border-color:#68796b;min-height:44px}.credit-fields input[type=checkbox]{accent-color:var(--accent);color-scheme:dark}
+  #contributorEditor button{border-color:#68796b}
+  .credit-hide{display:flex;align-items:center;gap:8px;min-height:44px;text-transform:none;letter-spacing:0}.credit-fields>button{margin:10px 12px 0 0}
 </style>
 </head>
 <body>
@@ -117,10 +121,11 @@
 import {accountFetch,accountApi,getAccount,signOut} from "/assets/account.js";
 import {createAutosave,watchChanges,announceChange} from "/assets/autosave.js";
 import {animateDisclosures} from "/assets/disclosure.js";
+import {mountContributorEditor,contributorEditsPending,clearContributorDraft} from "/assets/contributors-admin.js";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $ = s => document.querySelector(s);
 const LINKS = ["youtube","instagram","twitter","discord"];   // TikTok has its own username field
-const tabIcons={editors:"account",styles:"tag",rank:"rankings",applications:"applications",site:"globe",links:"link",users:"users"};
+const tabIcons={editors:"account",styles:"tag",rank:"rankings",applications:"applications",site:"globe",links:"link",users:"users",contributors:"users"};
 const actionIcon=name=>`<svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#${name}"/></svg>`;
 let openIdx = -1;   // which editor card is expanded (kept open when the list redraws)
 const ONLINE = /^https?:$/.test(location.protocol);   // false when opened straight from a folder
@@ -133,7 +138,7 @@ const valid = d => d && d.site && Array.isArray(d.styles) && Array.isArray(d.edi
 /* ---------- status / saving ---------- */
 function setStatus(text, cls){ const s = $("#status"); s.textContent = text || ""; s.className = "status " + (cls || ""); }
 function save(){editVersion++;dirty=true;autosave.change()}
-window.addEventListener("beforeunload",ev=>{if(dirty||applicationDrafts.size||$("form[data-user][data-dirty],form[data-credit-user][data-dirty]")){ev.preventDefault();ev.returnValue=""}});
+window.addEventListener("beforeunload",ev=>{if(dirty||applicationDrafts.size||contributorEditsPending()||$("form[data-user][data-dirty],form[data-credit-user][data-dirty]")){ev.preventDefault();ev.returnValue=""}});
 const api=accountApi;
 async function loadLive(){
   revision=null;
@@ -146,8 +151,9 @@ async function loadLive(){
 $("#signout").addEventListener("click",async()=>{
   if(autosave.busy||pictureFetchRunning)return setStatus("Wait for your save or picture fetch to finish before signing out.");
   if(dirty&&!confirm("Sign out and discard unsaved changes?"))return;
+  if(contributorEditsPending()&&!confirm("Sign out and discard unsaved contributor changes?"))return;
   autosave.pause();
-  try{await signOut();dirty=false;location.replace("/signin/")}catch(e){setStatus(e.message,"bad")}
+  try{await signOut();dirty=false;clearContributorDraft();location.replace("/signin/")}catch(e){setStatus(e.message,"bad")}
 });
 /* ---------- data helpers ---------- */
 const byId = id => S.editors.find(e => e.id === id);
@@ -167,15 +173,16 @@ function allowedTabs(){
   const tabs=[];
   if(S&&can("list_contributor"))tabs.push(["editors","Editors"],["styles","Styles / flares"],["rank","Rankings"]);
   if(can("application_reviewer"))tabs.push(["applications","Applications"]);
-  if(can("owner")){if(S)tabs.push(["site","Site"]);tabs.push(["links","Profile link requests"],["users","Users & roles"])}
+  if(can("owner")){if(S)tabs.push(["site","Site"]);tabs.push(["contributors","Contributors"],["links","Profile link requests"],["users","Users & roles"])}
   return tabs;
 }
 function view(){
   const tabs=allowedTabs();if(!tabs.some(([k])=>k===tab))tab=tabs[0]?.[0];
   $("#tabs").innerHTML=tabs.map(([k,n])=>`<button data-act="tab" data-v="${k}" aria-label="${n}" aria-pressed="${tab===k}" class="rel-action rel-action--reveal ${tab===k?'on rel-action--account':''}">${actionIcon(tabIcons[k])}<span>${n}</span></button>`).join("");
-  $("#saveSite").hidden=!canEdit();$("#saveSite").disabled=!revision;
-  $("#dl").hidden=!S||!can("list_contributor");$("#reset").hidden=!S;
-  $("#app").innerHTML=tab?({editors:vEditors,styles:vStyles,rank:vRank,applications:vApplications,site:vSite,users:vUsers,links:vProfileLinks,claim:vClaim})[tab]():'<p class="hint">Your account is ready. Reload to try loading the list again.</p>';
+  $("#saveSite").hidden=!canEdit()||tab==="contributors";$("#saveSite").disabled=!revision;
+  $("#dl").hidden=!S||!can("list_contributor");$("#reset").hidden=!S||tab==="contributors";
+  $("#app").innerHTML=tab?({editors:vEditors,styles:vStyles,rank:vRank,applications:vApplications,site:vSite,users:vUsers,links:vProfileLinks,claim:vClaim,contributors:()=>'<div id="contributorEditor"></div>'})[tab]():'<p class="hint">Your account is ready. Reload to try loading the list again.</p>';
+  if(tab==="contributors")mountContributorEditor($("#contributorEditor"),()=>{tab="users";view()});
   if(tab==="applications")loadApplications();if(tab==="users")loadUsers();if(tab==="editors"&&can("list_contributor"))loadPending();
   if(tab==="links")loadProfileLinks();
   animateDisclosures($("#app"));
@@ -671,6 +678,7 @@ $("#reset").addEventListener("click",async()=>{
       account=nextAccount;
       if(S)$("#banner").textContent=(account.username||"Member")+" · "+account.roles.map(role=>role==="member"?"Member":roleLabels[role]||role).join(", ");
       if(permissionsChanged){if(!can("list_contributor"))autosave.pause();view();return}
+      if(tab==="contributors")return;
       if(tab==="editors"&&can("list_contributor"))await loadPending();
       const editing=$("#app").contains(document.activeElement)&&document.activeElement.matches("input,textarea,select");
       if(tab==="applications" && !applicationDrafts.size && !editing){await loadApplications(true);return}

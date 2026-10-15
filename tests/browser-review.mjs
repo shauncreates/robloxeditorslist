@@ -103,7 +103,7 @@ try {
   const slashless=await fetch(base+'/apply',{redirect:'manual'});assert.equal(slashless.status,301);assert.equal(slashless.headers.get('location'),'/apply/');
   const profileRedirect=await fetch(base+'/profile?editor=editor1',{redirect:'manual'});assert.equal(profileRedirect.status,301);assert.equal(profileRedirect.headers.get('location'),'/profile/?editor=editor1');
   await navigate(publicPage,"/");await checkLayout(publicPage,"home");
-  assert.equal(await evaluate(publicPage,"document.querySelectorAll('#contributors a[href^=\"/profile/?contributor=\"]').length"),4);
+  await waitFor(publicPage,"document.querySelectorAll('#contributors a[href^=\"/profile/?contributor=\"]').length===4");
   await evaluate(publicPage,"document.querySelector('#contributors a').focus()");await key(publicPage,"Enter","Enter",13);
   await waitFor(publicPage,"location.search==='?contributor=seeshaun' && document.querySelector('#publicProfile')?.getAttribute('aria-busy')==='false'");
   assert.match(await evaluate(publicPage,"document.querySelector('main').textContent"),/account has not been linked/);
