@@ -31,7 +31,8 @@ function enhanceAction(element) {
   use.setAttribute("href", "/media/action-icons.svg#" + icon);
   svg.append(use);
   element.append(svg, label);
-  element.classList.add("rel-action", "rel-action--reveal", "rel-action--enhanced");
+  element.classList.add("rel-action", "rel-action--enhanced");
+  element.classList.toggle("rel-action--reveal", element.closest("[data-action-reveal]")?.dataset.actionReveal !== "false");
   if (element.classList.contains("pri") || element.classList.contains("primary-link")) element.classList.add("rel-action--account");
 }
 const selector = "button,a[data-icon]";

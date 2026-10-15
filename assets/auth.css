@@ -1,0 +1,15 @@
+.auth-recovery{display:flex;justify-content:flex-end;margin:8px 0 16px;min-width:0}
+.auth-recovery:has([hidden]){display:none}
+.auth-wrap form #submit.rel-action,.auth-wrap #switch.rel-action{display:flex;width:100%;margin:0}
+.auth-wrap #switch.rel-action{margin-top:16px}
+.auth-wrap .auth-recovery:has([hidden])+#submit.rel-action{margin-top:20px}
+.auth-wrap #forgotPassword.rel-action{font-size:14px;padding:9px 12px;transform-origin:right center}
+.auth-wrap #message{min-height:0;margin:0}
+.auth-wrap #message:not(:empty){min-height:0;margin:16px 0 0}
+.auth-wrap>.hint{margin-top:16px}
+.auth-wrap .rel-action{transition:transform 160ms ease;background-position:0 50%;transform:none}
+.auth-wrap .rel-action:hover,.auth-wrap .rel-action:focus-visible{transform:none;background-position:0 50%}
+.auth-wrap .rel-action--account:hover,.auth-wrap .rel-action--account:focus-visible{border-color:transparent}
+@media(hover:hover) and (pointer:fine){.auth-wrap .rel-action:hover:not(:disabled){transform:scale(1.02)}}
+@media(prefers-reduced-motion:reduce){.auth-wrap .rel-action{transition:none}.auth-wrap .rel-action:hover:not(:disabled){transform:none}}
+@media(forced-colors:active){.auth-wrap .rel-action--account:hover,.auth-wrap .rel-action--account:focus-visible{border-color:ButtonText}}

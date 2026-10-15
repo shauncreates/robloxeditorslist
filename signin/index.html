@@ -6,9 +6,10 @@
   <link rel="stylesheet" href="../assets/typography.css">
   <link rel="stylesheet" href="../assets/account.css">
   <link rel="stylesheet" href="../assets/actions.css">
+  <link rel="stylesheet" href="../assets/auth.css">
   <script type="module" src="../assets/action-buttons.js"></script>
 </head>
-<body><main class="account-wrap">
+<body><main class="account-wrap auth-wrap" data-action-reveal="false">
   <a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a>
   <h1 id="title">Sign in</h1><p id="intro">Manage your editor profile or contribute to the list.</p>
   <form id="authForm">
@@ -18,9 +19,9 @@
     </div>
     <label for="email">Email</label><input id="email" type="email" required maxlength="254" autocomplete="username">
     <label for="password">Password</label><input id="password" type="password" required maxlength="1024" autocomplete="current-password">
+    <div class="auth-recovery"><a class="account-link" data-icon="key" id="forgotPassword" href="/reset-password/">Forgot password?</a></div>
     <button class="pri" id="submit">Sign in</button>
   </form>
-  <a class="account-link" data-icon="key" id="forgotPassword" href="/reset-password/">Forgot password?</a>
   <p id="message" role="status" aria-live="polite"></p>
   <button id="switch" type="button">Create an account</button>
   <p class="hint">New accounts are Members. An Owner verifies profile links and grants contributor or reviewer access.</p>
