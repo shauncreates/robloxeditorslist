@@ -1,5 +1,11 @@
 # REL progress
 
+## 15 October 2026: favicon consistency
+
+Added the existing homepage `media/icon.svg` favicon to application, admin, account, sign-in, password reset, email confirmation and changelog pages. Homepage and rankings already used this asset. All nine website documents now reference the same original SVG, retaining its light/dark browser-theme styling. No icon redesign, dependencies, email-template changes, database operations or deployment.
+
+Verification: `npm.cmd run build` and `git diff --check` passed. Checked all nine built HTML documents have exactly one SVG favicon link, resolve to the copied original asset and retain its exact bytes. Hashes confirmed `data.js` and the original REL logo unchanged.
+
 ## 15 October 2026: retired live Vercel Blob picture dependencies
 
 The user authorized removing old Vercel Blob pictures. Copied all 21 live pictures to the existing `editor-avatars` Supabase Storage bucket and verified each public copy against the original bytes and MIME type. Only then replaced their `thumb` URLs in a single revision-checked transaction. The transaction also asserts that all JSON except `thumb` fields is unchanged, preserves the original full JSON in data history and records the maintenance action without impersonating an account.
