@@ -1,25 +1,17 @@
-import { checkPassword, json, supabaseConfig, wait } from "../_lib.js";
+import { HttpError, json, readJson, supabaseConfig } from "../_lib.js";
+import { hasRole, requireAccount } from "../_auth.js";
 
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 const allowedHost = (host) => /^(?:[a-z0-9-]+\.)*(?:tiktokcdn[a-z-]*\.com|ibyteimg\.com|byteimg\.com)$/i.test(host);
 
 export async function onRequestPost({ request, env }) {
-  if (!env.ADMIN_PASSWORD) {
-    return json({ error: "ADMIN_PASSWORD is not configured in Cloudflare Pages." }, 500);
+  const { account } = await requireAccount(request, env);
+  const body = await readJson(request);
+  if (!hasRole(account, "list_contributor") && (!account.editor_id || account.editor_id !== body.editorId)) {
+    throw new HttpError(403, "You can fetch pictures only for your linked profile.");
   }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: "Invalid JSON body." }, 400);
-  }
-
-  if (!(await checkPassword(body?.password, env))) {
-    await wait(600);
-    return json({ error: "wrong password" }, 401);
-  }
+  if (typeof body.editorId !== "string" || !/^[A-Za-z0-9_-]{1,80}$/.test(body.editorId)) throw new HttpError(400, "Invalid editor ID.");
 
   const username = String(body?.username || "").replace(/^@/, "").trim();
   if (!/^[A-Za-z0-9._]{1,40}$/.test(username)) {
@@ -65,14 +57,14 @@ export async function onRequestPost({ request, env }) {
     if (bytes.byteLength > 5 * 1024 * 1024) return json({ error: "picture is too big" }, 502);
 
     const { url, key } = supabaseConfig(env);
-    const path = `avatars/${username.toLowerCase()}`;
+    // Unique objects prevent a Member overwriting another editor's picture.
+    const path = `avatars/${body.editorId}/${crypto.randomUUID()}`;
     const upload = await fetch(`${url}/storage/v1/object/editor-avatars/${path}`, {
       method: "POST",
       headers: {
         apikey: key,
         Authorization: `Bearer ${key}`,
         "Content-Type": contentType,
-        "x-upsert": "true",
         "Cache-Control": "3600",
       },
       body: bytes,

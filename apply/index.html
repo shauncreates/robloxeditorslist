@@ -6,10 +6,10 @@
   <meta name="description" content="Apply to be considered for the Roblox Editors community list.">
   <meta name="theme-color" content="#050706">
   <title>Apply — Roblox Editors</title>
+  <link rel="stylesheet" href="../assets/typography.css">
   <style>
-    @import url("https://fonts.googleapis.com/css2?family=Red+Hat+Text:wght@400;500;600;700;800&display=swap");
     :root{color-scheme:dark;--bg:#050706;--panel:#0b100c;--line:#202a22;--text:#eef5ef;--muted:#98a79b;--accent:#7af500;--ink:#061109}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 "Red Hat Text",system-ui,sans-serif}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 var(--font)}
     a{color:var(--accent)}.wrap{width:min(760px,100%);margin:auto;padding:22px 16px 64px}
     header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 0 28px;border-bottom:1px solid var(--line)}
     header a{font-weight:800;text-decoration:none}.back{color:var(--muted);font-size:14px}
@@ -22,8 +22,8 @@
     input,select,textarea{width:100%;border:1px solid #2b382d;border-radius:9px;background:#060907;color:var(--text);padding:12px;font:inherit;min-height:46px}
     textarea{min-height:100px;resize:vertical}input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
     .hint{font-size:12px;color:var(--muted);margin:6px 0 0}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-    .choice{display:flex;gap:9px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-weight:500;margin:0;cursor:pointer}
-    .choice input{width:17px;height:17px;min-height:0;accent-color:var(--accent)}
+    .choice{display:flex;gap:9px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-weight:500;margin:0;cursor:pointer;min-height:44px;min-width:0;overflow-wrap:anywhere}
+    .choice input{width:17px;height:17px;min-height:0;accent-color:var(--accent);flex-shrink:0}
     .consent{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:13px}.consent input{width:17px;height:17px;min-height:0;margin-top:3px;accent-color:var(--accent)}
     button{width:100%;min-height:48px;border:0;border-radius:9px;background:var(--accent);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
     button:disabled{opacity:.6;cursor:wait}.message{display:none;margin:0 0 16px;padding:12px;border-radius:9px;font-size:14px}.message.error{display:block;background:#3a1111;border:1px solid #6e2828;color:#ffd1d1}.message.ok{display:block;background:#10240a;border:1px solid #345c1b;color:#d8ffc2}
@@ -33,7 +33,7 @@
 </head>
 <body>
   <main class="wrap">
-    <header><a href="/">ROBLOX EDITORS</a><a class="back" href="/">← Back to the list</a></header>
+    <header><a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a><a class="back" href="/">← Back to the list</a></header>
     <p class="eyebrow">Join the community</p>
     <h1>Apply to be listed.</h1>
     <p class="intro">Tell us about your editing account and share some of your work. Every application is reviewed manually. Applying or being approved does not automatically add you to the rankings.</p>
@@ -46,27 +46,50 @@
         <div class="field"><label for="profileUrl">Profile link *</label><input id="profileUrl" name="profileUrl" type="url" required placeholder="https://..." autocomplete="url"><p class="hint">Use the full HTTPS link to your TikTok or YouTube profile.</p></div>
         <div class="field full"><label for="software">Editing software *</label><input id="software" name="software" required minlength="2" maxlength="120" placeholder="e.g. After Effects, CapCut, Premiere Pro"></div>
         <fieldset class="field full" style="border:0;padding:0;margin-left:0;margin-right:0"><legend class="legend">What styles do you edit? * <span class="hint">(Choose at least one)</span></legend><div class="choices">
-          <label class="choice"><input type="checkbox" name="styles" value="Modern Hypic">Modern Hypic</label>
-          <label class="choice"><input type="checkbox" name="styles" value="Block Glitch">Block Glitch</label>
-          <label class="choice"><input type="checkbox" name="styles" value="Transition/3D">Transition/3D</label>
-          <label class="choice"><input type="checkbox" name="styles" value="Velocity">Velocity</label>
-          <label class="choice"><input id="otherStyleCheckbox" type="checkbox" name="styles" value="Other">Other</label>
+          <div id="styleOptions" style="display:contents"></div>
+          <label class="choice"><input id="otherStyleCheckbox" type="checkbox" name="styles" value="Other">Other (not listed)</label>
+          <p id="styleNotice" class="hint" role="status" style="grid-column:1/-1">Loading editing styles…</p>
         </div><div id="otherStyleField" class="field" hidden style="margin:10px 0 0"><label for="otherStyle">What other style do you edit? *</label><input id="otherStyle" name="otherStyle" maxlength="80" placeholder="Describe your editing style"><p class="hint">Only fill this in if your style isn't listed above.</p></div></fieldset>
         <div class="field full"><label for="examplesUrl">Link to editing examples *</label><input id="examplesUrl" name="examplesUrl" type="url" required placeholder="https://..."><p class="hint">A public playlist, showreel, or folder that reviewers can open.</p></div>
         <div class="field full"><label for="notes">Anything else we should know? (optional)</label><textarea id="notes" name="notes" maxlength="1000" placeholder="A little about your experience or what makes your edits yours."></textarea></div>
       </div>
       <label class="consent"><input id="consent" type="checkbox" required><span>I confirm these links are mine or that I have permission to share them, and I understand my application will be reviewed manually.</span></label>
-      <p style="margin:18px 0 0"><button id="submitButton" type="submit">Submit application</button></p>
-      <p class="fine">Your submission is private to the site administrators and is not displayed publicly.</p>
+      <p style="margin:18px 0 0"><button id="submitButton" type="submit" disabled>Submit application</button></p>
+      <p class="fine">Applications stay private to the REL team. Approved applications enter the Contributor queue; your editor profile becomes public when a Contributor adds it to the list. Submission notes and review reasons stay private.</p>
     </form>
   </main>
-  <script>
+  <script type="module">
+    import {watchChanges,announceChange} from "../assets/autosave.js";
     const form = document.querySelector("#applicationForm");
     const message = document.querySelector("#message");
     const button = document.querySelector("#submitButton");
     const otherCheckbox = document.querySelector("#otherStyleCheckbox");
     const otherField = document.querySelector("#otherStyleField");
     const otherInput = document.querySelector("#otherStyle");
+    let styleSignature = "", stylesReady = false, submitting = false;
+    async function loadStyles() {
+      try {
+        const response = await fetch("/api/data", {cache:"no-store"});
+        if(!response.ok)throw new Error("Editing styles could not load. Please try again.");
+        const data = await response.json();
+        if(!Array.isArray(data.styles))throw new Error("Editing styles could not load. Please try again.");
+        const names = [...new Set(data.styles.map(style=>style.name).filter(name=>typeof name==="string" && name.trim()))];
+        const signature = JSON.stringify(names);
+        if(signature!==styleSignature) {
+          const selected = new Set([...form.querySelectorAll('input[name="styles"]:checked')].map(input=>input.value));
+          const options = document.querySelector("#styleOptions");options.replaceChildren();
+          for(const name of names) {
+            const label=document.createElement("label");label.className="choice";
+            const input=document.createElement("input");input.type="checkbox";input.name="styles";input.value=name;input.checked=selected.has(name);
+            label.append(input,document.createTextNode(name));options.append(label);
+          }
+          styleSignature=signature;
+        }
+        stylesReady=true;document.querySelector("#styleNotice").textContent="Choose any listed styles, or Other if yours is missing.";
+      }catch(error){stylesReady=false;document.querySelector("#styleNotice").textContent=error.message}
+      button.disabled=!stylesReady||submitting;
+    }
+    await loadStyles();watchChanges(loadStyles);
     function syncOtherStyle() {
       otherField.hidden = !otherCheckbox.checked;
       otherInput.required = otherCheckbox.checked;
@@ -75,7 +98,8 @@
     otherCheckbox.addEventListener("change", syncOtherStyle);
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const selected = [...form.querySelectorAll('input[name="styles"]:checked')].map((input) => input.value);
+      if(!stylesReady||submitting)return;
+      const selected = [...form.querySelectorAll('input[name="styles"]:checked')];
       const otherStyle = otherInput.value.trim();
       if (!selected.length) {
         message.className = "message error";
@@ -98,12 +122,12 @@
         platform: form.platform.value,
         profileUrl: form.profileUrl.value.trim(),
         software: form.software.value.trim(),
-        styles: selected.map((style) => style === "Other" ? "Other: " + otherStyle : style),
+        styles: selected.map(input => input === otherCheckbox ? "Other: " + otherStyle : input.value),
         examplesUrl: form.examplesUrl.value.trim(),
         notes: form.notes.value.trim(),
         website: form.website.value
       };
-      button.disabled = true;
+      submitting = true;button.disabled = true;
       button.textContent = "Submitting…";
       message.className = "message";
       try {
@@ -115,13 +139,15 @@
         const result = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(result.error || "We couldn't submit your application.");
         form.reset();
+        syncOtherStyle();
+        announceChange();
         message.className = "message ok";
         message.textContent = "Application received! The team will review it manually.";
       } catch (error) {
         message.className = "message error";
         message.textContent = error.message || "Something went wrong. Please try again.";
       } finally {
-        button.disabled = false;
+        submitting = false;button.disabled = !stylesReady;
         button.textContent = "Submit application";
       }
     });

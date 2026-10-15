@@ -1,13 +1,9 @@
-import { json, supabaseRequest } from "../_lib.js";
+import { json, readJson, supabaseRequest } from "../_lib.js";
+
+import { readSite } from "../_site.js";
 
 const MAX_BODY = 16000;
 const allowedPlatforms = new Set(["TikTok", "YouTube"]);
-const allowedStyles = new Set([
-  "Modern Hypic",
-  "Block Glitch",
-  "Transition/3D",
-  "Velocity",
-]);
 
 function safeHttpsUrl(value) {
   try {
@@ -30,15 +26,7 @@ function profileMatchesPlatform(value, platform) {
 }
 
 export async function onRequestPost({ request, env }) {
-  const length = Number(request.headers.get("content-length") || 0);
-  if (length > MAX_BODY) return json({ error: "Application is too large." }, 413);
-
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: "Please submit a valid application." }, 400);
-  }
+  const body = await readJson(request, MAX_BODY);
 
   // Honeypot: ordinary users never see or fill this field.
   if (typeof body?.website === "string" && body.website.trim()) {
@@ -62,7 +50,9 @@ export async function onRequestPost({ request, env }) {
   if (software.length < 2 || software.length > 120) {
     return json({ error: "Tell us which editing software you use (2–120 characters)." }, 400);
   }
-  const validStyles = styles.length > 0 && styles.length <= 5 && styles.every((style) =>
+  const site = await readSite(env);
+  const allowedStyles = new Set(site.styles.map(style => style.name));
+  const validStyles = styles.length > 0 && styles.length <= 31 && styles.every((style) =>
     typeof style === "string" &&
     (allowedStyles.has(style) || (/^Other: .{1,80}$/.test(style) && style.slice(7).trim().length > 0))
   );

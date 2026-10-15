@@ -3,6 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "test:preview": "node tests/preview.mjs",
+    "backup:prepare": "node scripts/ranking-backup.mjs",
+    "check:cloudflare": "wrangler pages functions build functions --outdir .wrangler/rel-check --compatibility-date 2026-10-13",
+    "dev:cloudflare": "wrangler pages dev dist --ip 127.0.0.1 --port 8788 --compatibility-date 2026-10-13",
+    "test:smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.10",
+    "json5": "2.2.3",
+    "wrangler": "4.151.0"
   }
 }
