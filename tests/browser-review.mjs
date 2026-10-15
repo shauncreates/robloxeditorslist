@@ -143,6 +143,19 @@ try {
   await click(publicPage,'a[href*="/reset-password/"]');await waitFor(publicPage,"location.pathname==='/reset-password/'");
 
   const owner = await newPage();contexts.push(owner);await signIn(owner,"owner");
+  await evaluate(owner, `(async()=>{
+    const site=await (await fetch('/api/account/site')).json();
+    site.data.editors[0].tiktok='fixture_editor';
+    site.data.editors[0].thumb='https://old.public.blob.vercel-storage.com/picture.png';
+    const saved=await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:site.data,revision:site.revision})});
+    if(!saved.ok)throw Error('Fixture avatar setup failed');
+    location.reload();
+  })()`);
+  await waitFor(owner,"document.querySelector('[data-act=fetchLegacy]')!==null");
+  await checkLayout(owner,"legacy-picture-control");
+  await click(owner,'[data-act="fetchLegacy"]');
+  await waitFor(owner,"document.querySelector('[data-act=fetchLegacy]')===null && document.querySelector('#status').textContent.includes('replaced and saved')");
+  assert.equal(await evaluate(owner,"document.querySelector('input[data-f=thumb]').value.includes('/storage/v1/object/public/editor-avatars/')"),true);
   await checkLayout(owner,"owner-profile");
   await click(owner,'[data-act="tab"][data-v="users"]');await waitFor(owner,"document.querySelector('form[data-user]')!==null");
   assert.equal(await evaluate(owner,"document.querySelector('[data-act=previousUsers]').disabled && document.querySelector('[data-act=nextUsers]').disabled"),true);

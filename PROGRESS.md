@@ -1,5 +1,17 @@
 # REL progress
 
+## 15 October 2026: retired live Vercel Blob picture dependencies
+
+The user authorized removing old Vercel Blob pictures. Copied all 21 live pictures to the existing `editor-avatars` Supabase Storage bucket and verified each public copy against the original bytes and MIME type. Only then replaced their `thumb` URLs in a single revision-checked transaction. The transaction also asserts that all JSON except `thumb` fields is unchanged, preserves the original full JSON in data history and records the maintenance action without impersonating an account.
+
+Read-only verification confirmed 21 editors, four styles, zero Vercel Blob references in the live data and exact equality of every non-picture field/list. New revision: `d3569a9f-9d2a-4867-8920-25d49d0e9e09`. No account, role, application, ranking order, schema, original SVG or `data.js` changes. The private snapshot, verified copy report and checked SQL are under ignored `private-backups/avatar-retirement/`; no credentials or these backups are committed. Historical snapshots remain faithful to their originals; the old/new URL mapping is preserved both in the private report and a private database audit manifest so it survives a change of computer.
+
+Added a Contributor-only Replace Vercel pictures control for any legacy URLs introduced later. It uses the existing checked Cloudflare avatar/save APIs, retains failed pictures, stops on save conflicts, prevents concurrent fetches and preserves a picture edited while a fetch is pending. The normal missing-picture action remains available. Added a maintenance copy utility with a 5 MB limit, restricted hosts/types, no redirects, separate upload credentials and public byte verification; it does not update rankings on its own.
+
+Automatic approval review briefly blocked external checks due to a usage limit. After the reset, the same review path succeeded and confirmed production deployment `5be9d846-dfb3-41f4-9b5d-573423aa74bb` for `6a9ef1d`. No approval check was bypassed. The user chose to delete the now-unused store in Vercel; the agent has no Vercel connection/token and did not delete that store or its files. Cleanup instructions are supplied in chat.
+
+Verification: 40 tests passed, including streamed size/type/host checks, byte verification, save-conflict rollback, picture races and exact preservation of non-picture data. After adding the durable manifest, its three targeted tests also passed. Static build passed. Chrome checked the new control and successful replacement at 320/390/768/1440px, plus the existing account, application, ranking and recovery regression flows. Production smoke checks passed, and the public data endpoint serves all 21 Supabase picture URLs. UI evidence: `anti-slop/review-007-2026-10-15.md`.
+
 ## 15 October 2026: authorized production release and Vercel cleanup
 
 The user explicitly authorized merging into main and deploying this work. Read-only Supabase checks confirmed the Auth/roles, application-review, review-lock/profile-link and signup-username/cooldown prerequisites are already installed. No migration was executed by the agent. The live data has 21 editors and four styles; its pre-release fingerprint is `550362c84587bbf015f8c200f90f02a1`, revision `c0587d34-e371-40f2-aa4d-6e261e6338ec`.

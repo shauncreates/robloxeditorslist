@@ -223,9 +223,11 @@ at the live C428 database. Restore `.dev.vars` to the intended project afterward
    future builds after confirming the new source is live. It is not read by the
    new code. Do not restore the shared-password release as a routine rollback.
 
-The current avatars still point to Vercel Blob URLs preserved from C428. Keep
-that storage until a separate verified avatar-copy operation is completed.
-Moving the website host does not move those image objects automatically.
+All 21 live avatars were copied from Vercel Blob into Supabase Storage on
+15 October 2026. Each public copy was verified against the original bytes before
+the picture URLs were replaced. Rank order and all non-picture fields were
+verified unchanged. The unused old Blob store can now be retired; the user chose
+to delete it in Vercel. Keep the private copy report and ranking history.
 
 ## Verification record and remaining setup
 

@@ -58,6 +58,8 @@
   .srow input[type=text]{flex:1}
   .hint{color:var(--muted);font-size:13.5px;margin:6px 0 14px}
   .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+  [data-act=fetchLegacy]{min-height:44px;border-color:#68796b}
+  [data-act=fetchLegacy]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .inline select{width:auto;min-width:200px;flex:1}
   /* login gate */
   #gate{max-width:360px;margin:15vh auto 0;padding:0 16px}
@@ -127,7 +129,7 @@ async function loadLive(){
   revision=j.revision;return j.data;
 }
 $("#signout").addEventListener("click",async()=>{
-  if(autosave.busy)return setStatus("Wait for your save to finish before signing out.");
+  if(autosave.busy||pictureFetchRunning)return setStatus("Wait for your save or picture fetch to finish before signing out.");
   if(dirty&&!confirm("Sign out and discard unsaved changes?"))return;
   autosave.pause();
   try{await signOut();dirty=false;location.replace("/signin/")}catch(e){setStatus(e.message,"bad")}
@@ -165,7 +167,8 @@ function view(){
 }
 
 function vEditors(){
-  return (can("list_contributor") ? `<div class="inline"><button class="pri" data-act="addEditor">+ Add editor</button><button data-act="fetchAll">Fetch all missing pictures</button></div>` : `<p class="hint">Edit your profile and software. List Contributors manage rankings and style membership.</p>`) +
+  const legacyPictures = S.editors.filter(e => isLegacyBlobPicture(e.thumb)).length;
+  return (can("list_contributor") ? `<div class="inline"><button class="pri" data-act="addEditor">+ Add editor</button><button data-act="fetchAll" ${pictureFetchRunning?'disabled':''}>Fetch all missing pictures</button>${legacyPictures?`<button data-act="fetchLegacy" ${pictureFetchRunning?'disabled':''}>Replace Vercel pictures (${legacyPictures})</button>`:''}</div>` : `<p class="hint">Edit your profile and software. List Contributors manage rankings and style membership.</p>`) +
     S.editors.map((e, i) => !can("list_contributor") && e.id !== account.editor_id ? "" : `
     <details class="card profile-card" data-idx="${i}" ${openIdx === i ? "open" : ""}>
       <summary><span>${esc(e.name || "(unnamed)")}</span><span class="sub">${esc((e.flares || []).map(f => S.styles.find(s => s.id === f)?.name).filter(Boolean).join(", "))}</span></summary>
@@ -179,7 +182,7 @@ function vEditors(){
         <div><label>Profile picture</label>
           <div class="inline" style="margin:0">
             ${/^https?:\/\//.test(e.thumb || "") ? `<img src="${esc(e.thumb)}" alt="" referrerpolicy="no-referrer" style="width:38px;height:38px;border-radius:9px;object-fit:cover">` : ""}
-            ${ONLINE ? `<button class="sm" data-act="fetchPic" data-i="${i}">Fetch from TikTok</button>` : `<span class="hint" style="margin:0">Fetching works on the live /admin</span>`}
+            ${ONLINE ? `<button class="sm" data-act="fetchPic" data-i="${i}" ${pictureFetchRunning?'disabled':''}>Fetch from TikTok</button>` : `<span class="hint" style="margin:0">Fetching works on the live /admin</span>`}
           </div>
         </div>
       </div>
@@ -482,7 +485,7 @@ document.addEventListener("click", async ev => {
     S.editors.forEach(e => e.flares = (e.flares || []).filter(x => x !== gone));
     delete S.lists[gone];
   }
-  if (a === "fetchPic" || a === "fetchAll") { runFetch(a === "fetchAll" ? null : i); return; }
+  if (["fetchPic","fetchAll","fetchLegacy"].includes(a)) { void runFetch(a === "fetchPic" ? i : null, a === "fetchLegacy"); return; }
   if (a === "up") move(id, -1);
   if (a === "down") move(id, 1);
   if (a === "top") move(id, "top");
@@ -523,7 +526,13 @@ document.addEventListener("dragend", () => {
   document.querySelectorAll(".rrow.dragging,.rrow.drop-target").forEach(x => x.classList.remove("dragging","drop-target"));
 });
 
-/* ---------- TikTok profile pictures ---------- */
+let pictureFetchRunning = false;
+function isLegacyBlobPicture(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && /^[a-z0-9-]+\.(?:public|private)\.blob\.vercel-storage\.com$/i.test(url.hostname);
+  } catch { return false; }
+}
 const ttUser = e => String(e.tiktok || "").replace(/^@/, "").trim();
 document.addEventListener("toggle", ev => {
   const d = ev.target;
@@ -534,31 +543,60 @@ document.addEventListener("toggle", ev => {
 
 async function fetchOne(i){
   const e = S.editors[i];
-  if (!ttUser(e)) return "no TikTok username";
+  const username=ttUser(e),previous=e.thumb;
+  if (!username) return "no TikTok username";
   try {
-    const { ok, status, j } = await api("/api/avatar", {editorId:e.id,username:ttUser(e)});
-    if (ok && j.url) { e.thumb = j.url; save(); return ""; }
+    const { ok, status, j } = await api("/api/avatar", {editorId:e.id,username});
+    if (ok && j.url) {
+      if(!S.editors.includes(e)||e.thumb!==previous||ttUser(e)!==username)return "profile changed during the fetch; the current picture is kept";
+      e.thumb = j.url; save(); return "";
+    }
     if (status === 401) return "session expired – log in again";
     return j.error || "failed";
   } catch (err) { return "couldn't reach the server"; }
 }
 
-// idx = one editor, or null = every editor that has a username but no picture yet
-async function runFetch(idx){
-  const todo = idx === null
-    ? S.editors.map((e, i) => i).filter(i => ttUser(S.editors[i]) && !S.editors[i].thumb)
-    : [idx];
-  if (!todo.length) return setStatus("Nothing to fetch (add TikTok usernames first)", "bad");
-  let fails = [];
-  for (let n = 0; n < todo.length; n++) {
-    setStatus(`Fetching pictures… ${n + 1}/${todo.length}`);
-    const err = await fetchOne(todo[n]);
-    if (err) fails.push(`${S.editors[todo[n]].name}: ${err}`);
-    if (n < todo.length - 1) await new Promise(r => setTimeout(r, 700));
+async function runFetch(idx, replaceLegacy = false){
+  if(pictureFetchRunning)return setStatus("A picture fetch is already running.");
+  if(replaceLegacy && (!ONLINE || !can("list_contributor")))return setStatus("List Contributor access is required.","bad");
+  if(replaceLegacy){
+    await autosave.flush();
+    if(pictureFetchRunning)return setStatus("A picture fetch is already running.");
+    if(autosave.dirty||autosave.blocked)return setStatus("Resolve unsaved changes before replacing pictures.","bad");
   }
-  view();
-  if (fails.length) { setStatus(`${todo.length - fails.length} fetched, ${fails.length} failed`, "bad"); alert("Couldn't fetch:\n\n" + fails.join("\n") + "\n\nYou can paste a picture URL by hand instead."); }
-  else setStatus("Pictures fetched. Changes save automatically.", "dirty");
+  const todo = idx === null
+    ? S.editors.filter(e => replaceLegacy ? isLegacyBlobPicture(e.thumb) : ttUser(e) && !e.thumb).map(e=>e.id)
+    : [S.editors[idx]?.id];
+  if (!todo.length) return setStatus(replaceLegacy?"No Vercel pictures remain.":"Nothing to fetch (add TikTok usernames first)");
+  pictureFetchRunning=true;
+  document.querySelectorAll('[data-act="fetchPic"],[data-act="fetchAll"],[data-act="fetchLegacy"]').forEach(button=>{button.disabled=true});
+  const fails = [];let fetched=0,stopped=false;
+  try{
+    for (let n = 0; n < todo.length; n++) {
+      setStatus(`Fetching pictures… ${n + 1}/${todo.length}`);
+      const currentIndex=S.editors.findIndex(e=>e.id===todo[n]);
+      if(currentIndex<0){fails.push(`${todo[n]}: profile no longer exists`);continue}
+      const editor=S.editors[currentIndex],previous=editor.thumb;
+      const err = await fetchOne(currentIndex);
+      if (err) fails.push(`${editor.name}: ${err}`);
+      else if(replaceLegacy){
+        // Do not retire a Blob URL until its replacement is saved with the current revision.
+        await autosave.flush();
+        if(autosave.dirty||autosave.blocked){
+          editor.thumb=previous;save();
+          fails.push(`${editor.name}: replacement could not be saved; the old picture is kept`);
+          stopped=true;break;
+        }
+        fetched++;
+      }else fetched++;
+      if (n < todo.length - 1) await new Promise(r => setTimeout(r, 700));
+    }
+  }finally{pictureFetchRunning=false;view()}
+  if (fails.length) {
+    setStatus(`${fetched} pictures ${replaceLegacy?'replaced':'fetched'}, ${fails.length} failed${stopped?'; stopped before fetching more':''}`, "bad");
+    alert("Couldn't fetch:\n\n" + fails.join("\n") + "\n\nExisting pictures are kept. Retry or paste a replacement URL by hand.");
+  }
+  else setStatus(replaceLegacy?`${fetched} Vercel pictures replaced and saved.`:"Pictures fetched. Changes save automatically.",replaceLegacy?"ok":"dirty");
 }
 
 const autosave = createAutosave({
@@ -585,7 +623,7 @@ $("#dl").addEventListener("click",()=>{
   const a=Object.assign(document.createElement("a"),{href:url,download:"rel-rankings-backup.js"});document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 });
 $("#reset").addEventListener("click",async()=>{
-  if(autosave.busy)return setStatus("Wait for your save to finish before reloading.");
+  if(autosave.busy||pictureFetchRunning)return setStatus("Wait for your save or picture fetch to finish before reloading.");
   if(dirty&&!confirm("Discard unsaved changes and reload live rankings?"))return;
   autosave.pause();
   try{const next=await loadLive();autosave.reset();S=next;dirty=false;setStatus("");view()}catch(e){$("#saveSite").disabled=true;setStatus(e.message,"bad")}
@@ -610,7 +648,7 @@ $("#reset").addEventListener("click",async()=>{
       if(tab==="applications" && !applicationDrafts.size && !editing){await loadApplications(true);return}
       if(tab==="users" && !$("form[data-user][data-dirty]") && !editing){await loadUsers(true);return}
       if(tab==="links"&&!editing){await loadProfileLinks(true);return}
-      if(dirty||autosave.busy||editing)return;
+      if(dirty||autosave.busy||editing||pictureFetchRunning)return;
       const response=await accountFetch("/api/account/site");if(!response.ok)return;
       const next=await response.json();if(!valid(next.data)||!next.revision)return;
       if(next.revision!==revision){S=next.data;revision=next.revision;view();setStatus("Updated from the live list.","ok")}
