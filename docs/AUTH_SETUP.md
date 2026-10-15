@@ -4,10 +4,10 @@ See [RANKING_STORAGE.md](RANKING_STORAGE.md) for the prepared C428 import and
 hosting moves, and [SIGNUP_EMAIL_SETUP.md](SIGNUP_EMAIL_SETUP.md) for signup
 confirmation from `support@robloxeditors.com`.
 
-Work is on `feat/applications-stage-1`. On 14 October 2026, the approved C428
-import and Auth/roles migration were applied to `robloxeditorslist-stage1`.
-The ranking JSON exactly matches the backup and was unchanged by the Auth
-migration. `data.js` is unchanged. No new source deployment has been performed.
+The account system is on `main` and deployed. On 14 October 2026, the approved
+C428 import and Auth/roles migration were applied to `robloxeditorslist-stage1`.
+Ranking JSON was verified against the backup and unchanged by that migration.
+New development starts from the latest `origin/main`, rather than stage-1.
 Start with [DEPLOY_AND_TEST.md](DEPLOY_AND_TEST.md) for current step-by-step setup.
 
 ## Access model
@@ -16,8 +16,8 @@ Start with [DEPLOY_AND_TEST.md](DEPLOY_AND_TEST.md) for current step-by-step set
 | --- | --- |
 | Member (every account) | Request a profile link; edit only their Owner-linked profile, including editing software |
 | List Contributor | Manage editors, styles and rankings |
-| Application Reviewer | Read and approve/reject/return applications to pending |
-| Owner / Super Admin | All access, site settings, user roles, profile links and disabling REL access |
+| Application Reviewer | Read applications and approve/reject pending submissions with a reason; decisions are locked |
+| Owner / Super Admin | All access, site settings, user roles, editor/contributor links, contributor credits and disabling REL access |
 
 Elevated roles can be combined. Member edits exclude editor IDs, flares, style
 membership, rankings, site settings and other profiles. An Owner must verify a
@@ -81,8 +81,9 @@ Use a separate Supabase test project with invented rankings and accounts first.
    RLS/grants/function exposure. Keep `rel_private` outside exposed Data API schemas.
 
 The local suite checks the SQL against a synthetic Auth schema. The live Auth
-schema and grants have also been checked; actual email delivery and authenticated
-browser integration still require a confirmed account and SMTP setup.
+schema and grants were also checked during the earlier rollout. Verify actual
+email delivery and authenticated browser behavior separately in the intended
+environment; the fixture does not prove provider configuration.
 
 ## Ranking preservation and production cutover
 

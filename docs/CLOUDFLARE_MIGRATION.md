@@ -4,7 +4,7 @@ The site uses Cloudflare Pages Functions and Supabase Auth/Postgres/Storage. Bui
 
 See [DEPLOY_AND_TEST.md](DEPLOY_AND_TEST.md) for the current setup and rollout steps. The approved C428 import and Auth/roles migration were applied on 14 October 2026. The saved ranking JSON was verified unchanged by the migration; do not rerun it on the live project.
 
-Cloudflare project `robloxeditorslist` deploys from `main` only, with feature-branch previews disabled. On 15 October 2026 the user authorized merging the tested feature branch into main and deploying the new account/application system. Pushing to main triggers the production deployment; see `PROGRESS.md` for verification and the current release status.
+Cloudflare project `robloxeditorslist` deploys from `main` only, with feature-branch previews disabled. On 15 October 2026 the user authorized merging the tested feature branch into main and deploying the new account/application system. Pushing to main triggers the production deployment. See [DEPLOY_AND_TEST.md](DEPLOY_AND_TEST.md) for the release verification record and [the historical progress log](history/PROGRESS.md) for the earlier cutover.
 
 Both `robloxeditors.com` and `www.robloxeditors.com` are attached to Pages. Their web CNAMEs point to `robloxeditorslist.pages.dev`; a Cloudflare redirect sends www requests to the primary HTTPS domain with the path/query preserved. The old www CNAME pointed at Vercel and caused the paused/HTTP 402 page. Vercel hosting configuration and analytics scripts are removed. All 21 live editor pictures were copied and verified in Supabase Storage on 15 October 2026; the live data no longer references Vercel Blob. The user will delete the unused old store in Vercel.
 
