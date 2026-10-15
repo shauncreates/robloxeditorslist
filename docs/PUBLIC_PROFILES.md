@@ -1,6 +1,6 @@
 # Public profiles and contributor links
 
-Prepared on `feat/public-profiles-contributors` from `origin/main` at `3544416`. The application/email feature remains on its separate branch. Nothing here has been applied to a hosted database or deployed.
+Public profiles and Owner-managed contributor account links are on `main` and deployed. The application/email feature remains on its separate branch. Contributor tier editing has an additional schema dependency described in [CONTRIBUTOR_TIERS.md](CONTRIBUTOR_TIERS.md).
 
 ## Public pages
 
@@ -22,7 +22,7 @@ The server and SQL both enforce Owner access. SQL validates the current Auth ses
 
 ## Database review and rollout
 
-`supabase/migrations/20261015110000_rel_public_profiles.sql` is additive and requires the existing Auth/roles and signup username migrations. It does not write ranking JSON, revisions, `data.js`, existing roles or verified editor links. It is independent of the separate application/email migration and can coexist with it.
+[`20261015110000_rel_public_profiles.sql`](../supabase/migrations/20261015110000_rel_public_profiles.sql) is additive and requires the existing Auth/roles and signup username migrations. It does not write ranking JSON, revisions, `data.js`, existing roles or verified editor links. It is independent of the separate application/email migration and can coexist with it. Public contributor/account links are already in use on production; the steps below apply to a new test project or a reviewed future rollout, not a request to rerun live setup.
 
 1. Review and apply the migration to a disposable test project after the existing prerequisites. Production application requires the project owner's explicit permission.
 2. Test public profile reads and Owner mapping with test accounts. Verify that unconfirmed/disabled accounts remain hidden and emails never appear publicly.

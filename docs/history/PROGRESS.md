@@ -1,4 +1,10 @@
-# REL progress
+# Historical development log
+
+These entries describe work and verification at the time they were recorded.
+Old branch names, pending setup steps and release statements are historical.
+Use the [current project overview](../../README.md) and
+[development guide](../DEPLOY_AND_TEST.md) for today's workflow. Paths inside
+the original entries are repository-root paths unless stated otherwise.
 
 ## 15 October 2026: retired live Vercel Blob picture dependencies
 

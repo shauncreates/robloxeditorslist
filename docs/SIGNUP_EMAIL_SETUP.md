@@ -4,12 +4,13 @@ Requested flow: public email/password signup, then email confirmation before
 sign-in. No second emailed code is required at each login. New accounts remain
 Members; confirming email grants no elevated permissions or editor ownership.
 
-Follow [DEPLOY_AND_TEST.md](DEPLOY_AND_TEST.md) for the complete sequence. The
-first Owner/test recipient is `shaun@seeshaun.xyz`; registration is still needed.
+Follow [DEPLOY_AND_TEST.md](DEPLOY_AND_TEST.md) for development and release checks.
+The account system is already deployed; this page is an SMTP and template
+configuration reference, not an instruction to register or bootstrap another Owner.
 
-The domain is active in Cloudflare. No email service has been configured by this
-implementation. The sender address is an Auth email setting, not an editor-data
-field or a value that browser code can configure.
+The domain is active in Cloudflare. Verify the actual provider and delivery
+settings in Supabase before changing them. The sender address is an Auth email
+setting, not an editor-data field or a value that browser code can configure.
 
 ## Sending configuration for review
 
@@ -59,6 +60,7 @@ Receiving replies at `support@robloxeditors.com` requires a mailbox or a separat
 Email Routing destination. Outgoing sender verification alone does not provide
 a support inbox. Confirm the destination before adding forwarding rules.
 
-No DNS, SMTP, Auth configuration or deployment changes have been executed, and
-no email has been sent. The SMTP credential and an approved test recipient are
-still needed for live setup/testing.
+This documentation update does not change DNS, SMTP or Auth settings or send
+email. Validate delivery separately with an approved recipient. Application
+receipt/decision messages need their separate transactional integration; these
+Supabase Auth templates do not provide that feature.
