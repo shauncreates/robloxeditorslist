@@ -6,6 +6,8 @@
   <meta name="description" content="Updates to Roblox Editors List accounts, applications and rankings.">
   <link rel="stylesheet" href="../assets/typography.css">
   <link rel="stylesheet" href="../assets/account.css">
+  <link rel="stylesheet" href="../assets/actions.css">
+  <script type="module" src="../assets/action-buttons.js"></script>
   <style>
     .account-wrap{max-width:800px;margin:24px auto}
     header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:36px}
@@ -15,7 +17,7 @@
   </style>
 </head>
 <body><main class="account-wrap">
-  <header><a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a><nav aria-label="Changelog navigation"><a href="/list/">Rankings</a><a href="/apply/">Apply</a><a href="/account/">My account</a></nav></header>
+  <header><a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a><nav aria-label="Changelog navigation"><a data-icon="rankings" href="/list/">Rankings</a><a data-icon="applications" href="/apply/">Apply</a><a class="rel-action--account" data-icon="account" href="/account/">My account</a></nav></header>
   <h1>Changelog</h1><p>Updates to Roblox Editors List.</p>
   <article aria-labelledby="profiles-update">
     <p class="hint"><time datetime="2026-10-15">15 October 2026</time> · Upcoming</p>
@@ -26,6 +28,8 @@
       <li>Contributors are grouped into Owners, Developers, Reviewers and Rankers.</li>
       <li>New account and action icons, with a green gradient for My account.</li>
       <li>Top navigation icons expand to reveal their labels on hover or keyboard focus.</li>
+      <li>Homepage actions are centered, with Sign in / Sign up in the header and a shorter Apply button.</li>
+      <li>Sliding icon buttons extend across the other pages, with animated contributor and role checkboxes.</li>
       <li>Arrows and outlined buttons replace underlined profile links.</li>
       <li>Editor cards slide and fade open. Filter and list dropdowns animate in supported browsers.</li>
       <li>Action labels stay visible on touchscreens, with reduced-motion support for animations.</li>

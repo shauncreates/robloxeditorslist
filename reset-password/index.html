@@ -6,6 +6,8 @@
   <title>Reset password | Roblox Editors</title>
   <link rel="stylesheet" href="../assets/typography.css">
   <link rel="stylesheet" href="../assets/account.css">
+  <link rel="stylesheet" href="../assets/actions.css">
+  <script type="module" src="../assets/action-buttons.js"></script>
 </head>
 <body><main class="account-wrap">
   <a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a>
@@ -20,7 +22,7 @@
       <p class="hint" id="passwordHint">Use at least 8 characters, including an uppercase letter, a lowercase letter and a digit.</p>
       <label for="confirmPassword">Confirm new password</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="1024" required>
     </fieldset>
-    <button class="pri" id="submit">Send recovery code</button>
+    <button class="pri" data-icon="key" id="submit">Send recovery code</button>
   </form>
   <button id="haveCode" type="button">I already have a code</button>
   <p id="message" role="status" aria-live="polite"></p>
@@ -28,7 +30,7 @@
     <button id="resend" type="button">Send another code</button>
     <button id="changeEmail" type="button">Change email</button>
   </div>
-  <a class="account-link" href="/signin/">Back to sign in</a>
+  <a class="account-link" data-icon="account" href="/signin/">Back to sign in</a>
 </main>
 <script type="module" src="../assets/password-reset.js"></script>
 </body></html>

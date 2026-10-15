@@ -18,7 +18,7 @@ test("all browser scripts parse",async()=>{
 
 test("Members leave admin for account while Owners retain management controls",async()=>{
   const html=await readFile(new URL('../admin/index.html',import.meta.url),'utf8');
-  const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)][0][1].replace(/^import .*;$/gm,'');
+  const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].find(match=>match[1].trim())[1].replace(/^import .*;$/gm,'');
   for(const [roles,editor_id] of [[["member"],"editor1"],[["member"],null],[["member","owner"],null]]){
     let redirect;
     const elements=new Map();const element=selector=>{
@@ -46,7 +46,7 @@ test("Members leave admin for account while Owners retain management controls",a
 test("admin blocks saving and exporting when live rankings fail, without reading data.js",async()=>{
   const html=await readFile(new URL('../admin/index.html',import.meta.url),'utf8');
   assert.ok(!html.includes('src="../data.js"'));
-  const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)][0][1].replace(/^import .*;$/gm,'');
+  const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].find(match=>match[1].trim())[1].replace(/^import .*;$/gm,'');
   const elements=new Map();const events=new Map();
   const element=selector=>{if(!elements.has(selector))elements.set(selector,{hidden:false,disabled:false,textContent:"",innerHTML:"",addEventListener:(name,fn)=>events.set(selector+":"+name,fn)});return elements.get(selector)};
   const context=vm.createContext({
@@ -85,7 +85,7 @@ test("hosted public pages reject missing database data instead of displaying pla
 
 test("signup mode stays fixed while a request is pending and recovers after an error",async()=>{
   const html=await readFile(new URL('../signin/index.html',import.meta.url),'utf8');
-  const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)][0][1];
+  const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].find(match=>match[1].trim())[1];
   const elements=new Map(),events=new Map();
   const element=selector=>{
     if(!elements.has(selector))elements.set(selector,{
@@ -137,7 +137,7 @@ test("signup mode stays fixed while a request is pending and recovers after an e
 
 test("account pagination reflects first, middle, last and loading states",async()=>{
   const html=await readFile(new URL('../admin/index.html',import.meta.url),'utf8');
-  const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)][0][1];
+  const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].find(match=>match[1].trim())[1];
   const start=script.indexOf('function updatePagination('),end=script.indexOf('let applicationsCache',start);
   const buttons=new Map();
   const context=vm.createContext({$:selector=>{

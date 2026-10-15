@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="../assets/profile.css">
 <link rel="stylesheet" href="../assets/actions.css">
 <link rel="stylesheet" href="../assets/admin-selects.css">
+<link rel="stylesheet" href="../assets/checkboxes.css">
+<script type="module" src="../assets/action-buttons.js"></script>
 <style>
   [hidden]{display:none!important}
   :root{--bg:#050706;--panel:#0b100c;--panel2:#111912;--line:#202a22;--text:#eef5ef;--muted:#98a79b;--accent:#7af500;--on-accent:#061109;--ok:#7af500;--bad:#ff7373}
@@ -124,6 +126,13 @@ import {animateDisclosures} from "/assets/disclosure.js";
 import {mountContributorEditor,contributorEditsPending,clearContributorDraft} from "/assets/contributors-admin.js";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $ = s => document.querySelector(s);
+const accountListMarkup = new WeakMap();
+function renderAccountList(list, html) {
+  if (!list.hasChildNodes() || accountListMarkup.get(list) !== html) {
+    list.innerHTML = html;
+    accountListMarkup.set(list, html);
+  }
+}
 const LINKS = ["youtube","instagram","twitter","discord"];   // TikTok has its own username field
 const tabIcons={editors:"account",styles:"tag",rank:"rankings",applications:"applications",site:"globe",links:"link",users:"users",contributors:"users"};
 const actionIcon=name=>`<svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#${name}"/></svg>`;
@@ -262,8 +271,8 @@ function vRank(){
   html += '<div class="rank-list" id="rankList">' + list.map((e, i) => `
     <div class="rrow" draggable="true" data-rank-id="${esc(e.id)}">
       <div class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder">⠿</div><div class="n">#${i + 1}</div><div class="nm">${esc(e.name)}</div>
-      <button class="sm" data-act="up" data-id="${esc(e.id)}" ${i === 0 ? "disabled" : ""}>↑</button>
-      <button class="sm" data-act="down" data-id="${esc(e.id)}" ${i === list.length - 1 ? "disabled" : ""}>↓</button>
+      <button class="sm" data-act="up" data-id="${esc(e.id)}" ${i === 0 ? "disabled" : ""}>Move up</button>
+      <button class="sm" data-act="down" data-id="${esc(e.id)}" ${i === list.length - 1 ? "disabled" : ""}>Move down</button>
       <button class="sm" data-act="top" data-id="${esc(e.id)}" ${i === 0 ? "disabled" : ""}>Top</button>
       ${rk === "main" ? `<button class="sm bad" data-act="rmMain" data-id="${esc(e.id)}">Remove</button>` : ""}
     </div>`).join("") || `<p class="hint">No one in this list yet.</p>`;
@@ -318,7 +327,7 @@ function renderApplications(){
       ${status!=="pending"?`<p class="hint">${status==="approved"?"Approved":"Rejected"} by ${esc(a.reviewer_username||a.reviewer_display||"Reviewer not recorded")}${a.reviewed_at?" · "+esc(new Date(a.reviewed_at).toLocaleString()):""}. Decision locked.</p>`:""}
       <label for="review-reason-${esc(a.id)}">Review reason${status==="pending"?' (required)':''}</label><textarea id="review-reason-${esc(a.id)}" data-reason="${esc(a.id)}" maxlength="1000" ${status!=="pending"?'readonly':'required'} placeholder="${status!=="pending"?'No reason was recorded.':'Explain your decision to the review team.'}">${esc(status==="pending"?(applicationDrafts.get(a.id) ?? a.review_reason):a.review_reason)}</textarea>
       ${a.listed_editor_id?'<p class="hint">Converted to an editor profile. List Contributors manage the published profile.</p>':''}
-      ${status==="pending"&&!a.listed_editor_id?`<div class="app-actions"><button class="approve" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="approved">✓ Approve</button><button class="reject" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="rejected">✕ Reject</button></div>`:''}
+      ${status==="pending"&&!a.listed_editor_id?`<div class="app-actions"><button class="approve" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="approved">Approve</button><button class="reject" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="rejected">Reject</button></div>`:''}
     </article>`;
   }).join("");
 }
@@ -326,7 +335,7 @@ function renderApplications(){
 function vClaim(){
   return `<section class="account-panel"><h2>Link your editor profile</h2><p class="hint">Choose your existing profile and explain how an Owner can verify it belongs to you. This request does not grant editing access.</p>${account.claim_status?`<p class="hint">Your last request: ${esc(account.claim_status)}.</p>`:""}
     <form id="claimForm"><label for="claimEditor">Your editor profile</label><select id="claimEditor" required>${S.editors.map(e=>`<option value="${esc(e.id)}">${esc(e.name)}</option>`).join("")}</select>
-    <label for="claimMessage">Verification details</label><textarea id="claimMessage" required maxlength="1000" placeholder="For example, contact me through the account linked on my profile."></textarea><button class="pri">Request profile link</button></form><p id="claimNotice" role="status"></p></section>`;
+    <label for="claimMessage">Verification details</label><textarea id="claimMessage" required maxlength="1000" placeholder="For example, contact me through the account linked on my profile."></textarea><button class="pri" data-icon="link">Request profile link</button></form><p id="claimNotice" role="status"></p></section>`;
 }
 
 let linksOffset=0, linksTotal=0;
@@ -343,7 +352,7 @@ async function loadProfileLinks(quiet=false){
     if(!response.ok)throw Error(result.error||"Could not load profile link requests.");
     linksTotal=result.total;notice.className="hint";notice.textContent=result.claims.length+" request"+(result.claims.length===1?"":"s")+" on this page, "+linksTotal+" total.";
     const html=result.claims.map(claim=>`<article class="card" data-claim="${esc(claim.user_id)}"><h3>${esc(claim.username||"Member")}</h3><p class="hint">${esc(claim.status)} · Requested ${esc((S?.editors||[]).find(editor=>editor.id===claim.editor_id)?.name||claim.editor_id)}</p><p>${esc(claim.message)}</p>${claim.status==="pending"?`<div class="inline"><button data-act="approveClaim" data-id="${esc(claim.user_id)}">Approve verified link</button><button data-act="rejectClaim" data-id="${esc(claim.user_id)}">Reject request</button></div>`:`<p class="hint">Reviewed by ${esc(claim.reviewer_username||"Reviewer not recorded")}.</p>`}</article>`).join("")||'<div class="empty-state">No profile link requests in this view.</div>';
-    if(list.innerHTML!==html)list.innerHTML=html;
+    renderAccountList(list,html);
     updatePagination("Links",linksOffset,linksTotal);
   }catch(error){notice.textContent=error.message+" Use Refresh requests to retry.";notice.className="hint status bad"}
 }
@@ -370,12 +379,12 @@ async function loadUsers(quiet=false){
       return `<article class="card"><h3>${esc(user.username||"Member")}</h3><p class="hint">${esc(user.id)}</p><a class="public-profile-link rel-text-link" href="/profile/?account=${encodeURIComponent(user.id)}"><span>View public profile</span><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#arrow"/></svg></a>
         <form data-user="${esc(user.id)}"><div class="flarepick">${Object.entries(roleLabels).map(([role,label])=>`<label><input name="roles" type="checkbox" value="${role}" ${user.roles.includes(role)?"checked":""}>${label}</label>`).join("")}</div>
         <label for="linked-editor-${esc(user.id)}">Linked editor profile</label><select id="linked-editor-${esc(user.id)}" name="editorId"><option value="">No profile linked</option>${editors.map(e=>`<option value="${esc(e.id)}" ${e.id===user.editor_id?"selected":""}>${esc(e.name)}</option>`).join("")}</select>
-        <label><input name="disabled" type="checkbox" ${user.disabled?"checked":""}>Disable REL access</label><button class="pri">Save account permissions</button></form>
-        ${credits?`<form data-credit-user="${esc(user.id)}"><label for="contributor-${esc(user.id)}">Homepage contributor credit</label><p class="hint">Verify this person's identity before linking a credit. This does not grant account permissions.</p><select id="contributor-${esc(user.id)}" name="credit"><option value="">No contributor credit</option>${credits.map(credit=>`<option value="${esc(credit.id)}" ${credit.account?.id===user.id?'selected':''}>${esc(credit.name)}${credit.account&&credit.account.id!==user.id?' (linked to '+esc(credit.account.username)+')':''}</option>`).join('')}</select><button type="submit">Save contributor link</button></form>`:''}
+        <label><input name="disabled" type="checkbox" ${user.disabled?"checked":""}>Disable REL access</label><button class="pri" data-icon="save">Save account permissions</button></form>
+        ${credits?`<form data-credit-user="${esc(user.id)}"><label for="contributor-${esc(user.id)}">Homepage contributor credit</label><p class="hint">Verify this person's identity before linking a credit. This does not grant account permissions.</p><select id="contributor-${esc(user.id)}" name="credit"><option value="">No contributor credit</option>${credits.map(credit=>`<option value="${esc(credit.id)}" ${credit.account?.id===user.id?'selected':''}>${esc(credit.name)}${credit.account&&credit.account.id!==user.id?' (linked to '+esc(credit.account.username)+')':''}</option>`).join('')}</select><button type="submit" data-icon="link">Save contributor link</button></form>`:''}
         ${user.claim_status==="pending"?`<p class="hint">Profile-link request: ${esc((S?.editors||[]).find(e=>e.id===user.requested_editor_id)?.name||user.requested_editor_id)}</p><p>${esc(user.claim_message)}</p><div class="inline"><button data-act="approveClaim" data-id="${esc(user.id)}">Approve verified link</button><button data-act="rejectClaim" data-id="${esc(user.id)}">Reject request</button></div>`:""}
       </article>`;
     }).join("") || '<div class="empty-state">No accounts on this page.</div>';
-    if(list.innerHTML!==html)list.innerHTML=html;
+    renderAccountList(list,html);
     updatePagination("Users",usersOffset,usersTotal);
   }catch(error){notice.className="hint status bad";notice.textContent=error.message+" Use Refresh users to retry.";}
 }

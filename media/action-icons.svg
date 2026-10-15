@@ -16,4 +16,13 @@
   <symbol id="owner" viewBox="0 0 24 24"><path d="m3 6 4 5 5-7 5 7 4-5-3 12H6zM6 21h12"/></symbol>
   <symbol id="code" viewBox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18"/></symbol>
   <symbol id="review" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H5V3zm8 0v5h5m-11 7 3 3 5-6"/></symbol>
+  <symbol id="add" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></symbol>
+  <symbol id="delete" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></symbol>
+  <symbol id="up" viewBox="0 0 24 24"><path d="M12 20V4m-7 7 7-7 7 7"/></symbol>
+  <symbol id="down" viewBox="0 0 24 24"><path d="M12 4v16m-7-7 7 7 7-7"/></symbol>
+  <symbol id="top" viewBox="0 0 24 24"><path d="M4 3h16M12 21V7m-7 7 7-7 7 7"/></symbol>
+  <symbol id="back" viewBox="0 0 24 24"><path d="M20 12H4m6-6-6 6 6 6"/></symbol>
+  <symbol id="close" viewBox="0 0 24 24"><path d="m5 5 14 14M5 19 19 5"/></symbol>
+  <symbol id="mail" viewBox="0 0 24 24"><path d="M3 5h18v14H3zm0 0 9 8 9-8"/></symbol>
+  <symbol id="key" viewBox="0 0 24 24"><circle cx="8" cy="8" r="5"/><path d="m12 12 9 9m-3-3 3-3m-6 0 3-3"/></symbol>
 </svg>

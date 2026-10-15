@@ -132,7 +132,7 @@ try {
   await navigate(publicPage,"/profile/?editor=editor1");await waitFor(publicPage,"document.querySelector('#retryProfile')!==null");await checkLayout(publicPage,"public-profile-error");
   await click(publicPage,"#retryProfile");await waitFor(publicPage,"document.querySelector('h1').textContent==='member'");
   await navigate(publicPage,"/");
-  assert.equal(await evaluate(publicPage,"document.querySelector('a[href=\"/apply/\"]').textContent"),"Apply to Be on the List");
+  assert.equal(await evaluate(publicPage,"document.querySelector('a[href=\"/apply/\"]').textContent"),"Apply");
   await click(publicPage,'a[href="/apply/"]');await waitFor(publicPage,"location.pathname==='/apply/'");
   await checkLayout(publicPage,"application");
   await waitFor(publicPage,"document.querySelector('#styleOptions input')!==null");
@@ -148,7 +148,7 @@ try {
   await navigate(publicPage,"/list/");await waitFor(publicPage,"document.querySelector('[data-profile]')!==null");
   await checkLayout(publicPage,"rankings");
   assert.equal(await evaluate(publicPage,"document.querySelector('#cta').getAttribute('href')"),"/apply/");
-  assert.equal(await evaluate(publicPage,"document.querySelector('#cta').textContent.trim()"),"Apply to Be on the List");
+  assert.equal(await evaluate(publicPage,"document.querySelector('#cta').textContent.trim()"),"Apply");
   await click(publicPage,"#cta");await waitFor(publicPage,"location.pathname==='/apply/'");
   await navigate(publicPage,"/signin/");await checkLayout(publicPage,"signin");
   await key(publicPage,"Tab","Tab",9);

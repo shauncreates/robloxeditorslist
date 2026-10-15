@@ -11,6 +11,8 @@
     <link rel="icon" type="image/svg+xml" href="../media/icon.svg" />
     <meta name="theme-color" content="#050706" />
     <link rel="stylesheet" href="../assets/typography.css" />
+    <link rel="stylesheet" href="../assets/actions.css" />
+    <script type="module" src="../assets/action-buttons.js"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap");
       :root {
@@ -134,6 +136,9 @@
         height: 34px;
         object-fit: contain;
       }
+      .list-actions { display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end; }
+      .bar { padding-block:8px;flex-wrap:wrap; }
+      .bar .brand img { max-width:min(160px,35vw); }
       .btn {
         display: inline-flex;
         align-items: center;
@@ -947,9 +952,10 @@
         <a class="brand" id="brand" href="/" aria-label="Roblox Funk Editors"
           ><img src="../media/logo.svg" alt="Roblox Funk Editors"
         /></a>
-        <a class="btn" id="cta" href="/apply/"
-          ><span>Apply to Be on the List</span></a
-        >
+        <nav class="list-actions" aria-label="List navigation">
+          <a data-icon="applications" id="cta" href="/apply/">Apply</a>
+          <a class="rel-action rel-action--account rel-action--reveal" href="/account/" aria-label="My account"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#account"/></svg><span>My account</span></a>
+        </nav>
       </div>
     </header>
 
@@ -1230,11 +1236,11 @@
             '<span class="tags">' +
             (e.flares || []).map(tag).join("") +
             "</span>" +
-            '<button type="button" class="profile-action" data-profile="' +
+            '<button type="button" class="profile-action" data-icon="account" data-profile="' +
             esc(e.id) +
             '" aria-label="View profile for ' +
             esc(e.name) +
-            '" title="View profile"><span class="material-symbol" aria-hidden="true">arrow_forward</span></button>';
+            '" title="View profile">View profile</button>';
           return (
             '<li class="row ' +
             tier +
@@ -1425,14 +1431,14 @@
             (tt
               ? '<a href="' +
                 esc(tt) +
-                '" target="_blank" rel="noopener noreferrer">TikTok<span class="sr"> (opens in a new tab)</span></a>'
+                '" data-icon="external" target="_blank" rel="noopener noreferrer">TikTok<span class="sr"> (opens in a new tab)</span></a>'
               : "") +
             links
               .map(function (l) {
                 return (
                   '<a href="' +
                   esc(l.url) +
-                  '" target="_blank" rel="noopener noreferrer">' +
+                  '" data-icon="external" target="_blank" rel="noopener noreferrer">' +
                   esc(l.label) +
                   '<span class="sr"> (opens in a new tab)</span></a>'
                 );
@@ -1449,9 +1455,9 @@
             '<div class="flares">' +
             (e.flares || []).map(tag).join("") +
             "</div></div>" +
-            '<button type="button" class="x" data-close aria-label="Close profile"><span class="material-symbol" aria-hidden="true">close</span></button></div>' +
+            '<button type="button" class="x" data-icon="close" data-close aria-label="Close profile">Close</button></div>' +
             '<div class="d-body">' +
-            '<a href="/profile/?editor=' + encodeURIComponent(e.id) + '" class="btn">View full profile</a>' +
+            '<a href="/profile/?editor=' + encodeURIComponent(e.id) + '" class="pri" data-icon="account">View full profile</a>' +
             (ranks.length
               ? '<section><h3>Placements</h3><ul class="pl">' +
                 ranks

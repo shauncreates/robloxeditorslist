@@ -1,0 +1,16 @@
+.wrap input[type="checkbox"]{appearance:none;display:inline-grid;place-content:center;flex:0 0 22px;width:22px;height:22px;min-height:22px;margin:0;padding:0;border:2px solid #829687;border-radius:6px;background:#050706;color:#061109;cursor:pointer;transition:background-color 160ms ease,border-color 160ms ease}
+.wrap input[type="checkbox"]::before{content:"";width:12px;height:7px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-1px) rotate(-45deg) scale(0);transition:transform 160ms cubic-bezier(.2,.8,.2,1)}
+.wrap input[type="checkbox"]:checked{background:#7af500;border-color:#7af500}
+.wrap input[type="checkbox"]:checked::before{transform:translateY(-1px) rotate(-45deg) scale(1)}
+.wrap input[type="checkbox"]:focus-visible{outline:2px solid #7af500;outline-offset:4px}
+.wrap input[type="checkbox"]:disabled{opacity:.5;cursor:not-allowed}
+.wrap .flarepick label,.wrap .credit-hide,.wrap form>label:has(input[type="checkbox"]){display:flex;align-items:center;gap:10px;min-height:44px;max-width:100%;padding:10px 12px;margin:0;border:1px solid #68796b;border-radius:9px;color:#eef5ef;background:#0b100c;text-transform:none;letter-spacing:0;font-size:14px;line-height:1.4;overflow-wrap:anywhere;cursor:pointer;transition:background-color 180ms ease,border-color 180ms ease}
+.wrap .flarepick label:has(:checked),.wrap .credit-hide:has(:checked),.wrap form>label:has(input[type="checkbox"]:checked){border-color:#7af500;background:#152311}
+.wrap .flarepick label:hover,.wrap .credit-hide:hover{border-color:#b1c3b4}
+.wrap label:has(input[type="checkbox"]:focus-visible){outline:2px solid #7af500;outline-offset:3px}
+.wrap label:has(input[type="checkbox"]:disabled){cursor:not-allowed}
+.wrap .credit-hide{width:fit-content;margin-block:12px}
+.wrap .credit-fields input[type="text"]{border-radius:9px;transition:border-color 180ms ease,background-color 180ms ease}
+.wrap .credit-fields input[type="text"]:focus{background:#101a12;outline:2px solid #7af500;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.wrap input[type="checkbox"],.wrap input[type="checkbox"]::before,.wrap .flarepick label,.wrap .credit-hide,.wrap form>label:has(input[type="checkbox"]),.wrap .credit-fields input[type="text"]{transition:none}}
+@media(forced-colors:active){.wrap input[type="checkbox"]{appearance:auto;background:Canvas;color:CanvasText}.wrap input[type="checkbox"]::before{content:none}.wrap .flarepick label,.wrap .credit-hide,.wrap form>label:has(input[type="checkbox"]){background:Canvas;color:CanvasText;border-color:ButtonText}.wrap label:has(input[type="checkbox"]:checked){border-color:Highlight}.wrap label:has(input[type="checkbox"]:focus-visible){outline-color:Highlight}}

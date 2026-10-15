@@ -7,7 +7,7 @@ const blob="https://old.public.blob.vercel-storage.com/picture.png";
 const replacement="https://example.supabase.co/storage/v1/object/public/editor-avatars/replacement";
 async function pictureFixture({api,flush,can=()=>true}={}){
   const html=await readFile(new URL('../admin/index.html',import.meta.url),'utf8');
-  const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)][0][1];
+  const script=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].find(match=>match[1].trim())[1];
   const start=script.indexOf('let pictureFetchRunning'),end=script.indexOf('const autosave =',start);
   const S={editors:[{id:'legacy',name:'Legacy',tiktok:'fixture_editor',thumb:blob},{id:'current',name:'Current',tiktok:'current_editor',thumb:replacement},{id:'nohandle',name:'No handle',tiktok:'',thumb:blob},{id:'missing',name:'Missing',tiktok:'missing_editor',thumb:''}],lists:{main:['missing','legacy','current','nohandle'],style:['nohandle','legacy']}};
   const calls=[],messages=[],alerts=[],autosave={dirty:false,blocked:false,flush:async()=>{if(flush)await flush(autosave);else autosave.dirty=false}};

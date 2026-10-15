@@ -5,6 +5,8 @@
   <meta name="robots" content="noindex,nofollow"><title>Sign in | Roblox Editors</title>
   <link rel="stylesheet" href="../assets/typography.css">
   <link rel="stylesheet" href="../assets/account.css">
+  <link rel="stylesheet" href="../assets/actions.css">
+  <script type="module" src="../assets/action-buttons.js"></script>
 </head>
 <body><main class="account-wrap">
   <a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a>
@@ -18,7 +20,7 @@
     <label for="password">Password</label><input id="password" type="password" required maxlength="1024" autocomplete="current-password">
     <button class="pri" id="submit">Sign in</button>
   </form>
-  <a class="account-link" id="forgotPassword" href="/reset-password/">Forgot password?</a>
+  <a class="account-link" data-icon="key" id="forgotPassword" href="/reset-password/">Forgot password?</a>
   <p id="message" role="status" aria-live="polite"></p>
   <button id="switch" type="button">Create an account</button>
   <p class="hint">New accounts are Members. An Owner verifies profile links and grants contributor or reviewer access.</p>
@@ -37,7 +39,7 @@
     signup = !signup;
     $("#title").textContent = signup ? "Create an account" : "Sign in";
     $("#submit").textContent = signup ? "Create account" : "Sign in";
-    $("#switch").textContent = signup ? "Already have an account? Sign in" : "Create an account";
+    $("#switch").textContent = signup ? "Back to sign in" : "Create an account";
     $("#password").minLength = signup ? 8 : 1;
     $("#signupUsernameField").hidden = !signup;
     $("#signupUsername").disabled = !signup;
