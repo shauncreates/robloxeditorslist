@@ -21,4 +21,5 @@ main{overflow-wrap:anywhere}h1{font-size:clamp(2rem,5vw,3.25rem);margin:0 0 8px}
 @media(min-width:650px){.profile-wrap{padding:28px}.portrait,.portrait-placeholder{width:104px;height:104px;flex-basis:104px}.profile-columns{grid-template-columns:minmax(0,1.5fr) minmax(200px,1fr);gap:36px}}
 @media(min-width:950px){.profile-wrap{margin-top:36px}.profile-columns{gap:56px}header{margin-bottom:48px}}
 .profile-columns.simple-profile{grid-template-columns:minmax(0,1fr);max-width:650px}
+@media(max-width:400px){header nav{flex-basis:100%}}
 @media(prefers-reduced-motion:reduce){.placements a,.placements .rel-icon{transition:none}.placements a:hover .rel-icon,.placements a:focus-visible .rel-icon{transform:none}}
