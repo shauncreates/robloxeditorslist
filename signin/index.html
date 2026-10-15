@@ -6,9 +6,14 @@
   <link rel="stylesheet" href="../assets/typography.css">
   <link rel="stylesheet" href="../assets/account.css">
   <link rel="stylesheet" href="../assets/actions.css">
+  <style>
+    .signin-actions .rel-action--reveal{gap:9px}
+    .signin-actions .rel-action--reveal>span{max-width:none;margin-left:0;opacity:1;overflow:visible;white-space:normal;transition:none}
+    .signin-actions .rel-action:hover,.signin-actions .rel-action:focus-visible{transform:none;background-position:0 50%}
+  </style>
   <script type="module" src="../assets/action-buttons.js"></script>
 </head>
-<body><main class="account-wrap">
+<body><main class="account-wrap signin-actions">
   <a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a>
   <h1 id="title">Sign in</h1><p id="intro">Manage your editor profile or contribute to the list.</p>
   <form id="authForm">
