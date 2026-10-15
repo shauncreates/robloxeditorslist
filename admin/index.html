@@ -41,6 +41,7 @@
   @media(max-width:560px){.app-grid{grid-template-columns:1fr}.rrow{flex-wrap:wrap}.rrow .nm{min-width:100px}}
   .msg{background:#4ade8014;border:1px solid #4ade8044;color:#bbf7d0;padding:10px 14px;border-radius:10px;font-size:13.5px;margin-bottom:14px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+  #activityList .card{overflow-wrap:anywhere}
   label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.08em}
   input[type=text],input[type=url],input[type=password],textarea,select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14.5px;font-family:inherit;outline:none}
   input[type=color]{width:46px;height:38px;background:none;border:1px solid var(--line);border-radius:9px;padding:2px}
@@ -152,7 +153,7 @@ function allowedTabs(){
   const tabs=[];
   if(S&&can("list_contributor"))tabs.push(["editors","Editors"],["styles","Styles / flares"],["rank","Rankings"]);
   if(can("application_reviewer"))tabs.push(["applications","Applications"]);
-  if(can("owner")){if(S)tabs.push(["site","Site"]);tabs.push(["links","Profile link requests"],["users","Users & roles"])}
+  if(can("owner")){if(S)tabs.push(["site","Site"]);tabs.push(["links","Profile link requests"],["users","Users & roles"],["activity","Activity log"])}
   return tabs;
 }
 function view(){
@@ -160,9 +161,10 @@ function view(){
   $("#tabs").innerHTML=tabs.map(([k,n])=>'<button data-act="tab" data-v="'+k+'" class="'+(tab===k?'on':'')+'">'+n+'</button>').join("");
   $("#saveSite").hidden=!canEdit();$("#saveSite").disabled=!revision;
   $("#dl").hidden=!S||!can("list_contributor");$("#reset").hidden=!S;
-  $("#app").innerHTML=tab?({editors:vEditors,styles:vStyles,rank:vRank,applications:vApplications,site:vSite,users:vUsers,links:vProfileLinks,claim:vClaim})[tab]():'<p class="hint">Your account is ready. Reload to try loading the list again.</p>';
+  $("#app").innerHTML=tab?({editors:vEditors,styles:vStyles,rank:vRank,applications:vApplications,site:vSite,users:vUsers,links:vProfileLinks,claim:vClaim,activity:vActivity})[tab]():'<p class="hint">Your account is ready. Reload to try loading the list again.</p>';
   if(tab==="applications")loadApplications();if(tab==="users")loadUsers();if(tab==="editors"&&can("list_contributor"))loadPending();
   if(tab==="links")loadProfileLinks();
+  if(tab==="activity")loadActivity();
   animateDisclosures($("#app"));
 }
 
@@ -249,7 +251,7 @@ function vRank(){
 }
 
 function vApplications(){
-  return `<div class="inline"><div><h2>Editor applications</h2><p class="hint" style="margin:5px 0 0">Review submissions here without changing public rankings.</p></div><button data-act="refreshApplications">Refresh applications</button><select id="applicationFilter" aria-label="Filter applications" style="max-width:190px"><option value="all">All statuses</option><option value="pending">Pending review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div><p id="applicationNotice" class="hint" role="status">Loading applications…</p><div id="applicationList"></div><div class="inline"><button data-act="previousApplications" disabled>Previous page</button><button data-act="nextApplications" disabled>Next page</button></div>`;
+  return `<div class="inline"><div><h2>Editor applications</h2><p class="hint" style="margin:5px 0 0">Reviewed applications leave the pending queue. The applicant receives your decision and reason by email.</p></div><button data-act="refreshApplications">Refresh applications</button>${can("owner")?`<select id="applicationFilter" aria-label="Application view" style="max-width:190px"><option value="list" ${applicationView==='list'?'selected':''}>Pending review</option><option value="list_reviewed" ${applicationView==='list_reviewed'?'selected':''}>Reviewed</option><option value="list_archived" ${applicationView==='list_archived'?'selected':''}>Private archive</option></select>`:''}</div><p id="applicationNotice" class="hint" role="status">Loading applications…</p><div id="applicationList"></div><div class="inline"><button data-act="previousApplications" disabled>Previous page</button><button data-act="nextApplications" disabled>Next page</button></div>`;
 }
 function updatePagination(kind, offset, total, loading = false){
   const previous = $('[data-act="previous' + kind + '"]');
@@ -257,29 +259,30 @@ function updatePagination(kind, offset, total, loading = false){
   if(previous)previous.disabled = loading || offset === 0;
   if(next)next.disabled = loading || offset + 50 >= total;
 }
-let applicationsCache = [], applicationOffset=0, applicationTotal=0;
+let applicationsCache = [], applicationOffset=0, applicationTotal=0, applicationView="list";
 const applicationDrafts = new Map();
 async function loadApplications(quiet=false){
   const notice = $("#applicationNotice"), list = $("#applicationList");
   if (!notice || !list) return;
-  const offset=applicationOffset;
+  const offset=applicationOffset,requestedView=can("owner")?applicationView:"list";
   if(!quiet)updatePagination("Applications",applicationOffset,applicationTotal,true);
   notice.className = "hint";
   if(!quiet){notice.textContent = "Loading applications…";list.innerHTML = "";}
-  let result;try{result=await api("/api/applications/admin",{action:"list",offset:applicationOffset})}catch{notice.className="hint status bad";notice.textContent="Could not reach the server. Refresh to retry.";return}
-  if($("#applicationNotice")!==notice||offset!==applicationOffset)return;
+  let result;try{result=await api("/api/applications/admin",{action:requestedView,offset:applicationOffset})}catch{notice.className="hint status bad";notice.textContent="Could not reach the server. Refresh to retry.";return}
+  if($("#applicationNotice")!==notice||offset!==applicationOffset||requestedView!==(can("owner")?applicationView:"list"))return;
   const {ok,status,j}=result;
   if (!ok) { notice.className = "hint status bad"; notice.textContent = status === 401 ? "Session expired. Please log in again." : (j.error || "Could not load applications."); list.innerHTML = ""; return; }
   const unchanged=JSON.stringify(applicationsCache)===JSON.stringify(j.applications||[]) && applicationTotal===(j.total||0);
   applicationsCache = j.applications || []; applicationTotal=j.total||0;
+  if(!applicationsCache.length&&applicationOffset>0){applicationOffset=Math.max(0,applicationOffset-50);await loadApplications();return}
   notice.className = "hint"; notice.textContent = applicationsCache.length + " applications on this page, " + applicationTotal + " total.";
   updatePagination("Applications",applicationOffset,applicationTotal);
   if(!quiet||!unchanged||!list.innerHTML)renderApplications();
 }
 function renderApplications(){
-  const list = $("#applicationList"), filter = $("#applicationFilter");
-  if (!list || !filter) return;
-  const shown = applicationsCache.filter(a => filter.value === "all" || a.status === filter.value);
+  const list = $("#applicationList");
+  if (!list) return;
+  const shown = applicationsCache;
   if (!shown.length) { list.innerHTML = '<div class="empty-state">No applications in this view.</div>'; return; }
   list.innerHTML = shown.map(a => {
     const status = ["pending","approved","rejected"].includes(a.status) ? a.status : "pending";
@@ -294,11 +297,34 @@ function renderApplications(){
         ${a.notes ? `<div class="app-detail" style="grid-column:1/-1"><strong>Additional notes</strong><span>${esc(a.notes)}</span></div>` : ""}
       </div>
       ${status!=="pending"?`<p class="hint">${status==="approved"?"Approved":"Rejected"} by ${esc(a.reviewer_username||a.reviewer_display||"Reviewer not recorded")}${a.reviewed_at?" · "+esc(new Date(a.reviewed_at).toLocaleString()):""}. Decision locked.</p>`:""}
-      <label for="review-reason-${esc(a.id)}">Review reason${status==="pending"?' (required)':''}</label><textarea id="review-reason-${esc(a.id)}" data-reason="${esc(a.id)}" maxlength="1000" ${status!=="pending"?'readonly':'required'} placeholder="${status!=="pending"?'No reason was recorded.':'Explain your decision to the review team.'}">${esc(status==="pending"?(applicationDrafts.get(a.id) ?? a.review_reason):a.review_reason)}</textarea>
+      <label for="review-reason-${esc(a.id)}">Review reason${status==="pending"&&!a.archived_at?' (required)':''}</label><textarea id="review-reason-${esc(a.id)}" data-reason="${esc(a.id)}" maxlength="1000" ${status!=="pending"||a.archived_at?'readonly':'required'} placeholder="${status!=="pending"||a.archived_at?'No reason was recorded.':'Explain your decision. This reason will be emailed to the applicant.'}">${esc(status==="pending"?(applicationDrafts.get(a.id) ?? a.review_reason):a.review_reason)}</textarea>
       ${a.listed_editor_id?'<p class="hint">Converted to an editor profile. List Contributors manage the published profile.</p>':''}
-      ${status==="pending"&&!a.listed_editor_id?`<div class="app-actions"><button class="approve" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="approved">✓ Approve</button><button class="reject" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="rejected">✕ Reject</button></div>`:''}
+      ${status==="pending"&&!a.listed_editor_id&&!a.archived_at?`<div class="app-actions"><button class="approve" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="approved">✓ Approve</button><button class="reject" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="rejected">✕ Reject</button></div>`:''}
+      ${a.archived_at?`<p class="hint">Archived by ${esc(a.archived_username)} on ${esc(new Date(a.archived_at).toLocaleString())}. Kept privately for the review log.</p>`:can("owner")?`<div class="app-actions"><button class="bad" data-act="archiveApplication" data-id="${esc(a.id)}">Delete from panel</button></div>`:''}
     </article>`;
   }).join("");
+}
+
+let activityOffset=0,activityTotal=0,activityKind="all";
+function vActivity(){
+  return `<section class="account-panel"><h2>Activity log</h2><p class="hint">Private ranking and application history. Names are recorded at the time of each new action; older entries may only identify an account ID.</p><div class="inline"><button data-act="refreshActivity">Refresh log</button><select id="activityFilter" aria-label="Filter activity"><option value="all">Rankings and applications</option><option value="rankings" ${activityKind==='rankings'?'selected':''}>Rankings</option><option value="applications" ${activityKind==='applications'?'selected':''}>Applications</option></select><button data-act="retryEmails">Retry queued emails</button></div><p id="emailNotice" class="hint" role="status"></p><p id="activityNotice" class="hint" role="status">Loading activity…</p><div id="activityList"></div><div class="inline"><button data-act="previousActivity" disabled>Previous page</button><button data-act="nextActivity" disabled>Next page</button></div></section>`;
+}
+async function loadActivity(){
+  const notice=$("#activityNotice"),list=$("#activityList"),emailNotice=$("#emailNotice");if(!notice||!list)return;
+  const offset=activityOffset,kind=activityKind;notice.textContent="Loading activity…";updatePagination("Activity",offset,activityTotal,true);
+  try{
+    const response=await accountFetch("/api/account/activity?kind="+kind+"&offset="+offset),result=await response.json();
+    if($("#activityNotice")!==notice||offset!==activityOffset||kind!==activityKind)return;
+    if(!response.ok)throw new Error(result.error||"Could not load activity.");
+    activityTotal=result.total;notice.textContent=result.events.length+" entries on this page, "+result.total+" total.";
+    const labels={rank_change:"Ranking changes",save_rankings:"Editor or list save",submit_application:"Application submitted",review_application:"Application reviewed",archive_application:"Application archived",convert_application:"Application added to the list"};
+    list.innerHTML=result.events.map(event=>{
+      const details=event.details||{},changes=Array.isArray(details.changes)?details.changes:[];
+      return `<article class="card"><h3>${esc(labels[event.action]||event.action)}</h3><p class="hint">${esc(new Date(event.created_at).toLocaleString())} · ${esc(event.actor_username||details.reviewer_username||(event.actor_id?'Account '+event.actor_id:'System / historical actor not recorded'))}</p><p class="hint">Record: ${esc(event.target||'site-data')}</p>${details.status?`<p>Decision: ${esc(details.status)}</p>`:''}${details.reason?`<p>Reason: ${esc(details.reason)}</p>`:''}${event.action==='rank_change'?`<details><summary>View ${changes.length} rank changes</summary><ul style="padding-left:22px">${changes.map(change=>`<li>${esc(change.editor_name||change.editor_id)} · ${esc(change.list_id)}: ${change.from_rank==null?'not listed':esc(change.from_rank)} to ${change.to_rank==null?'removed':esc(change.to_rank)}</li>`).join('')}</ul></details>`:''}</article>`;
+    }).join('')||'<div class="empty-state">No activity in this view.</div>';
+    emailNotice.textContent=result.notifications.queued+" emails queued, "+result.notifications.failed+" awaiting retry after a failed attempt, "+result.notifications.sent+" accepted by the email provider.";
+    updatePagination("Activity",offset,activityTotal);
+  }catch(error){notice.textContent=error.message+" Use Refresh log to retry.";notice.className="hint status bad"}
 }
 
 function vClaim(){
@@ -417,7 +443,8 @@ document.addEventListener("input", ev => {
 document.addEventListener("change", ev => {
   const t = ev.target, k = t.dataset.t;
   if(t.closest("form[data-user]"))t.closest("form[data-user]").dataset.dirty="true";
-  if (t.id === "applicationFilter") { renderApplications(); return; }
+  if (t.id === "applicationFilter") { applicationView=t.value;applicationOffset=0;void loadApplications();return; }
+  if (t.id === "activityFilter") { activityKind=t.value;activityOffset=0;void loadActivity();return; }
   if (t.id === "linkFilter") { linksOffset=0;void loadProfileLinks();return; }
   if (k === "flare") {
     const e = S.editors[+t.dataset.i], id = t.dataset.s;
@@ -430,6 +457,15 @@ document.addEventListener("change", ev => {
 document.addEventListener("click", async ev => {
   const b = ev.target.closest("[data-act]"); if (!b) return;
   const a = b.dataset.act, i = +b.dataset.i, id = b.dataset.id;
+  if(a==="refreshActivity"){await loadActivity();return}
+  if(a==="previousActivity"||a==="nextActivity"){activityOffset=a==="previousActivity"?Math.max(0,activityOffset-50):activityOffset+50<activityTotal?activityOffset+50:activityOffset;await loadActivity();return}
+  if(a==="retryEmails"){
+    b.disabled=true;try{const {ok,j}=await api("/api/applications/notifications",{});if(!ok)throw new Error(j.error||"Could not retry emails.");await loadActivity();$("#emailNotice").textContent=j.status==="unconfigured"?"Email delivery is not configured. Notifications remain queued.":j.sent+" emails accepted by the provider. Any remaining notifications are kept for a later retry."}catch(error){setStatus(error.message,"bad")}finally{b.disabled=false}return;
+  }
+  if(a==="archiveApplication"){
+    if(!confirm("Remove this application from the panel and Contributor queue? Its details and review log will remain in the private archive. Rankings will not change."))return;
+    b.disabled=true;try{const {ok,j}=await api("/api/applications/admin",{action:"archive",id});if(!ok)throw new Error(j.error||"Could not archive the application.");applicationDrafts.delete(id);announceChange();await loadApplications();setStatus("Application moved to the private archive.","ok")}catch(error){setStatus(error.message,"bad")}finally{b.disabled=false}return;
+  }
   if(a==="convertApplication"){
     await autosave.flush();
     if(autosave.dirty||autosave.blocked||converting)return setStatus("Resolve unsaved changes before converting an application.","bad");
@@ -456,10 +492,9 @@ document.addEventListener("click", async ev => {
     if(!confirm("This decision will be locked. "+(b.dataset.status==="approved"?"Approve":"Reject")+" this application?"))return;
     const {ok,status:code,j} = await api("/api/applications/admin", {action:"update",id,status:b.dataset.status,reason});
     if (!ok) { alert(j.error || "Could not update application.");if(code===409){applicationDrafts.delete(id);await loadApplications()}b.disabled = false; return; }
-    const index = applicationsCache.findIndex(x => x.id === id); if (index>=0 && j.application) applicationsCache[index]=j.application;
     applicationDrafts.delete(id);announceChange();
-    setStatus("Decision saved and locked.","ok");
-    renderApplications(); const notice = $("#applicationNotice"); if (notice) notice.textContent = "Application updated.";
+    await loadApplications();
+    setStatus("Decision saved and locked. "+(j.notification?.status==='no_recipient'?"No account email was recorded for this older application.":j.notification?.status==='processed'&&j.notification.sent>0?"Email sent.":"Email queued for delivery."),"ok");
     } catch(error) { setStatus(error.message || "Could not update application.", "bad"); }
     finally { b.disabled = false; }
     return;
@@ -648,6 +683,7 @@ $("#reset").addEventListener("click",async()=>{
       if(tab==="applications" && !applicationDrafts.size && !editing){await loadApplications(true);return}
       if(tab==="users" && !$("form[data-user][data-dirty]") && !editing){await loadUsers(true);return}
       if(tab==="links"&&!editing){await loadProfileLinks(true);return}
+      if(tab==="activity"&&!editing){await loadActivity();return}
       if(dirty||autosave.busy||editing||pictureFetchRunning)return;
       const response=await accountFetch("/api/account/site");if(!response.ok)return;
       const next=await response.json();if(!valid(next.data)||!next.revision)return;

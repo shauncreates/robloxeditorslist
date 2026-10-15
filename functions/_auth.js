@@ -62,6 +62,8 @@ export async function userRpc(env, token, name, args = {}) {
       "REL_INVALID": [400, "Invalid request or profile link."],
       "REL_APPLICATION_LISTED": [409, "This application is already an editor profile. A List Contributor must manage that profile."],
       "REL_APPLICATION_LOCKED": [409, "This application has already been decided. The decision is locked."],
+      "REL_APPLICATION_PENDING": [409, "You already have an application waiting for review."],
+      "REL_APPLICATION_ARCHIVED": [409, "This application has been archived by an Owner."],
       "REL_REASON_REQUIRED": [400, "Enter a review reason of 1 to 1,000 characters."],
       "REL_INVALID_USERNAME": [400, "Use 3 to 40 letters, digits, underscores or hyphens for your username."],
       "REL_USERNAME_TAKEN": [409, "That username is already taken. Choose another."],

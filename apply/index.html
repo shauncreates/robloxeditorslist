@@ -37,7 +37,9 @@
     <p class="eyebrow">Join the community</p>
     <h1>Apply to be listed.</h1>
     <p class="intro">Tell us about your editing account and share some of your work. Every application is reviewed manually. Applying or being approved does not automatically add you to the rankings.</p>
-    <form id="applicationForm">
+    <section id="applicationAccountGate" class="success" aria-live="polite"><p id="applicationAccountNotice">Checking your account…</p><a id="applicationSignIn" href="/signin/?next=%2Fapply%2F" hidden>Sign in or create an account</a><button id="retryApplicationAccount" type="button" hidden>Retry account check</button></section>
+    <form id="applicationForm" hidden>
+      <p class="hint" id="applicationAccount"></p>
       <div id="message" class="message" role="status" aria-live="polite"></div>
       <div class="trap" aria-hidden="true"><label for="website">Leave this field empty</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
       <div class="grid">
@@ -60,13 +62,31 @@
   </main>
   <script type="module">
     import {watchChanges,announceChange} from "../assets/autosave.js";
+    import {accountFetch} from "../assets/account.js";
     const form = document.querySelector("#applicationForm");
     const message = document.querySelector("#message");
     const button = document.querySelector("#submitButton");
     const otherCheckbox = document.querySelector("#otherStyleCheckbox");
     const otherField = document.querySelector("#otherStyleField");
     const otherInput = document.querySelector("#otherStyle");
-    let styleSignature = "", stylesReady = false, submitting = false;
+    let styleSignature = "", stylesReady = false, submitting = false, account = null, requestId = crypto.randomUUID(), submissionSignature = null;
+    async function checkAccount() {
+      const gate=document.querySelector("#applicationAccountGate"),notice=document.querySelector("#applicationAccountNotice"),signIn=document.querySelector("#applicationSignIn"),retry=document.querySelector("#retryApplicationAccount");
+      notice.textContent="Checking your account…";retry.hidden=true;signIn.hidden=true;
+      try {
+        const response=await accountFetch("/api/auth/session");
+        const result=await response.json();
+        if(!response.ok){
+          account=null;form.hidden=true;gate.hidden=false;
+          if(response.status===401){notice.textContent="Sign in to a confirmed account before applying. Create an account and confirm your email if you haven't registered yet.";signIn.hidden=false;return}
+          throw new Error(result.error||"Your account could not be checked.");
+        }
+        account=result.account;gate.hidden=true;form.hidden=false;
+        document.querySelector("#applicationAccount").textContent="Applying as "+account.username+". Application updates will be sent to your account email.";
+      }catch(error){account=null;form.hidden=true;gate.hidden=false;notice.textContent=error.message||"Your account could not be checked.";retry.hidden=false}
+      button.disabled=!account||!stylesReady||submitting;
+    }
+    document.querySelector("#retryApplicationAccount").addEventListener("click",checkAccount);
     async function loadStyles() {
       try {
         const response = await fetch("/api/data", {cache:"no-store"});
@@ -87,9 +107,9 @@
         }
         stylesReady=true;document.querySelector("#styleNotice").textContent="Choose any listed styles, or Other if yours is missing.";
       }catch(error){stylesReady=false;document.querySelector("#styleNotice").textContent=error.message}
-      button.disabled=!stylesReady||submitting;
+      button.disabled=!account||!stylesReady||submitting;
     }
-    await loadStyles();watchChanges(loadStyles);
+    await Promise.all([checkAccount(),loadStyles()]);watchChanges(loadStyles);
     function syncOtherStyle() {
       otherField.hidden = !otherCheckbox.checked;
       otherInput.required = otherCheckbox.checked;
@@ -98,7 +118,7 @@
     otherCheckbox.addEventListener("change", syncOtherStyle);
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      if(!stylesReady||submitting)return;
+      if(!account||!stylesReady||submitting)return;
       const selected = [...form.querySelectorAll('input[name="styles"]:checked')];
       const otherStyle = otherInput.value.trim();
       if (!selected.length) {
@@ -127,27 +147,33 @@
         notes: form.notes.value.trim(),
         website: form.website.value
       };
+      const signature=JSON.stringify(payload);
+      if(signature!==submissionSignature){requestId=crypto.randomUUID();submissionSignature=signature}
+      payload.requestId=requestId;
       submitting = true;button.disabled = true;
       button.textContent = "Submitting…";
       message.className = "message";
       try {
-        const response = await fetch("/api/applications", {
+        const response = await accountFetch("/api/applications", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
         const result = await response.json().catch(() => ({}));
+        if(response.status===401){await checkAccount();throw new Error("Sign in again before submitting. Your draft has been kept.")}
         if (!response.ok) throw new Error(result.error || "We couldn't submit your application.");
         form.reset();
+        requestId=crypto.randomUUID();
+        submissionSignature=null;
         syncOtherStyle();
         announceChange();
         message.className = "message ok";
-        message.textContent = "Application received! The team will review it manually.";
+        message.textContent = "Your application to the Roblox Editors list has been sent. Your request will be reviewed shortly. We'll send updates to your account email.";
       } catch (error) {
         message.className = "message error";
         message.textContent = error.message || "Something went wrong. Please try again.";
       } finally {
-        submitting = false;button.disabled = !stylesReady;
+        submitting = false;button.disabled = !account||!stylesReady;
         button.textContent = "Submit application";
       }
     });

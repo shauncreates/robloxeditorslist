@@ -26,6 +26,7 @@
 <script type="module">
   let signup = false;
   const $ = s => document.querySelector(s), form = $("#authForm");
+  const next = new URLSearchParams(location.search).get("next") === "/apply/" ? "/apply/" : null;
   // Confirmation authorizes no action here. Discard Supabase's URL fragment tokens.
   if (location.hash || new URLSearchParams(location.search).has("confirmed")) {
     const error = new URLSearchParams(location.hash.slice(1)).get("error_description");
@@ -66,7 +67,7 @@
       if (!response.ok) throw new Error(result.error || "Please try again.");
       $("#password").value = "";
       if (submittingSignup) $("#message").textContent = result.message;
-      else location.assign(result.account?.roles?.some(role => ["owner","list_contributor","application_reviewer"].includes(role)) ? "/admin/" : "/account/");
+      else location.assign(next || (result.account?.roles?.some(role => ["owner","list_contributor","application_reviewer"].includes(role)) ? "/admin/" : "/account/"));
     } catch (error) { $("#message").textContent = error.message; }
     finally {
       $("#submit").disabled = false;

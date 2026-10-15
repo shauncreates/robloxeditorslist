@@ -3,7 +3,7 @@
 A static HTML/CSS/JavaScript ranking site hosted on Cloudflare Pages, using Pages Functions and Supabase Postgres, Auth and Storage.
 
 - `index.html`, `list/`: public homepage and rankings.
-- `apply/`: private application submission form.
+- `apply/`: account-required application form with private submissions.
 - `signin/`, `assets/`: public email/password signup and sign-in, with session helpers.
 - `admin/`: role-aware profile, ranking, application and Owner user management.
 - `data.js`: bundled data for offline file previews only. Hosted pages load Supabase data. Do not overwrite it or use it to initialize live rankings without an approved verified import.
@@ -13,7 +13,7 @@ A static HTML/CSS/JavaScript ranking site hosted on Cloudflare Pages, using Page
 
 See [AUTH_SETUP.md](AUTH_SETUP.md) for roles, local testing, profile linking, approved database setup and production cutover. Accounts default to Member. Owner-verified links allow Members to edit their own profiles and software; elevated roles are assigned only by Owners.
 
-Start with [DEPLOY_AND_TEST.md](DEPLOY_AND_TEST.md) for the current step-by-step instructions. C428 and the Auth schema are already imported/applied. Cloudflare deploys from main only; the new source has not been published yet.
+This feature branch adds application receipt/decision emails, Owner archiving and an activity log. See [APPLICATION_NOTIFICATIONS.md](APPLICATION_NOTIFICATIONS.md) for the migration, Resend setup and separate scheduled retry Worker. These changes have not been applied to production. Cloudflare deploys from main only; merging and deployment require approval.
 
 Run `npm ci`, `npm test`, and `npm run build`. Cloudflare's build output is `dist`; its Functions source is `functions/`. No deployment is part of these commands.
 

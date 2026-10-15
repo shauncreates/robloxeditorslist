@@ -1,5 +1,20 @@
 # REL progress
 
+## 15 October 2026: account-linked applications, email queue and Owner history
+
+Implemented on `feat/application-notifications-audit`, created from latest main `3544416`. The user selected during-development AntiSlop checks, private archiving and a Resend integration to configure later.
+
+- Applications now require a confirmed account. The database takes the recipient from Auth, ignores browser-supplied identity/status, prevents multiple active pending submissions and replays repeated request IDs safely.
+- Submission and locked review decisions queue private receipt/approval/denial notifications atomically. Resend sends plain-text messages, including the requested receipt and decision reason. Failed messages remain queued with leases, backoff and stable provider idempotency keys. A separate scheduled Worker is prepared for automatic retries; Owners can also retry eligible messages from the Activity log.
+- Reviewed applications leave the default pending queue. Owners can inspect reviewed entries and delete them from the panel into a private archive. Archives preserve decisions and stop unconverted applications appearing in the Contributor queue; they do not delete existing editor profiles or change ranks.
+- Added Owner-only, paginated activity for ranking movements and application actions, with username snapshots, account IDs and timestamps. New ranking entries record before/after positions and revisions. Existing audit/history rows remain intact; missing historic names or email recipients are not invented.
+- Prepared `20261015090000_rel_application_accounts_and_audit.sql` for review and tested it only in PGlite. No production schema, data, credentials, email settings, merge or deployment changed. `data.js`, ranking JSON and the original logo were not edited.
+- Updated the repository's stale branch checkpoint instruction to follow the user's preference: new feature branches from fresh main, then commit/push the current feature branch after checks.
+
+Verification: 50 automated tests passed; a final 16-test application/UI rerun passed after validation changes. Static build, Pages Functions and retry Worker dry-run compilation passed. Isolated Chrome passed the application/review/archive/activity flows and existing account/recovery regression at 320/390/768/1440px, including keyboard activation. Local authentic font fixtures were needed because Google Fonts is blocked; font-delivery verification remains external. UI evidence: `anti-slop/review-008-2026-10-15.md`.
+
+Release requirements and limitations are in `APPLICATION_NOTIFICATIONS.md`. The migration, verified Resend sender/server bindings, real test emails and separate scheduled Worker still need authorized setup/release. Old anonymous applications have no verified recipient and cannot receive notifications automatically.
+
 ## 15 October 2026: retired live Vercel Blob picture dependencies
 
 The user authorized removing old Vercel Blob pictures. Copied all 21 live pictures to the existing `editor-avatars` Supabase Storage bucket and verified each public copy against the original bytes and MIME type. Only then replaced their `thumb` URLs in a single revision-checked transaction. The transaction also asserts that all JSON except `thumb` fields is unchanged, preserves the original full JSON in data history and records the maintenance action without impersonating an account.

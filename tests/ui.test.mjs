@@ -141,7 +141,7 @@ test("account pagination reflects first, middle, last and loading states",async(
     if(!buttons.has(selector))buttons.set(selector,{disabled:false});return buttons.get(selector);
   }});
   vm.runInContext(script.slice(start,end),context);
-  for(const kind of ['Users','Applications','Links']){
+  for(const kind of ['Users','Applications','Links','Activity']){
     const previous=()=>buttons.get('[data-act="previous'+kind+'"]'),next=()=>buttons.get('[data-act="next'+kind+'"]');
     context.updatePagination(kind,0,0);assert.equal(previous().disabled,true);assert.equal(next().disabled,true);
     context.updatePagination(kind,0,120);assert.equal(previous().disabled,true);assert.equal(next().disabled,false);

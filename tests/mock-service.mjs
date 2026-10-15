@@ -2,18 +2,25 @@ import { fixture, ids, sessionId } from "./auth-fixture.mjs";
 import { randomUUID } from "node:crypto";
 import { onRequest as middleware } from "../functions/api/_middleware.js";
 
-export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server"};
+export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server",RESEND_API_KEY:"test-email-key",REL_EMAIL_FROM:"REL fixture <fixture@example.test>"};
 export async function mockService(){
-  const {db,rpc}=await fixture();
+  const {db,rpc}=await fixture({notifications:true});
   const originalFetch=globalThis.fetch;
   const users=new Map(Object.keys(ids).map(name=>[name,{id:ids[name],email:name+"@example.test",email_confirmed_at:"2026-10-14T00:00:00Z"}]));
   const sessions=new Map(users);
   const passwords=new Map([...users.values()].map(user=>[user.id,"test-password-123"]));
   const recoveryCodes=new Map(),failures={};
+  const emails=[],emailKeys=new Map();
   let requestLog=[];
   const response=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json"}});
   globalThis.fetch=async(input,options={})=>{
     const url=new URL(input);
+    if(url.href==='https://api.resend.com/emails'){
+      if(failures.email)return response({message:'Synthetic provider failure'},failures.email);
+      const key=new Headers(options.headers).get('idempotency-key');
+      if(!emailKeys.has(key)){emailKeys.set(key,randomUUID());emails.push(JSON.parse(options.body));}
+      return response({id:emailKeys.get(key)});
+    }
     // Synthetic avatar responses exercise uploads without contacting TikTok.
     if(url.href==='https://www.tiktok.com/@fixture_editor')return new Response('{"avatarLarger":"https://p16.tiktokcdn.com/fixture-avatar.png"}');
     if(url.href==='https://p16.tiktokcdn.com/fixture-avatar.png')return new Response(new Uint8Array([137,80,78,71]),{headers:{'Content-Type':'image/png'}});
@@ -78,6 +85,15 @@ export async function mockService(){
       return new Response(null,{status:204});
     }
     if(url.pathname.startsWith("/rest/v1/rpc/")){
+      if(url.pathname.endsWith('/rel_email_work')&&token===env.SUPABASE_SERVICE_ROLE_KEY){
+        const args=JSON.parse(options.body),keys=Object.keys(args);
+        if(failures.emailAck&&args.p_action==='sent')return response({},503);
+        try{return response(await db.transaction(async tx=>{
+          await tx.exec('set local role service_role');
+          await tx.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({role:'service_role'})]);
+          return (await tx.query(`select public.rel_email_work(${keys.map((key,i)=>key+'=> $'+(i+1)).join(',')}) as result`,Object.values(args))).rows[0].result;
+        }))}catch(error){return response({message:error.message},400)}
+      }
       if(url.pathname.endsWith("/rel_signup_username_available") && token===env.SUPABASE_SERVICE_ROLE_KEY){
         if(failures.availability)return response({},failures.availability);
         return response(await db.transaction(async tx=>{
@@ -103,8 +119,9 @@ export async function mockService(){
     "/api/data":"data", "/api/save":"save", "/api/avatar":"avatar", "/api/applications":"applications",
     "/api/applications/admin":"applications/admin",
     "/api/applications/pending":"applications/pending",
+    "/api/applications/notifications":"applications/notifications",
     ...Object.fromEntries(["signin","signup","session","refresh","signout","forgot-password","reset-password","confirmation"].map(name=>["/api/auth/"+name,"auth/"+name])),
-    ...Object.fromEntries(["site","profile","claim","users","username","links"].map(name=>["/api/account/"+name,"account/"+name])),
+    ...Object.fromEntries(["site","profile","claim","users","username","links","activity"].map(name=>["/api/account/"+name,"account/"+name])),
   };
   async function handle(request){
     const route=routes[new URL(request.url).pathname];
@@ -116,5 +133,5 @@ export async function mockService(){
   }
   const {onRequest:adminGate}=await import("../functions/admin/_middleware.js");
   const handleAdmin=(request,next)=>adminGate({request,env,next});
-  return {db,rpc,handle,handleAdmin,sessions,recoveryCodes,failures,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
+  return {db,rpc,handle,handleAdmin,sessions,recoveryCodes,failures,emails,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
 }
