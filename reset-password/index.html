@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+  <title>Reset password | Roblox Editors</title>
+  <link rel="stylesheet" href="../assets/typography.css">
+  <link rel="stylesheet" href="../assets/account.css">
+</head>
+<body><main class="account-wrap">
+  <a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a>
+  <h1>Reset password</h1>
+  <p id="intro">Enter your account email to request a recovery code.</p>
+  <form id="resetForm">
+    <label for="email">Email</label><input id="email" type="email" required maxlength="254" autocomplete="username">
+    <fieldset class="recovery-fields" id="recoveryFields" hidden disabled>
+      <label for="code">Recovery code</label><input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required aria-describedby="codeHint">
+      <p class="hint" id="codeHint">Enter the six-digit code from your recovery email.</p>
+      <label for="password">New password</label><input id="password" type="password" autocomplete="new-password" minlength="8" maxlength="1024" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,1024}" required aria-describedby="passwordHint">
+      <p class="hint" id="passwordHint">Use at least 8 characters, including an uppercase letter, a lowercase letter and a digit.</p>
+      <label for="confirmPassword">Confirm new password</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="1024" required>
+    </fieldset>
+    <button class="pri" id="submit">Send recovery code</button>
+  </form>
+  <button id="haveCode" type="button">I already have a code</button>
+  <p id="message" role="status" aria-live="polite"></p>
+  <div id="recoveryActions" hidden>
+    <button id="resend" type="button">Send another code</button>
+    <button id="changeEmail" type="button">Change email</button>
+  </div>
+  <a class="account-link" href="/signin/">Back to sign in</a>
+</main>
+<script type="module" src="../assets/password-reset.js"></script>
+</body></html>

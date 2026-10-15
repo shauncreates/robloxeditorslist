@@ -1,0 +1,6 @@
+# Copy these fields into .dev.vars using your chosen Supabase project.
+# Local Wrangler still calls the REAL database identified by SUPABASE_URL.
+# Use a separate test project for edits; the live project holds the C428 rankings.
+SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVER_ONLY_SERVICE_ROLE_KEY

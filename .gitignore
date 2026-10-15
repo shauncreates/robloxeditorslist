@@ -3,6 +3,7 @@ node_modules/
 .pnpm-store/
 
 # Build outputs
+private-backups/
 dist/
 .next/
 out/
@@ -17,6 +18,10 @@ build/
 .env
 .env.local
 .env.*.local
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.wrangler/
 
 # OS
 .DS_Store

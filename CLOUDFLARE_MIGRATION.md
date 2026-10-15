@@ -1,54 +1,15 @@
-# Cloudflare Pages migration
+﻿# Cloudflare Pages setup
 
-This branch replaces the Vercel Blob-backed API with Cloudflare Pages Functions and Supabase Storage/Postgres. The live `main` branch is unchanged.
+The site uses Cloudflare Pages Functions and Supabase Auth/Postgres/Storage. Build command: `npm run build`; output: `dist`; Functions: `functions/`.
 
-## Cloudflare Pages build settings
+See [DEPLOY_AND_TEST.md](DEPLOY_AND_TEST.md) for the current setup and rollout steps. The approved C428 import and Auth/roles migration were applied on 14 October 2026. The saved ranking JSON was verified unchanged by the migration; do not rerun it on the live project.
 
-- Production branch: `cloudflare-migration` while testing; change to `main` only after the migration is approved.
-- Build command: `npm run build`
-- Build output directory: `dist`
-- Root directory: repository root
-- Functions are in `functions/` and are deployed by Pages alongside the static output.
+Cloudflare project `robloxeditorslist` deploys from `main` only, with feature-branch previews disabled. On 15 October 2026 the user authorized merging the tested feature branch into main and deploying the new account/application system. Pushing to main triggers the production deployment; see `PROGRESS.md` for verification and the current release status.
 
-The `build.mjs` script copies only the public site files into `dist`, avoiding accidental publication of repository files.
+Both `robloxeditors.com` and `www.robloxeditors.com` are attached to Pages. Their web CNAMEs point to `robloxeditorslist.pages.dev`; a Cloudflare redirect sends www requests to the primary HTTPS domain with the path/query preserved. The old www CNAME pointed at Vercel and caused the paused/HTTP 402 page. Vercel hosting configuration and analytics scripts are removed. Existing Blob image URLs remain because editor pictures still depend on those files.
 
-## Required Cloudflare Pages environment variables
+Production already has `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `NODE_VERSION=24`. Keep the service-role key secret. The shared-password authentication has been removed from this source. Remove its obsolete deployment secret after the new source is live.
 
-Configure these as secrets/variables for Preview first:
+Before switching existing traffic, back up and verify authoritative live rankings. Do not replace `data.js`, initialize the live database from placeholders, overwrite the saved rankings or delete the former Vercel/Blob data as part of setup. The new admin blocks saving when live data is unavailable, and writes require a valid revision against an existing database row.
 
-- `ADMIN_PASSWORD`: a new strong admin password.
-- `SUPABASE_URL`: the Supabase project URL.
-- `SUPABASE_SERVICE_ROLE_KEY`: the Supabase service-role key. Store it as a secret. Never add it to GitHub, `data.js`, or any `VITE_*` variable.
-
-The existing Seeshaun Hub Supabase project can be reused if desired; this migration adds a separate table and storage bucket. If using a different project, apply the migration to that project and set the corresponding URL/key.
-
-## Supabase setup
-
-1. Open the intended Supabase project.
-2. Run `supabase/migrations/202610130001_roblox_editors.sql` in the SQL Editor.
-3. Ensure the `editor-avatars` bucket is public for image reads. Uploads are made only by the server using the service-role secret.
-4. Set the Cloudflare variables above on the Preview environment.
-
-## Data migration
-
-Before switching traffic, open the current Vercel admin page and use **Download data.js** to create a backup of the live list. Keep that backup private because it contains your full list data.
-
-On your PC, check out this branch and replace the repository's existing `data.js` with the downloaded backup file. Commit that change to `cloudflare-migration` before deploying the Preview. The admin page uses `data.js` as its fallback until the first database save.
-
-After the Preview is deployed, visit its `/admin` page, sign in using the Cloudflare `ADMIN_PASSWORD`, and click **Save to site**. That first save creates the Supabase database row. Confirm the public pages show your current live rankings before proceeding.
-
-## Verification checklist
-
-- [ ] Public homepage loads and reads saved data.
-- [ ] `/list/` loads the ranked lists.
-- [ ] `/admin` login succeeds with the configured password.
-- [ ] A harmless test edit can be saved and appears publicly.
-- [ ] Wrong password cannot save changes.
-- [ ] TikTok avatar fetch stores an image in Supabase Storage (TikTok may block automated requests).
-- [ ] Manually entered avatar URLs still work.
-- [ ] Restore the backup if needed before changing the production domain.
-- [ ] Only after all checks pass, connect the existing custom domain to Cloudflare Pages.
-
-## Important
-
-Do not delete the Vercel project or Blob data until the Cloudflare version has been verified and the backup has been tested. This branch has not yet been built or tested locally.
+Use a separate test project and synthetic rankings for setup verification. Production migrations, data imports and deployments require explicit permission. Do not deploy the new account source against an unmigrated production database.

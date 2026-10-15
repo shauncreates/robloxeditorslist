@@ -4,25 +4,41 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>List Editor (private)</title>
+<title>Admin — Roblox Editors</title>
+<link rel="stylesheet" href="../assets/typography.css">
+<link rel="stylesheet" href="../assets/profile.css">
 <style>
-  :root{--bg:#0c0e12;--panel:#14181f;--panel2:#1a1f28;--line:#262d38;--text:#eef1f6;--muted:#a0aab8;--accent:#ff6f00;--on-accent:#120d06;--ok:#4ade80;--bad:#f87171}
+  [hidden]{display:none!important}
+  :root{--bg:#050706;--panel:#0b100c;--panel2:#111912;--line:#202a22;--text:#eef5ef;--muted:#98a79b;--accent:#7af500;--on-accent:#061109;--ok:#7af500;--bad:#ff7373}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5;min-height:100vh}
   .wrap{max-width:900px;margin:0 auto;padding:0 16px 80px}
   .top{position:sticky;top:0;z-index:5;background:#0a0c12ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
   .top .wrap{display:flex;gap:10px;align-items:center;padding-block:12px;flex-wrap:wrap}
   .top h1{font-size:16px;flex:1;min-width:140px}
   .status{font-size:13px;color:var(--muted)}
   .status.ok{color:var(--ok)} .status.bad{color:var(--bad)} .status.dirty{color:#fbbf24}
-  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
-  button:hover{border-color:var(--accent)}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);padding:9px 14px;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+  button:hover{border-color:var(--accent);transform:translateY(-1px)}
   button:disabled{opacity:.4;cursor:default}
   button.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
   button.bad:hover{border-color:var(--bad);color:var(--bad)}
   button.sm{padding:4px 10px;font-size:13px}
-  .tabs{display:flex;gap:8px;margin:18px 0;flex-wrap:wrap}
+  .tabs{display:flex;gap:7px;margin:22px 0;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:12px}
+  .tabs button{background:transparent;border-color:transparent;color:var(--muted);border-radius:6px}
   .tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  .eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin:24px 0 7px}
+  .page-title{font-size:clamp(26px,5vw,38px);line-height:1.08;letter-spacing:-.03em;text-transform:uppercase}
+  .page-subtitle{color:var(--muted);margin:9px 0 20px}
+  .rank-list{display:grid;gap:8px}.rrow{transition:transform .22s cubic-bezier(.2,.8,.2,1),border-color .18s ease,background .18s ease}
+  .rrow[draggable="true"]{cursor:grab;touch-action:pan-y}.rrow.dragging{opacity:.42;transform:scale(.985)}.rrow.drop-target{border-color:var(--accent);background:#7af50012}
+  .drag-handle{font-size:18px;color:var(--muted);cursor:grab;user-select:none;letter-spacing:-3px;padding-right:5px}
+  .app-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin:10px 0;animation:rise .22s ease both}
+  .app-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.app-detail{min-width:0}.app-detail strong{display:block;color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase}.app-detail span,.app-detail a{overflow-wrap:anywhere}
+  .app-status{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);padding:4px 8px;border-radius:99px}.app-status.pending{color:#ffd166}.app-status.approved{color:var(--accent)}.app-status.rejected{color:var(--bad)}
+  .app-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.app-actions button{flex:1}.app-actions .approve{border-color:#345c1b;color:var(--accent)}.app-actions .reject{border-color:#663333;color:var(--bad)}
+  .empty-state{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}@keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  @media(max-width:560px){.app-grid{grid-template-columns:1fr}.rrow{flex-wrap:wrap}.rrow .nm{min-width:100px}}
   .msg{background:#4ade8014;border:1px solid #4ade8044;color:#bbf7d0;padding:10px 14px;border-radius:10px;font-size:13.5px;margin-bottom:14px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
   label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.08em}
@@ -49,88 +65,73 @@
   #gate p{color:var(--muted);font-size:14px;margin-bottom:14px}
   #gate button{width:100%;margin-top:12px;padding:11px}
   #gateErr{color:var(--bad);font-size:13.5px;margin-top:10px;min-height:20px}
+  .top h1{display:flex;align-items:center;gap:12px}
+  .account-panel,.account-panel .card{min-width:0;overflow-wrap:anywhere}
+  .app-detail a{color:var(--accent);display:inline-flex;align-items:center;min-height:44px}
+  .app-card :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .account-panel input,.account-panel select,.account-panel textarea{min-width:0}
+  .account-panel button,.account-panel select,.account-panel .flarepick label,.account-panel form>label:has(input[type=checkbox]),#signout,#saveSite,.tabs [data-act=tab],input[data-f=software]{min-height:44px}
+  .account-panel .flarepick label,.account-panel form>label:has(input[type=checkbox]){text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:8px}
+  .account-panel :focus-visible,#signout:focus-visible,#saveSite:focus-visible,.tabs [data-act=tab]:focus-visible,input[data-f=software]:focus-visible,.rel-brand:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  #banner,#status{overflow-wrap:anywhere}
+  #pendingQueue button{min-height:44px}
+  #pendingQueue a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent)}
 </style>
 </head>
 <body>
 
-<div id="gate" hidden>
-  <h1>🔒 Admin login</h1>
-  <p>Enter your admin password to edit the list.</p>
-  <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
-  <button class="pri" id="loginBtn">Log in</button>
-  <div id="gateErr"></div>
-</div>
-
+<p id="bootNotice" role="status" style="padding:24px">Loading your account…</p>
 <div id="ui" hidden>
   <div class="top"><div class="wrap">
-    <h1>🔒 List editor</h1>
-    <span class="status" id="status"></span>
+    <h1><a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a><span>/ Admin</span></h1>
+    <span class="status" id="status" role="status" aria-live="polite"></span>
     <button id="reset" class="bad">Discard changes</button>
-    <button id="dl">Download data.js</button>
-    <button id="saveSite" class="pri" hidden>Save to site</button>
+    <button id="dl">Download ranking backup</button>
+    <button id="saveSite" class="pri" hidden>Save now</button><a href="/account/" style="color:var(--muted)">My account</a><button id="signout">Sign out</button>
   </div></div>
 
   <div class="wrap">
+    <p class="eyebrow">Control room</p><h2 class="page-title">Manage the list.</h2><p class="page-subtitle">Edit profiles, curate rankings and review community applications.</p>
     <div class="msg" id="banner"></div>
     <div class="tabs" id="tabs"></div>
     <div id="app"></div>
   </div>
 </div>
 
-<script src="../data.js"></script>
-<script>
-const KEY = "robloxeditors_admin_draft_v1";
-const clone = o => JSON.parse(JSON.stringify(o));
+<script type="module">
+import {accountFetch,accountApi,getAccount,signOut} from "/assets/account.js";
+import {createAutosave,watchChanges,announceChange} from "/assets/autosave.js";
+import {animateDisclosures} from "/assets/disclosure.js";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $ = s => document.querySelector(s);
 const LINKS = ["youtube","instagram","twitter","discord"];   // TikTok has its own username field
 let openIdx = -1;   // which editor card is expanded (kept open when the list redraws)
 const ONLINE = /^https?:$/.test(location.protocol);   // false when opened straight from a folder
 
-let S, PW = "", dirty = false, tab = "editors", rk = "main";
+let S = null, account, revision = null, dirty = false, editVersion = 0, tab = "editors", rk = "main";
+const can = role => account?.roles.includes("owner") || account?.roles.includes(role);
+const canEdit = () => S && (can("list_contributor") || account?.editor_id);
 const valid = d => d && d.site && Array.isArray(d.styles) && Array.isArray(d.editors) && d.lists;
 
 /* ---------- status / saving ---------- */
 function setStatus(text, cls){ const s = $("#status"); s.textContent = text || ""; s.className = "status " + (cls || ""); }
-function save(){
-  if (ONLINE) { dirty = true; setStatus("Unsaved changes", "dirty"); }
-  else { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
-}
-window.addEventListener("beforeunload", ev => { if (ONLINE && dirty) { ev.preventDefault(); ev.returnValue = ""; } });
-
-async function api(path, body){
-  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  let j = {}; try { j = await r.json(); } catch (e) {}
-  return { ok: r.ok, status: r.status, j };
-}
-
+function save(){editVersion++;dirty=true;autosave.change()}
+window.addEventListener("beforeunload",ev=>{if(dirty||applicationDrafts.size||$("form[data-user][data-dirty]")){ev.preventDefault();ev.returnValue=""}});
+const api=accountApi;
 async function loadLive(){
-  try {
-    const r = await fetch("/api/data", { cache: "no-store" });
-    if (r.ok) { const j = await r.json(); if (valid(j)) return j; }
-  } catch (e) {}
-  return clone(window.SITE_DATA);   // nothing saved yet → start from data.js
+  revision=null;
+  const r=await accountFetch("/api/account/site");
+  if(!r.ok)throw Error("Live rankings could not be loaded. Saving is blocked.");
+  const j=await r.json();
+  if(!valid(j.data)||!j.revision)throw Error("Live rankings are invalid. Saving is blocked.");
+  revision=j.revision;return j.data;
 }
-
-/* ---------- login ---------- */
-function showGate(msg){
-  $("#gate").hidden = false; $("#ui").hidden = true;
-  $("#gateErr").textContent = msg || "";
-  $("#pw").focus();
-}
-async function tryLogin(pw){
-  $("#loginBtn").disabled = true; $("#gateErr").textContent = "";
-  try {
-    const { ok, status, j } = await api("/api/login", { password: pw });
-    if (ok) { PW = pw; try { sessionStorage.setItem("adm_pw", pw); } catch (e) {} return true; }
-    $("#gateErr").textContent = status === 401 ? "Wrong password." : (j.error || "Couldn't log in.");
-  } catch (e) { $("#gateErr").textContent = "Couldn't reach the server."; }
-  finally { $("#loginBtn").disabled = false; }
-  return false;
-}
-$("#loginBtn").addEventListener("click", async () => { if (await tryLogin($("#pw").value)) start(); });
-$("#pw").addEventListener("keydown", ev => { if (ev.key === "Enter") $("#loginBtn").click(); });
-
+$("#signout").addEventListener("click",async()=>{
+  if(autosave.busy)return setStatus("Wait for your save to finish before signing out.");
+  if(dirty&&!confirm("Sign out and discard unsaved changes?"))return;
+  autosave.pause();
+  try{await signOut();dirty=false;location.replace("/signin/")}catch(e){setStatus(e.message,"bad")}
+});
 /* ---------- data helpers ---------- */
 const byId = id => S.editors.find(e => e.id === id);
 function members(key){
@@ -145,17 +146,30 @@ function members(key){
 const slug = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "style";
 
 /* ---------- views ---------- */
+function allowedTabs(){
+  const tabs=[];
+  if(S&&can("list_contributor"))tabs.push(["editors","Editors"],["styles","Styles / flares"],["rank","Rankings"]);
+  if(can("application_reviewer"))tabs.push(["applications","Applications"]);
+  if(can("owner")){if(S)tabs.push(["site","Site"]);tabs.push(["links","Profile link requests"],["users","Users & roles"])}
+  return tabs;
+}
 function view(){
-  $("#tabs").innerHTML = [["editors","Editors"],["styles","Styles / flares"],["rank","Rankings"],["site","Site"]]
-    .map(([k, n]) => `<button data-act="tab" data-v="${k}" class="${tab === k ? "on" : ""}">${n}</button>`).join("");
-  $("#app").innerHTML = ({ editors: vEditors, styles: vStyles, rank: vRank, site: vSite })[tab]();
+  const tabs=allowedTabs();if(!tabs.some(([k])=>k===tab))tab=tabs[0]?.[0];
+  $("#tabs").innerHTML=tabs.map(([k,n])=>'<button data-act="tab" data-v="'+k+'" class="'+(tab===k?'on':'')+'">'+n+'</button>').join("");
+  $("#saveSite").hidden=!canEdit();$("#saveSite").disabled=!revision;
+  $("#dl").hidden=!S||!can("list_contributor");$("#reset").hidden=!S;
+  $("#app").innerHTML=tab?({editors:vEditors,styles:vStyles,rank:vRank,applications:vApplications,site:vSite,users:vUsers,links:vProfileLinks,claim:vClaim})[tab]():'<p class="hint">Your account is ready. Reload to try loading the list again.</p>';
+  if(tab==="applications")loadApplications();if(tab==="users")loadUsers();if(tab==="editors"&&can("list_contributor"))loadPending();
+  if(tab==="links")loadProfileLinks();
+  animateDisclosures($("#app"));
 }
 
 function vEditors(){
-  return `<div class="inline"><button class="pri" data-act="addEditor">+ Add editor</button>${ONLINE ? `<button data-act="fetchAll">Fetch all missing pictures</button>` : ""}<span class="hint" style="margin:0">${S.editors.length} editors</span></div>` +
-    S.editors.map((e, i) => `
-    <details class="card" data-idx="${i}" ${openIdx === i ? "open" : ""}>
+  return (can("list_contributor") ? `<div class="inline"><button class="pri" data-act="addEditor">+ Add editor</button><button data-act="fetchAll">Fetch all missing pictures</button></div>` : `<p class="hint">Edit your profile and software. List Contributors manage rankings and style membership.</p>`) +
+    S.editors.map((e, i) => !can("list_contributor") && e.id !== account.editor_id ? "" : `
+    <details class="card profile-card" data-idx="${i}" ${openIdx === i ? "open" : ""}>
       <summary><span>${esc(e.name || "(unnamed)")}</span><span class="sub">${esc((e.flares || []).map(f => S.styles.find(s => s.id === f)?.name).filter(Boolean).join(", "))}</span></summary>
+      <div class="profile-body">
       <div class="two">
         <div><label>Name</label><input type="text" data-t="e" data-i="${i}" data-f="name" value="${esc(e.name)}"></div>
         <div><label>Handle (optional – shows TikTok name if empty)</label><input type="text" data-t="e" data-i="${i}" data-f="handle" value="${esc(e.handle)}"></div>
@@ -169,8 +183,9 @@ function vEditors(){
           </div>
         </div>
       </div>
-      <label>Flares (styles)</label>
-      <div class="flarepick">${S.styles.map(s => `<label><input type="checkbox" data-t="flare" data-i="${i}" data-s="${esc(s.id)}" ${(e.flares || []).includes(s.id) ? "checked" : ""}> <span style="color:${esc(s.color)}">●</span> ${esc(s.name)}</label>`).join("") || `<span class="hint">Create styles in the Styles tab first.</span>`}</div>
+      <label for="editor-software-${i}">Editing software</label><input id="editor-software-${i}" type="text" maxlength="120" data-t="e" data-i="${i}" data-f="software" value="${esc(e.software)}" placeholder="e.g. After Effects, CapCut">
+<label>Flares (styles)</label>
+      <div class="flarepick">${S.styles.map(s => `<label><input type="checkbox" ${can("list_contributor") ? "" : "disabled"} data-t="flare" data-i="${i}" data-s="${esc(s.id)}" ${(e.flares || []).includes(s.id) ? "checked" : ""}> <span style="color:${esc(s.color)}">●</span> ${esc(s.name)}</label>`).join("") || `<span class="hint">Create styles in the Styles tab first.</span>`}</div>
       <label>About / note</label>
       <textarea data-t="e" data-i="${i}" data-f="note">${esc(e.note)}</textarea>
       <div class="two">
@@ -178,8 +193,22 @@ function vEditors(){
         <div><label>Showcase YouTube link (optional)</label><input type="url" data-t="e" data-i="${i}" data-f="video" value="${esc(e.video)}" placeholder="https://youtube.com/watch?v=…"></div>
       </div>
       <div class="two">${LINKS.map(k => `<div><label>${k}</label><input type="url" data-t="link" data-i="${i}" data-f="${k}" value="${esc((e.links || {})[k])}" placeholder="https://…"></div>`).join("")}</div>
-      <div style="margin-top:14px"><button class="bad sm" data-act="delEditor" data-i="${i}">Delete editor</button></div>
-    </details>`).join("");
+      ${can("list_contributor") ? `<div style="margin-top:14px"><button class="bad sm" data-act="delEditor" data-i="${i}">Delete editor</button></div>` : ""}
+      </div></details>`).join("") + (can("list_contributor") ? `<details class="card profile-card" id="pendingQueue"><summary id="pendingTitle">Pending</summary><div class="profile-body"><p class="hint">Approved applications awaiting conversion to an editor profile.</p><p id="pendingNotice" role="status">Loading approved applications…</p><div id="pendingList"></div></div></details>` : "");
+}
+
+let approvedApplications = [], converting = false;
+async function loadPending(){
+  const title=$("#pendingTitle"),notice=$("#pendingNotice"),list=$("#pendingList");if(!list||converting)return;
+  try{
+    const response=await accountFetch("/api/applications/pending"),result=await response.json();
+    if(!response.ok)throw new Error(result.error||"Could not load approved applications.");
+    if($("#pendingList")!==list)return;
+    approvedApplications=result.applications;title.textContent="Pending - ("+result.total+")";
+    notice.textContent=result.total?"Conversion adds the editor to the bottom of the list. Notes and review reasons stay private.":"No approved applications are waiting.";
+    list.innerHTML=approvedApplications.map(a=>`<article class="card"><h3>${esc(a.display_name)}</h3><p class="hint">${esc(a.software)} · ${esc(a.styles.join(", "))}</p><p><a href="${esc(a.profile_url)}" target="_blank" rel="noopener noreferrer">View profile</a> · <a href="${esc(a.examples_url)}" target="_blank" rel="noopener noreferrer">View examples</a></p>${a.review_reason?`<p class="hint">Review reason: ${esc(a.review_reason)}</p>`:""}<button class="pri" data-act="convertApplication" data-id="${esc(a.id)}">Convert to editor</button></article>`).join("");
+    if(result.total>approvedApplications.length)notice.textContent+=" Showing the first "+approvedApplications.length+" applications; convert these to load the next batch.";
+  }catch(error){notice.textContent=error.message+" This view will retry automatically."}
 }
 
 function vStyles(){
@@ -205,9 +234,9 @@ function vRank(){
   } else {
     html += `<p class="hint">Members come from the flare you tick on each editor. Use the arrows to set their order in this list.</p>`;
   }
-  html += list.map((e, i) => `
-    <div class="rrow">
-      <div class="n">#${i + 1}</div><div class="nm">${esc(e.name)}</div>
+  html += '<div class="rank-list" id="rankList">' + list.map((e, i) => `
+    <div class="rrow" draggable="true" data-rank-id="${esc(e.id)}">
+      <div class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder">⠿</div><div class="n">#${i + 1}</div><div class="nm">${esc(e.name)}</div>
       <button class="sm" data-act="up" data-id="${esc(e.id)}" ${i === 0 ? "disabled" : ""}>↑</button>
       <button class="sm" data-act="down" data-id="${esc(e.id)}" ${i === list.length - 1 ? "disabled" : ""}>↓</button>
       <button class="sm" data-act="top" data-id="${esc(e.id)}" ${i === 0 ? "disabled" : ""}>Top</button>
@@ -215,6 +244,144 @@ function vRank(){
     </div>`).join("") || `<p class="hint">No one in this list yet.</p>`;
   return html;
 }
+
+function vApplications(){
+  return `<div class="inline"><div><h2>Editor applications</h2><p class="hint" style="margin:5px 0 0">Review submissions here without changing public rankings.</p></div><button data-act="refreshApplications">Refresh applications</button><select id="applicationFilter" aria-label="Filter applications" style="max-width:190px"><option value="all">All statuses</option><option value="pending">Pending review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div><p id="applicationNotice" class="hint" role="status">Loading applications…</p><div id="applicationList"></div><div class="inline"><button data-act="previousApplications" disabled>Previous page</button><button data-act="nextApplications" disabled>Next page</button></div>`;
+}
+function updatePagination(kind, offset, total, loading = false){
+  const previous = $('[data-act="previous' + kind + '"]');
+  const next = $('[data-act="next' + kind + '"]');
+  if(previous)previous.disabled = loading || offset === 0;
+  if(next)next.disabled = loading || offset + 50 >= total;
+}
+let applicationsCache = [], applicationOffset=0, applicationTotal=0;
+const applicationDrafts = new Map();
+async function loadApplications(quiet=false){
+  const notice = $("#applicationNotice"), list = $("#applicationList");
+  if (!notice || !list) return;
+  const offset=applicationOffset;
+  if(!quiet)updatePagination("Applications",applicationOffset,applicationTotal,true);
+  notice.className = "hint";
+  if(!quiet){notice.textContent = "Loading applications…";list.innerHTML = "";}
+  let result;try{result=await api("/api/applications/admin",{action:"list",offset:applicationOffset})}catch{notice.className="hint status bad";notice.textContent="Could not reach the server. Refresh to retry.";return}
+  if($("#applicationNotice")!==notice||offset!==applicationOffset)return;
+  const {ok,status,j}=result;
+  if (!ok) { notice.className = "hint status bad"; notice.textContent = status === 401 ? "Session expired. Please log in again." : (j.error || "Could not load applications."); list.innerHTML = ""; return; }
+  const unchanged=JSON.stringify(applicationsCache)===JSON.stringify(j.applications||[]) && applicationTotal===(j.total||0);
+  applicationsCache = j.applications || []; applicationTotal=j.total||0;
+  notice.className = "hint"; notice.textContent = applicationsCache.length + " applications on this page, " + applicationTotal + " total.";
+  updatePagination("Applications",applicationOffset,applicationTotal);
+  if(!quiet||!unchanged||!list.innerHTML)renderApplications();
+}
+function renderApplications(){
+  const list = $("#applicationList"), filter = $("#applicationFilter");
+  if (!list || !filter) return;
+  const shown = applicationsCache.filter(a => filter.value === "all" || a.status === filter.value);
+  if (!shown.length) { list.innerHTML = '<div class="empty-state">No applications in this view.</div>'; return; }
+  list.innerHTML = shown.map(a => {
+    const status = ["pending","approved","rejected"].includes(a.status) ? a.status : "pending";
+    const date = a.created_at ? new Date(a.created_at).toLocaleString() : "Unknown date";
+    return `<article class="app-card" data-application="${esc(a.id)}">
+      <div class="inline" style="justify-content:space-between;margin:0"><div><h3>${esc(a.display_name)}</h3><p class="hint" style="margin:4px 0 0">Submitted ${esc(date)}</p></div><span class="app-status ${status}">${status}</span></div>
+      <div class="app-grid">
+        <div class="app-detail"><strong>Main account · ${esc(a.platform)}</strong><a href="${esc(a.profile_url)}" target="_blank" rel="noopener noreferrer">Open profile ↗</a></div>
+        <div class="app-detail"><strong>Editing software</strong><span>${esc(a.software)}</span></div>
+        <div class="app-detail"><strong>Editing styles</strong><span>${esc(Array.isArray(a.styles)?a.styles.join(", "):"")}</span></div>
+        <div class="app-detail"><strong>Editing examples</strong><a href="${esc(a.examples_url)}" target="_blank" rel="noopener noreferrer">View examples ↗</a></div>
+        ${a.notes ? `<div class="app-detail" style="grid-column:1/-1"><strong>Additional notes</strong><span>${esc(a.notes)}</span></div>` : ""}
+      </div>
+      ${status!=="pending"?`<p class="hint">${status==="approved"?"Approved":"Rejected"} by ${esc(a.reviewer_username||a.reviewer_display||"Reviewer not recorded")}${a.reviewed_at?" · "+esc(new Date(a.reviewed_at).toLocaleString()):""}. Decision locked.</p>`:""}
+      <label for="review-reason-${esc(a.id)}">Review reason${status==="pending"?' (required)':''}</label><textarea id="review-reason-${esc(a.id)}" data-reason="${esc(a.id)}" maxlength="1000" ${status!=="pending"?'readonly':'required'} placeholder="${status!=="pending"?'No reason was recorded.':'Explain your decision to the review team.'}">${esc(status==="pending"?(applicationDrafts.get(a.id) ?? a.review_reason):a.review_reason)}</textarea>
+      ${a.listed_editor_id?'<p class="hint">Converted to an editor profile. List Contributors manage the published profile.</p>':''}
+      ${status==="pending"&&!a.listed_editor_id?`<div class="app-actions"><button class="approve" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="approved">✓ Approve</button><button class="reject" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="rejected">✕ Reject</button></div>`:''}
+    </article>`;
+  }).join("");
+}
+
+function vClaim(){
+  return `<section class="account-panel"><h2>Link your editor profile</h2><p class="hint">Choose your existing profile and explain how an Owner can verify it belongs to you. This request does not grant editing access.</p>${account.claim_status?`<p class="hint">Your last request: ${esc(account.claim_status)}.</p>`:""}
+    <form id="claimForm"><label for="claimEditor">Your editor profile</label><select id="claimEditor" required>${S.editors.map(e=>`<option value="${esc(e.id)}">${esc(e.name)}</option>`).join("")}</select>
+    <label for="claimMessage">Verification details</label><textarea id="claimMessage" required maxlength="1000" placeholder="For example, contact me through the account linked on my profile."></textarea><button class="pri">Request profile link</button></form><p id="claimNotice" role="status"></p></section>`;
+}
+
+let linksOffset=0, linksTotal=0;
+function vProfileLinks(){
+  return `<section class="account-panel"><div class="inline"><h2>Profile link requests</h2><button data-act="refreshLinks">Refresh requests</button><select id="linkFilter" aria-label="Filter profile link requests" style="max-width:190px;flex:0 0 190px"><option value="pending">Pending review</option><option value="all">All requests</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div><p class="hint">Verify ownership through the editor's listed social account before linking. Only Owners can approve or reject these requests.</p><p id="linksNotice" role="status">Loading requests…</p><div id="linksList"></div><div class="inline"><button data-act="previousLinks" disabled>Previous page</button><button data-act="nextLinks" disabled>Next page</button></div></section>`;
+}
+async function loadProfileLinks(quiet=false){
+  const notice=$("#linksNotice"),list=$("#linksList"),filter=$("#linkFilter");if(!notice||!list||!filter)return;
+  const offset=linksOffset,status=filter.value;
+  if(!quiet){notice.textContent="Loading requests…";list.innerHTML="";updatePagination("Links",linksOffset,linksTotal,true)}
+  try{
+    const response=await accountFetch("/api/account/links?status="+encodeURIComponent(status)+"&offset="+offset),result=await response.json();
+    if($("#linksNotice")!==notice||offset!==linksOffset||status!==filter.value)return;
+    if(!response.ok)throw Error(result.error||"Could not load profile link requests.");
+    linksTotal=result.total;notice.className="hint";notice.textContent=result.claims.length+" request"+(result.claims.length===1?"":"s")+" on this page, "+linksTotal+" total.";
+    const html=result.claims.map(claim=>`<article class="card" data-claim="${esc(claim.user_id)}"><h3>${esc(claim.username||"Member")}</h3><p class="hint">${esc(claim.status)} · Requested ${esc((S?.editors||[]).find(editor=>editor.id===claim.editor_id)?.name||claim.editor_id)}</p><p>${esc(claim.message)}</p>${claim.status==="pending"?`<div class="inline"><button data-act="approveClaim" data-id="${esc(claim.user_id)}">Approve verified link</button><button data-act="rejectClaim" data-id="${esc(claim.user_id)}">Reject request</button></div>`:`<p class="hint">Reviewed by ${esc(claim.reviewer_username||"Reviewer not recorded")}.</p>`}</article>`).join("")||'<div class="empty-state">No profile link requests in this view.</div>';
+    if(list.innerHTML!==html)list.innerHTML=html;
+    updatePagination("Links",linksOffset,linksTotal);
+  }catch(error){notice.textContent=error.message+" Use Refresh requests to retry.";notice.className="hint status bad"}
+}
+
+let usersOffset=0, usersTotal=0;
+const roleLabels={list_contributor:"List Contributor",application_reviewer:"Application Reviewer",owner:"Owner / Super Admin"};
+function vUsers(){
+  return `<section class="account-panel"><div class="inline"><h2>Users & roles</h2><button data-act="refreshUsers">Refresh users</button></div><p class="hint">Every account starts as a Member. Verify profile ownership through the listed social account before approving a link. Roles can be combined.</p><p id="usersNotice" class="hint" role="status">Loading users…</p><div id="usersList"></div><div class="inline"><button data-act="previousUsers" disabled>Previous page</button><button data-act="nextUsers" disabled>Next page</button></div></section>`;
+}
+async function loadUsers(quiet=false){
+  const notice=$("#usersNotice"),list=$("#usersList");if(!notice||!list)return;
+  const offset=usersOffset;
+  if(!quiet)updatePagination("Users",usersOffset,usersTotal,true);
+  notice.className="hint";if(!quiet){notice.textContent="Loading users…";list.innerHTML="";}
+  try{
+    const {ok,j}=await api("/api/account/users",{action:"list",offset:usersOffset});
+    if($("#usersNotice")!==notice||offset!==usersOffset)return;
+    if(!ok)throw Error(j.error||"Could not load users.");usersTotal=j.total;
+    notice.textContent=j.users.length+" accounts on this page, "+usersTotal+" total.";
+    const html=j.users.map(user=>{
+      let editors=S?.editors||[];
+      if(user.editor_id&&!editors.some(e=>e.id===user.editor_id))editors=[...editors,{id:user.editor_id,name:user.editor_id}];
+      return `<article class="card"><h3>${esc(user.username||"Member")}</h3><p class="hint">${esc(user.id)}</p>
+        <form data-user="${esc(user.id)}"><div class="flarepick">${Object.entries(roleLabels).map(([role,label])=>`<label><input name="roles" type="checkbox" value="${role}" ${user.roles.includes(role)?"checked":""}>${label}</label>`).join("")}</div>
+        <label for="linked-editor-${esc(user.id)}">Linked editor profile</label><select id="linked-editor-${esc(user.id)}" name="editorId"><option value="">No profile linked</option>${editors.map(e=>`<option value="${esc(e.id)}" ${e.id===user.editor_id?"selected":""}>${esc(e.name)}</option>`).join("")}</select>
+        <label><input name="disabled" type="checkbox" ${user.disabled?"checked":""}>Disable REL access</label><button class="pri">Save account permissions</button></form>
+        ${user.claim_status==="pending"?`<p class="hint">Profile-link request: ${esc((S?.editors||[]).find(e=>e.id===user.requested_editor_id)?.name||user.requested_editor_id)}</p><p>${esc(user.claim_message)}</p><div class="inline"><button data-act="approveClaim" data-id="${esc(user.id)}">Approve verified link</button><button data-act="rejectClaim" data-id="${esc(user.id)}">Reject request</button></div>`:""}
+      </article>`;
+    }).join("") || '<div class="empty-state">No accounts on this page.</div>';
+    if(list.innerHTML!==html)list.innerHTML=html;
+    updatePagination("Users",usersOffset,usersTotal);
+  }catch(error){notice.className="hint status bad";notice.textContent=error.message+" Use Refresh users to retry.";}
+}
+document.addEventListener("submit",async event=>{
+  const form=event.target;
+  if(form.id!=="claimForm"&&!form.dataset.user)return;
+  event.preventDefault();const button=form.querySelector('button');button.disabled=true;
+  try{
+    const body=form.id==="claimForm"?{editorId:$("#claimEditor").value,message:$("#claimMessage").value}:{action:"update",userId:form.dataset.user,roles:["member",...Array.from(form.querySelectorAll('[name="roles"]:checked')).map(i=>i.value)],editorId:form.elements.editorId.value||null,disabled:form.elements.disabled.checked};
+    const {ok,j}=await api(form.id==="claimForm"?"/api/account/claim":"/api/account/users",body);
+    if(!ok)throw Error(j.error||"Request failed.");
+    if(form.id==="claimForm")$("#claimNotice").textContent="Request sent. An Owner will verify your profile before linking it.";
+    else{account=await getAccount();if(account)view();setStatus("Account permissions updated.","ok");}
+  }catch(error){setStatus(error.message,"bad");if(form.id==="claimForm")$("#claimNotice").textContent=error.message;}
+  finally{button.disabled=false;}
+});
+document.addEventListener("click",async event=>{
+  const button=event.target.closest('[data-act]');if(!button)return;
+  const action=button.dataset.act;
+  if(!["refreshUsers","previousUsers","nextUsers","refreshLinks","previousLinks","nextLinks","approveClaim","rejectClaim"].includes(action))return;
+  button.disabled=true;
+  try{
+    if(action==="previousUsers")usersOffset=Math.max(0,usersOffset-50);
+    else if(action==="nextUsers"){if(usersOffset+50<usersTotal)usersOffset+=50;}
+    else if(action==="previousLinks")linksOffset=Math.max(0,linksOffset-50);
+    else if(action==="nextLinks"){if(linksOffset+50<linksTotal)linksOffset+=50;}
+    else if(!["refreshUsers","refreshLinks"].includes(action)){
+      const {ok,j}=await api("/api/account/users",{action:action==="approveClaim"?"approve_claim":"reject_claim",userId:button.dataset.id});
+      if(!ok)throw Error(j.error||"Could not review profile link.");
+    }
+    if(tab==="links")await loadProfileLinks();else await loadUsers();announceChange();
+  }catch(error){setStatus(error.message,"bad");}finally{if(!["previousUsers","nextUsers","previousLinks","nextLinks"].includes(action))button.disabled=false;}
+});
 
 function vSite(){
   const f = (k, l) => `<label>${l}</label><input type="text" data-t="site" data-f="${k}" value="${esc(S.site[k])}">`;
@@ -231,7 +398,10 @@ function move(id, dir){
 }
 
 document.addEventListener("input", ev => {
-  const t = ev.target, k = t.dataset.t; if (!k) return;
+  const t = ev.target, k = t.dataset.t;
+  if(t.closest("form[data-user]"))t.closest("form[data-user]").dataset.dirty="true";
+  if(t.dataset.reason){if(t.value===(applicationsCache.find(a=>a.id===t.dataset.reason)?.review_reason||""))applicationDrafts.delete(t.dataset.reason);else applicationDrafts.set(t.dataset.reason,t.value);return}
+  if (!k) return;
   const i = +t.dataset.i;
   if (k === "e") S.editors[i][t.dataset.f] = t.value;
   else if (k === "link") { (S.editors[i].links ||= {})[t.dataset.f] = t.value; }
@@ -243,6 +413,9 @@ document.addEventListener("input", ev => {
 
 document.addEventListener("change", ev => {
   const t = ev.target, k = t.dataset.t;
+  if(t.closest("form[data-user]"))t.closest("form[data-user]").dataset.dirty="true";
+  if (t.id === "applicationFilter") { renderApplications(); return; }
+  if (t.id === "linkFilter") { linksOffset=0;void loadProfileLinks();return; }
   if (k === "flare") {
     const e = S.editors[+t.dataset.i], id = t.dataset.s;
     e.flares = (e.flares || []).filter(x => x !== id);
@@ -251,9 +424,43 @@ document.addEventListener("change", ev => {
   } else if (k === "rk") { rk = t.value; view(); }
 });
 
-document.addEventListener("click", ev => {
+document.addEventListener("click", async ev => {
   const b = ev.target.closest("[data-act]"); if (!b) return;
   const a = b.dataset.act, i = +b.dataset.i, id = b.dataset.id;
+  if(a==="convertApplication"){
+    await autosave.flush();
+    if(autosave.dirty||autosave.blocked||converting)return setStatus("Resolve unsaved changes before converting an application.","bad");
+    const applicant=approvedApplications.find(item=>item.id===id);if(!applicant)return;
+    if(!confirm("Add "+applicant.display_name+" to the bottom of the ranked list? Submission notes and review reasons will stay private."))return;
+    converting=true;b.disabled=true;const beforeVersion=editVersion;
+    try{
+      const {ok,status,j}=await api("/api/applications/pending",{id,revision});
+      if(!ok)throw Object.assign(new Error(j.error||"Could not convert the application."),{status});
+      announceChange();
+      if(editVersion!==beforeVersion)return setStatus("Application converted. Your other edits are kept here; reload before saving them.","bad");
+      S=await loadLive();view();setStatus("Application converted and added to the bottom of the list.","ok");
+    }catch(error){setStatus(error.message,"bad")}finally{converting=false;b.disabled=false;await loadPending()}
+    return;
+  }
+  if (["refreshUsers","previousUsers","nextUsers","refreshLinks","previousLinks","nextLinks","approveClaim","rejectClaim"].includes(a)) return;
+  if(a==="previousApplications"||a==="nextApplications"){applicationOffset=a==="previousApplications"?Math.max(0,applicationOffset-50):applicationOffset+50<applicationTotal?applicationOffset+50:applicationOffset;await loadApplications();return}
+  if (a === "refreshApplications") { await loadApplications(); return; }
+  if (a === "applicationStatus") {
+    b.disabled = true;
+    try {
+    const reason = ($("#review-reason-"+id)?.value || "").trim();
+    if(!reason){setStatus("Enter a reason before approving or rejecting.","bad");$("#review-reason-"+id)?.focus();return}
+    if(!confirm("This decision will be locked. "+(b.dataset.status==="approved"?"Approve":"Reject")+" this application?"))return;
+    const {ok,status:code,j} = await api("/api/applications/admin", {action:"update",id,status:b.dataset.status,reason});
+    if (!ok) { alert(j.error || "Could not update application.");if(code===409){applicationDrafts.delete(id);await loadApplications()}b.disabled = false; return; }
+    const index = applicationsCache.findIndex(x => x.id === id); if (index>=0 && j.application) applicationsCache[index]=j.application;
+    applicationDrafts.delete(id);announceChange();
+    setStatus("Decision saved and locked.","ok");
+    renderApplications(); const notice = $("#applicationNotice"); if (notice) notice.textContent = "Application updated.";
+    } catch(error) { setStatus(error.message || "Could not update application.", "bad"); }
+    finally { b.disabled = false; }
+    return;
+  }
   if (a === "tab") { tab = b.dataset.v; return view(); }
   if (a === "addEditor") {
     const e = { id: "e" + Date.now().toString(36), name: "New editor", handle: "", tiktok: "", flares: [], note: "", thumb: "", video: "", links: {} };
@@ -284,6 +491,38 @@ document.addEventListener("click", ev => {
   save(); view();
 });
 
+
+let draggedRankId = null;
+document.addEventListener("dragstart", ev => {
+  const row = ev.target.closest(".rrow[data-rank-id]"); if (!row) return;
+  draggedRankId = row.dataset.rankId; row.classList.add("dragging");
+  if (ev.dataTransfer) { ev.dataTransfer.effectAllowed = "move"; ev.dataTransfer.setData("text/plain", draggedRankId); }
+});
+document.addEventListener("dragover", ev => {
+  const row = ev.target.closest(".rrow[data-rank-id]");
+  if (!row || !draggedRankId || row.dataset.rankId === draggedRankId) return;
+  ev.preventDefault(); document.querySelectorAll(".rrow.drop-target").forEach(x => x.classList.remove("drop-target")); row.classList.add("drop-target");
+});
+document.addEventListener("drop", ev => {
+  const target = ev.target.closest(".rrow[data-rank-id]");
+  if (!target || !draggedRankId || target.dataset.rankId === draggedRankId) return;
+  ev.preventDefault(); const ids = members(rk).map(e => e.id);
+  const from = ids.indexOf(draggedRankId), to = ids.indexOf(target.dataset.rankId);
+  if (from < 0 || to < 0) return;
+  const before = new Map([...document.querySelectorAll(".rrow[data-rank-id]")].map(row => [row.dataset.rankId, row.getBoundingClientRect()]));
+  ids.splice(from,1); ids.splice(to,0,draggedRankId); S.lists[rk] = ids; save(); view();
+  for (const row of document.querySelectorAll(".rrow[data-rank-id]")) {
+    const prior = before.get(row.dataset.rankId); if (!prior || !row.animate) continue;
+    const next = row.getBoundingClientRect();
+    const dx = prior.left - next.left, dy = prior.top - next.top;
+    if (dx || dy) row.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: "translate(0,0)" }], { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" });
+  }
+});
+document.addEventListener("dragend", () => {
+  draggedRankId = null;
+  document.querySelectorAll(".rrow.dragging,.rrow.drop-target").forEach(x => x.classList.remove("dragging","drop-target"));
+});
+
 /* ---------- TikTok profile pictures ---------- */
 const ttUser = e => String(e.tiktok || "").replace(/^@/, "").trim();
 document.addEventListener("toggle", ev => {
@@ -297,7 +536,7 @@ async function fetchOne(i){
   const e = S.editors[i];
   if (!ttUser(e)) return "no TikTok username";
   try {
-    const { ok, status, j } = await api("/api/avatar", { password: PW, username: ttUser(e) });
+    const { ok, status, j } = await api("/api/avatar", {editorId:e.id,username:ttUser(e)});
     if (ok && j.url) { e.thumb = j.url; save(); return ""; }
     if (status === 401) return "session expired – log in again";
     return j.error || "failed";
@@ -319,55 +558,63 @@ async function runFetch(idx){
   }
   view();
   if (fails.length) { setStatus(`${todo.length - fails.length} fetched, ${fails.length} failed`, "bad"); alert("Couldn't fetch:\n\n" + fails.join("\n") + "\n\nYou can paste a picture URL by hand instead."); }
-  else setStatus("Pictures fetched – remember to Save to site", "dirty");
+  else setStatus("Pictures fetched. Changes save automatically.", "dirty");
 }
 
-$("#saveSite").addEventListener("click", async () => {
-  const btn = $("#saveSite"); btn.disabled = true; setStatus("Saving…");
-  try {
-    const { ok, status, j } = await api("/api/save", { password: PW, data: S });
-    if (ok) { dirty = false; setStatus("Saved ✓ live on the site", "ok"); }
-    else if (status === 401) { setStatus("Session expired – log in again", "bad"); try { sessionStorage.removeItem("adm_pw"); } catch (e) {} showGate("Please log in again."); }
-    else setStatus(j.error || "Save failed", "bad");
-  } catch (e) { setStatus("Couldn't reach the server", "bad"); }
-  btn.disabled = false;
-});
-
-$("#dl").addEventListener("click", () => {
-  const out = "/* Generated by the admin editor – replace your data.js with this file. */\nwindow.SITE_DATA = " + JSON.stringify(S, null, 2) + ";\n";
-  const url = URL.createObjectURL(new Blob([out], { type: "text/javascript" }));
-  const a = Object.assign(document.createElement("a"), { href: url, download: "data.js" });
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-});
-
-$("#reset").addEventListener("click", async () => {
-  if (!confirm("Throw away your unsaved changes?")) return;
-  if (ONLINE) { S = await loadLive(); dirty = false; setStatus(""); }
-  else { try { localStorage.removeItem(KEY); } catch (e) {} S = clone(window.SITE_DATA); }
-  view();
-});
-
-/* ---------- start ---------- */
-async function start(){
-  $("#gate").hidden = true; $("#ui").hidden = false;
-  if (ONLINE) {
-    S = await loadLive();
-    $("#saveSite").hidden = false;
-    $("#banner").innerHTML = "Edit anything, then click <b>Save to site</b>. Your changes go live straight away.";
-  } else {
-    try { S = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { S = null; }
-    if (!valid(S)) S = clone(window.SITE_DATA);
-    $("#banner").innerHTML = "You opened this from a folder, so changes only save as a draft in this browser. Click <b>Download data.js</b> when you're done and replace <b>data.js</b> in the project folder. (On the live site at /admin you'll get a <b>Save to site</b> button instead.)";
+const autosave = createAutosave({
+  async write(){
+    if(!S||!revision||!canEdit())throw new Error("Live rankings must load before saving.");
+    const contributor=can("list_contributor"),profile=S.editors.find(e=>e.id===account.editor_id);
+    const fields=["name","handle","tiktok","note","thumb","video","links","software"];
+    const payload=contributor?{data:S,revision}:{profile:Object.fromEntries(fields.filter(k=>profile&&k in profile).map(k=>[k,profile[k]])),revision};
+    const {ok,status,j}=await api(contributor?"/api/save":"/api/account/profile",structuredClone(payload));
+    if(!ok)throw Object.assign(new Error(j.error||"Save failed."),{status});
+    revision=j.revision;announceChange();
+  },
+  onState(state,error){
+    dirty=autosave.dirty;
+    if(state==="error")setStatus(error.message+(error.status===409?" Your edits are kept here. Use Discard changes to load the latest list.":" Use Save now to retry."),"bad");
+    else setStatus({dirty:"Changes will save automatically…",saving:"Saving…",saved:"Saved. Live on the site."}[state],state==="saved"?"ok":"dirty");
+    $("#saveSite").disabled=state==="saving"||!revision||autosave.blocked;
   }
-  view();
-}
-
-(async function boot(){
-  if (!ONLINE) return start();
-  let pw = ""; try { pw = sessionStorage.getItem("adm_pw") || ""; } catch (e) {}
-  if (pw && await tryLogin(pw)) return start();
-  showGate();
+});
+$("#saveSite").addEventListener("click",()=>{if(!S||!revision)return setStatus("Live rankings must load before saving.","bad");void autosave.flush()});
+$("#dl").addEventListener("click",()=>{
+  if(!S||!can("list_contributor"))return;
+  const url=URL.createObjectURL(new Blob(["window.SITE_DATA = "+JSON.stringify(S,null,2)+";\n"],{type:"text/javascript"}));
+  const a=Object.assign(document.createElement("a"),{href:url,download:"rel-rankings-backup.js"});document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+});
+$("#reset").addEventListener("click",async()=>{
+  if(autosave.busy)return setStatus("Wait for your save to finish before reloading.");
+  if(dirty&&!confirm("Discard unsaved changes and reload live rankings?"))return;
+  autosave.pause();
+  try{const next=await loadLive();autosave.reset();S=next;dirty=false;setStatus("");view()}catch(e){$("#saveSite").disabled=true;setStatus(e.message,"bad")}
+});
+(async()=>{
+  try{sessionStorage.removeItem("adm_pw")}catch{}
+  try{
+    account=await getAccount();if(!account)return;
+    if(!account.roles.some(role=>["owner","list_contributor","application_reviewer"].includes(role))){location.replace("/account/");return}
+    try{S=await loadLive()}catch(e){S=null;revision=null;$("#banner").textContent=e.message}
+    if(S)$("#banner").textContent=(account.username||"Member")+" · "+account.roles.map(role=>role==="member"?"Member":roleLabels[role]||role).join(", ")+(account.editor_id?" · Profile linked":" · No profile linked");
+    $("#bootNotice").hidden=true;$("#ui").hidden=false;view();
+    watchChanges(async()=>{
+      const nextAccount=await getAccount();if(!nextAccount)return;
+      if(!nextAccount.roles.some(role=>["owner","list_contributor","application_reviewer"].includes(role))){location.replace("/account/");return}
+      const permissionsChanged=JSON.stringify(account.roles)!==JSON.stringify(nextAccount.roles)||account.editor_id!==nextAccount.editor_id;
+      account=nextAccount;
+      if(S)$("#banner").textContent=(account.username||"Member")+" · "+account.roles.map(role=>role==="member"?"Member":roleLabels[role]||role).join(", ");
+      if(permissionsChanged){if(!can("list_contributor"))autosave.pause();view();return}
+      if(tab==="editors"&&can("list_contributor"))await loadPending();
+      const editing=$("#app").contains(document.activeElement)&&document.activeElement.matches("input,textarea,select");
+      if(tab==="applications" && !applicationDrafts.size && !editing){await loadApplications(true);return}
+      if(tab==="users" && !$("form[data-user][data-dirty]") && !editing){await loadUsers(true);return}
+      if(tab==="links"&&!editing){await loadProfileLinks(true);return}
+      if(dirty||autosave.busy||editing)return;
+      const response=await accountFetch("/api/account/site");if(!response.ok)return;
+      const next=await response.json();if(!valid(next.data)||!next.revision)return;
+      if(next.revision!==revision){S=next.data;revision=next.revision;view();setStatus("Updated from the live list.","ok")}
+    });
+  }catch(e){$("#bootNotice").textContent=e.message+" Reload to retry."}
 })();
-</script>
-</body>
-</html>
+</script></body></html>
