@@ -213,6 +213,11 @@
                 ? " After confirming your email, reopen the invitation to join."
                 : "");
           } else {
+            if (typeof BroadcastChannel === "function") {
+              const channel = new BroadcastChannel("rel-auth");
+              channel.postMessage("changed");
+              channel.close();
+            }
             location.assign(
               clanReturn ||
                 (result.account?.roles?.some((role) =>

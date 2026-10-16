@@ -1,0 +1,138 @@
+.account-wrap.account-dashboard {
+  width: min(100%, 1040px);
+  margin: 24px auto;
+}
+.account-dashboard > h1 {
+  text-align: left;
+}
+.account-dashboard header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.account-dashboard header nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.account-dashboard header button {
+  margin: 0;
+}
+.account-dashboard header a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.account-dashboard .card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  margin-top: 18px;
+  overflow-wrap: anywhere;
+}
+.account-dashboard summary {
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 48px;
+}
+.account-dashboard .two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+  min-width: 0;
+}
+.account-dashboard select,
+.account-dashboard textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid #68796b;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 44px;
+}
+.account-dashboard textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.account-dashboard input,
+.account-dashboard select,
+.account-dashboard textarea {
+  min-width: 0;
+}
+.account-dashboard input {
+  border-color: #68796b;
+}
+.account-dashboard :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.account-dashboard .bad {
+  color: #ff7373;
+}
+.account-dashboard #identity,
+.account-dashboard #status {
+  overflow-wrap: anywhere;
+}
+.account-dashboard #identity {
+  text-align: left;
+}
+.account-dashboard #status {
+  min-height: 26px;
+}
+.account-dashboard #usernameForm {
+  max-width: 580px;
+  margin-top: 24px;
+}
+.account-dashboard #usernameForm > button {
+  width: fit-content;
+  max-width: 100%;
+}
+.account-dashboard .hint {
+  margin: 8px 0 14px;
+  font-size: 0.875rem;
+}
+.account-dashboard .account-shortcuts {
+  display: flex;
+  gap: 12px 24px;
+  flex-wrap: wrap;
+}
+.account-connections {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 24px;
+}
+.account-connections > section {
+  min-width: 0;
+}
+.account-dashboard #profileForm > button {
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 16px;
+}
+@media (min-width: 960px) {
+  .account-connections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .account-dashboard #usernameForm > button {
+    width: 100%;
+  }
+  .account-dashboard .two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .account-dashboard header nav {
+    flex-basis: 100%;
+  }
+}
+[hidden] {
+  display: none !important;
+}

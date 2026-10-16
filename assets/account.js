@@ -28,4 +28,10 @@ export async function getAccount() {
 export async function signOut() {
   const response = await accountFetch("/api/auth/signout", { method: "POST" });
   if (!response.ok) throw new Error("Could not sign out. Please retry.");
+  window.dispatchEvent(new Event("rel-session-changed"));
+  if (typeof BroadcastChannel === "function") {
+    const channel = new BroadcastChannel("rel-auth");
+    channel.postMessage("changed");
+    channel.close();
+  }
 }

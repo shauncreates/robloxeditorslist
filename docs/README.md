@@ -6,6 +6,7 @@ Use the root [README](../README.md) for the project overview and commands. These
 | --- | --- |
 | [Development and deployment](DEPLOY_AND_TEST.md) | Local fixture, actual Pages Functions, tests and releases |
 | [Accounts and permissions](AUTH_SETUP.md) | Roles, verified editor links, sessions and database authorization |
+| [Account layout and navigation](ACCOUNT_NAVIGATION.md) | Desktop/dashboard sizing and session-aware account buttons |
 | [Applications](APPLICATIONS_STAGE_1.md) | Current submission/review behavior and unfinished notification work |
 | [Public profiles](PUBLIC_PROFILES.md) | Stable profile links, contributor account links and public fields |
 | [Connect TikTok](TIKTOK_CONNECTION.md) | Optional ownership confirmation, privacy, provider setup and cleanup |

@@ -14,6 +14,9 @@
   pointer-events: none;
 }
 
+a[data-account-nav] { flex-shrink:0; }
+a[data-account-nav] > span { overflow-wrap:normal; }
+
 a.rel-action,
 button.rel-action {
   display: inline-flex;
