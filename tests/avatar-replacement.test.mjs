@@ -2,6 +2,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import vm from "node:vm";
+import {mainPlatform,primaryLink,avatarRequest} from "../assets/editor-platform.js";
 
 const blob="https://old.public.blob.vercel-storage.com/picture.png";
 const replacement="https://example.supabase.co/storage/v1/object/public/editor-avatars/replacement";
@@ -12,6 +13,7 @@ async function pictureFixture({api,flush,can=()=>true}={}){
   const S={editors:[{id:'legacy',name:'Legacy',tiktok:'fixture_editor',thumb:blob},{id:'current',name:'Current',tiktok:'current_editor',thumb:replacement},{id:'nohandle',name:'No handle',tiktok:'',thumb:blob},{id:'missing',name:'Missing',tiktok:'missing_editor',thumb:''}],lists:{main:['missing','legacy','current','nohandle'],style:['nohandle','legacy']}};
   const calls=[],messages=[],alerts=[],autosave={dirty:false,blocked:false,flush:async()=>{if(flush)await flush(autosave);else autosave.dirty=false}};
   const context=vm.createContext({S,URL,ONLINE:true,can,autosave,document:{addEventListener(){},querySelectorAll(){return[]}},view(){},setTimeout:fn=>{fn()},setStatus:message=>messages.push(message),alert:message=>alerts.push(message),save:()=>{autosave.dirty=true},
+    mainPlatform,primaryLink,avatarRequest,
     api:async(path,body)=>{calls.push({path,body});return api?api(S,body):{ok:true,j:{url:replacement}}},
   });
   vm.runInContext(script.slice(start,end)+'\nglobalThis.replacePictures=()=>runFetch(null,true);globalThis.missingPictures=()=>runFetch(null);globalThis.detectBlob=isLegacyBlobPicture;',context);
@@ -57,4 +59,18 @@ test('concurrent fetches and edits do not overwrite a newer picture',async()=>{
   const missing=await pictureFixture();await missing.context.missingPictures();
   assert.equal(missing.calls.length,1);assert.equal(missing.calls[0].body.editorId,'missing');
   assert.equal(missing.S.editors[0].thumb,blob);
+});
+
+test('bulk replacement uses YouTube for selected editors and discards results after a platform switch',async()=>{
+  const f=await pictureFixture();
+  Object.assign(f.S.editors[0],{main_platform:'YouTube',links:{youtube:'https://www.youtube.com/@fixture_editor'}});
+  await f.context.replacePictures();
+  assert.equal(f.calls.length,1);assert.equal(f.calls[0].body.platform,'YouTube');
+  assert.equal(f.calls[0].body.channelUrl,'https://www.youtube.com/@fixture_editor');
+  let finish;
+  const pending=await pictureFixture({api:()=>new Promise(resolve=>{finish=resolve})});
+  const run=pending.context.replacePictures();await new Promise(resolve=>setImmediate(resolve));
+  pending.S.editors[0].main_platform='YouTube';pending.S.editors[0].links={youtube:'https://www.youtube.com/@fixture_editor'};
+  finish({ok:true,j:{url:replacement}});await run;
+  assert.equal(pending.S.editors[0].thumb,blob);assert.match(pending.alerts[0],/profile changed/);
 });

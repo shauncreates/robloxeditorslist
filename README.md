@@ -101,6 +101,7 @@ Applications contain an editor's profile, styles and example work. Reviewers app
 | --- | --- |
 | Ranking filters, search and editor details | [`list/index.html`](list/index.html) |
 | Public profile rendering and data | [`assets/public-profile.js`](assets/public-profile.js), [`functions/api/profiles.js`](functions/api/profiles.js) |
+| TikTok/YouTube main platforms and pictures | [`assets/editor-platform.js`](assets/editor-platform.js), [platform setup](docs/EDITOR_PLATFORMS.md) |
 | Sessions, verified accounts and permissions | [`functions/_auth.js`](functions/_auth.js), [`supabase/auth-roles.sql`](supabase/auth-roles.sql) |
 | Application submission and staff review | [`functions/api/applications.js`](functions/api/applications.js), [`functions/api/applications/admin.js`](functions/api/applications/admin.js) |
 | Ranking saves and conflict handling | [`functions/api/save.js`](functions/api/save.js), [ranking preservation guide](docs/RANKING_STORAGE.md) |

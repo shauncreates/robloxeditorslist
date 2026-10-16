@@ -1,3 +1,4 @@
+import {primaryLink, tiktokLink, youtubeChannel} from "./editor-platform.js";
 const main = document.querySelector("#publicProfile");
 const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 function safeUrl(value) {
@@ -25,9 +26,12 @@ function render(profile) {
   const placeholder = `<span class="portrait-placeholder" aria-hidden="true">${esc(name.replace(/^@/, "").slice(0, 1).toUpperCase())}</span>`;
   const portrait = picture ? `<img class="portrait" src="${esc(picture)}" alt="" referrerpolicy="no-referrer">${placeholder}` : placeholder;
   const subtitle = editor ? editor.name + (editor.handle ? " · " + editor.handle : "") : account ? "REL member" : "REL contributor";
-  const links = Object.entries(editor?.links || {}).map(([label, value]) => ({label, url:safeUrl(value)}));
-  if (editor?.tiktok && /^[A-Za-z0-9._]{1,64}$/.test(editor.tiktok.replace(/^@/, ""))) links.unshift({label:"TikTok",url:"https://www.tiktok.com/@" + editor.tiktok.replace(/^@/, "")});
-  const external = [...new Map(links.filter(link => link.url).map(link => [link.url, link])).values()];
+  const links = Object.entries(editor?.links || {}).map(([label, value]) => ({label:label==="youtube"?"YouTube":label, url:label==="youtube"?youtubeChannel(value)?.url||safeUrl(value):safeUrl(value)}));
+  const primary = primaryLink(editor || {});
+  if(tiktokLink(editor || {}))links.unshift({label:"TikTok",url:tiktokLink(editor)});
+  if(primary.url)links.unshift({label:primary.platform+" · Main platform",url:primary.url});
+  const seenLinks=new Set();
+  const external = links.filter(link=>{if(!link.url||seenLinks.has(link.url))return false;seenLinks.add(link.url);return true});
   const vid = videoId(editor?.video);
   const about = editor?.note ? section("About", `<p>${esc(editor.note)}</p>`) : "";
   const contribution = credits.length ? section("Contributions", `<ul class="credits">${credits.map(credit => `<li><strong>${esc(credit.name)}</strong><span>${esc(credit.contribution)}</span></li>`).join("")}</ul>`) : "";

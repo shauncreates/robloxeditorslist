@@ -1,5 +1,8 @@
 import { HttpError, json, readJson, supabaseConfig } from "../_lib.js";
 import { hasRole, requireAccount } from "../_auth.js";
+import { youtubeChannel } from "../../assets/editor-platform.js";
+import { boundedBytes, rasterMime, tiktokPage } from "../_remote-image.js";
+import { lookupChannel, channelPicture, youtubeAvatarUrl } from "../_youtube-avatar.js";
 
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
@@ -13,19 +16,27 @@ export async function onRequestPost({ request, env }) {
   }
   if (typeof body.editorId !== "string" || !/^[A-Za-z0-9_-]{1,80}$/.test(body.editorId)) throw new HttpError(400, "Invalid editor ID.");
 
+  const platform = body.platform ?? "TikTok";
+  if (!["TikTok", "YouTube"].includes(platform)) throw new HttpError(400, "Choose TikTok or YouTube.");
+  if (platform === "YouTube") {
+    const channel = youtubeChannel(body.channelUrl);
+    if (!channel) throw new HttpError(400, "Enter a YouTube channel URL, rather than a video link.");
+    try {
+      const resolved = await lookupChannel(env, channel);
+      await channelPicture(env, request, {parameter: "id", value: resolved.id}, resolved);
+      return json({ok: true, url: youtubeAvatarUrl(request, resolved.id)});
+    } catch (error) {
+      if (error instanceof HttpError) throw error;
+      throw new HttpError(502, "Could not fetch the YouTube picture. Your current picture is kept.");
+    }
+  }
   const username = String(body?.username || "").replace(/^@/, "").trim();
   if (!/^[A-Za-z0-9._]{1,40}$/.test(username)) {
     return json({ error: "that doesn't look like a TikTok username" }, 400);
   }
 
   try {
-    const page = await fetch(`https://www.tiktok.com/@${username}`, {
-      headers: { "User-Agent": USER_AGENT, "Accept-Language": "en-GB,en;q=0.9", Accept: "text/html" },
-      redirect: "follow",
-    });
-    if (!page.ok) return json({ error: `TikTok answered ${page.status} for @${username}` }, 502);
-
-    const html = await page.text();
+    const html = await tiktokPage(username, { "User-Agent": USER_AGENT, "Accept-Language": "en-GB,en;q=0.9", Accept: "text/html" });
     const match =
       html.match(/"avatarLarger":"([^"]+)"/) ||
       html.match(/"avatarMedium":"([^"]+)"/) ||
@@ -42,19 +53,18 @@ export async function onRequestPost({ request, env }) {
     }
 
     const source = new URL(imageUrl);
-    if (source.protocol !== "https:" || !allowedHost(source.hostname)) {
+    if (source.protocol !== "https:" || source.username || source.password || source.port || !allowedHost(source.hostname)) {
       return json({ error: "picture came from an unexpected place" }, 502);
     }
 
     const image = await fetch(source, {
       headers: { "User-Agent": USER_AGENT, Referer: "https://www.tiktok.com/" },
+      redirect: "error", signal: AbortSignal.timeout(10000),
     });
     if (!image.ok) return json({ error: `picture download failed (${image.status})` }, 502);
 
-    const contentType = image.headers.get("content-type") || "";
-    if (!contentType.startsWith("image/")) return json({ error: "that wasn't an image" }, 502);
-    const bytes = await image.arrayBuffer();
-    if (bytes.byteLength > 5 * 1024 * 1024) return json({ error: "picture is too big" }, 502);
+    const bytes = await boundedBytes(image, 5 * 1024 * 1024);
+    const contentType = rasterMime(bytes, image.headers.get("content-type") || "");
 
     const { url, key } = supabaseConfig(env);
     // Unique objects prevent a Member overwriting another editor's picture.
@@ -68,6 +78,7 @@ export async function onRequestPost({ request, env }) {
         "Cache-Control": "3600",
       },
       body: bytes,
+      redirect: "error", signal: AbortSignal.timeout(10000),
     });
     if (!upload.ok) return json({ error: "couldn't save the picture to Supabase Storage" }, 502);
 
@@ -75,7 +86,8 @@ export async function onRequestPost({ request, env }) {
       ok: true,
       url: `${url}/storage/v1/object/public/editor-avatars/${path}?v=${Date.now()}`,
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
     return json({ error: "something went wrong fetching that picture" }, 500);
   }
 }

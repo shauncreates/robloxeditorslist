@@ -2,7 +2,7 @@ import { fixture, ids, sessionId } from "./auth-fixture.mjs";
 import { randomUUID } from "node:crypto";
 import { onRequest as middleware } from "../functions/api/_middleware.js";
 
-export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server"};
+export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server",REL_YOUTUBE_API_KEY:"fixture-youtube-key"};
 export async function mockService(){
   const {db,rpc}=await fixture({profiles:true});
   const originalFetch=globalThis.fetch;
@@ -16,7 +16,12 @@ export async function mockService(){
     const url=new URL(input);
     // Synthetic avatar responses exercise uploads without contacting TikTok.
     if(url.href==='https://www.tiktok.com/@fixture_editor')return new Response('{"avatarLarger":"https://p16.tiktokcdn.com/fixture-avatar.png"}');
-    if(url.href==='https://p16.tiktokcdn.com/fixture-avatar.png')return new Response(new Uint8Array([137,80,78,71]),{headers:{'Content-Type':'image/png'}});
+    if(url.href==='https://p16.tiktokcdn.com/fixture-avatar.png'||url.href==='https://yt3.googleusercontent.com/fixture-avatar.png')return new Response(Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=','base64')),{headers:{'Content-Type':'image/png'}});
+    if(url.origin==='https://www.googleapis.com'&&url.pathname==='/youtube/v3/channels'){
+      if(failures.youtube)return response({},failures.youtube);
+      const found=url.searchParams.get('forHandle')==='@fixture_editor'||url.searchParams.get('id')==='UC'+'f'.repeat(22)||url.searchParams.get('forUsername')==='fixture_editor';
+      return response({items:found?[{id:'UC'+'f'.repeat(22),snippet:{thumbnails:{high:{url:'https://yt3.googleusercontent.com/fixture-avatar.png'}}}}]:[]});
+    }
     if(url.origin!==env.SUPABASE_URL)throw new Error("Tests must not contact external services: "+url.origin);
     requestLog.push({path:url.pathname,body:typeof options.body==='string'?JSON.parse(options.body):options.body?{bytes:options.body.byteLength}:undefined,headers:options.headers});
     if(url.pathname.startsWith('/storage/v1/object/editor-avatars/'))return response({ok:true});
@@ -108,7 +113,7 @@ export async function mockService(){
     throw new Error("Unexpected test request "+url.pathname);
   };
   const routes={
-    "/api/data":"data", "/api/save":"save", "/api/avatar":"avatar", "/api/applications":"applications", "/api/profiles":"profiles", "/api/contributors":"contributors",
+    "/api/data":"data", "/api/save":"save", "/api/avatar":"avatar", "/api/youtube-avatar":"youtube-avatar", "/api/applications":"applications", "/api/profiles":"profiles", "/api/contributors":"contributors",
     "/api/applications/admin":"applications/admin",
     "/api/applications/pending":"applications/pending",
     ...Object.fromEntries(["signin","signup","session","refresh","signout","forgot-password","reset-password","confirmation"].map(name=>["/api/auth/"+name,"auth/"+name])),
