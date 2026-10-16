@@ -7,6 +7,7 @@ import {
   exchangeRpc,
   proveAccount,
 } from "../../../_tiktok.js";
+import { stageAudience } from "../../../_audience.js";
 
 export async function onRequestGet({ request, env }) {
   let finish = "",
@@ -43,6 +44,7 @@ export async function onRequestGet({ request, env }) {
       p_finish_hash: await hash(finish),
       p_proof: proof,
     });
+    await stageAudience(env, "tiktok", await hash(state), { followers: proof.followers });
     status = "ready";
   } catch {
     finish = "";

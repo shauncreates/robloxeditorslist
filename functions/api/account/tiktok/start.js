@@ -21,7 +21,7 @@ export async function onRequestPost({ request, env }) {
   url.search = new URLSearchParams({
     client_key: config.clientKey,
     response_type: "code",
-    scope: scopes.join(","),
+    scope: [...scopes, "user.info.stats"].join(","),
     redirect_uri: config.callback,
     state,
     disable_auto_auth: "1",

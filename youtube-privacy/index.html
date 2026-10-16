@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>YouTube connection privacy | Roblox Editors List</title>
+    <link rel="stylesheet" href="/assets/typography.css" />
+    <link rel="stylesheet" href="/assets/account.css" />
+    <link rel="stylesheet" href="/assets/youtube-connection.css" />
+  </head>
+  <body class="youtube-privacy-page">
+    <main class="account-wrap">
+      <a class="rel-brand" href="/" aria-label="Roblox Editors List home"
+        ><img src="/media/logo.svg" alt="Roblox Editors List"
+      /></a>
+      <h1>YouTube connection privacy</h1>
+      <p class="hint">Last updated: 16 October 2026</p>
+      <p>
+        Connect YouTube lets REL confirm that you control a YouTube channel. You
+        sign into REL first, authorise through Google, and confirm the channel
+        to link. Your REL sign-in, staff permissions and ranking do not change.
+      </p>
+      <h2>What access you grant</h2>
+      <p>
+        REL uses YouTube API Services and requests the read-only YouTube
+        permission. It reads the authorised channel's ID and title to establish
+        and periodically recheck the connection. REL does not request permission
+        to upload, post or modify your channel, and does not collect your Google
+        password.
+      </p>
+      <h2>What is stored and displayed</h2>
+      <p>
+        Your linked channel ID, title and verification time can appear on your
+        public REL account profile. An encrypted refresh credential stays in
+        private server-side storage so REL can check that Google access and
+        channel control remain valid. Google access tokens are used temporarily
+        on the server and are not returned to your browser.
+      </p>
+      <p>
+        Cloudflare runs the connection service and Supabase stores its records.
+        Google processes the authorisation and YouTube requests under the
+        <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.
+        Temporary, necessary cookies protect this connection flow and expire
+        after ten minutes or are cleared when the flow completes.
+      </p>
+      <h2>Checks and retention</h2>
+      <p>
+        When you connect or reconnect, REL also reads your public subscriber
+        count. The confirmation screen explains that this count and its update
+        date can appear in Popularity if your account has an Owner-approved link
+        to an editor in the overall rankings. YouTube rounds subscriber counts.
+        Hidden or unavailable counts are excluded. Counts are not refreshed by
+        scheduled channel-access checks; reconnect to update yours. A count
+        stops appearing after 29 days, and the maintenance job deletes expired
+        snapshots. Disconnecting removes it immediately.
+      </p>
+      <p>
+        REL schedules channel checks approximately daily. A connection that has
+        not been checked successfully for two days stops appearing publicly.
+        Revoked or no-longer-accessible channels are removed when detected. The
+        maintenance job removes stored connections after 29 days without a
+        successful check, and removes expired pending authorisations. A failed
+        or interrupted check does not grant staff access or change your
+        rankings.
+      </p>
+      <h2>Disconnect and revoke</h2>
+      <p>
+        Use Disconnect YouTube in
+        <a href="/account/#youtubeConnection">My account</a> to revoke Google's
+        permission and remove the stored connection and credential. If Google
+        cannot accept the revocation request, REL tells you to retry. You can
+        also revoke REL's access through
+        <a href="https://security.google.com/settings/security/permissions"
+          >Google's security settings</a
+        >. External revocations are detected during the scheduled checks.
+      </p>
+      <p>
+        For privacy questions, deletion requests or complaints, email
+        <a href="mailto:shaun@seeshaun.xyz">shaun@seeshaun.xyz</a>. Include the
+        relevant REL profile link; do not send passwords or sign-in codes.
+      </p>
+      <p>
+        Using this connection is subject to
+        <a href="https://www.youtube.com/t/terms">YouTube's Terms of Service</a
+        >.
+      </p>
+    </main>
+  </body>
+</html>

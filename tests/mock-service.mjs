@@ -4,9 +4,10 @@ import { onRequest as middleware } from "../functions/api/_middleware.js";
 
 export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server"};
 const baseEnv=env;
-export async function mockService({tiktok=false,origin="https://rel.example.test"}={}){
-  const env={...baseEnv,...(tiktok?{REL_TIKTOK_CLIENT_KEY:"fixture-client-key",REL_TIKTOK_CLIENT_SECRET:"fixture-client-secret",REL_TIKTOK_REDIRECT_URI:origin+"/api/account/tiktok/callback"}:{})};
-  const {db,rpc}=await fixture({profiles:true,tiktok});
+export async function mockService({tiktok=false,google=false,origin="https://rel.example.test"}={}){
+  const env={...baseEnv,...(tiktok?{REL_TIKTOK_CLIENT_KEY:"fixture-client-key",REL_TIKTOK_CLIENT_SECRET:"fixture-client-secret",REL_TIKTOK_REDIRECT_URI:origin+"/api/account/tiktok/callback"}:{}),...(google?{REL_GOOGLE_CLIENT_ID:"fixture-client.apps.googleusercontent.com",REL_GOOGLE_CLIENT_SECRET:"fixture-google-secret",REL_GOOGLE_TOKEN_KEY:Buffer.alloc(32,1).toString('base64'),REL_YOUTUBE_REDIRECT_URI:origin+"/api/account/youtube/callback"}:{})};
+  const {db,rpc}=await fixture({profiles:true,tiktok:true,youtube:true,popularity:true,clans:true});
+  const googleState={channels:[{id:"UC"+"a".repeat(22),snippet:{title:"Fixture YouTube channel"},statistics:{subscriberCount:"12500",hiddenSubscriberCount:false}}]},googleLog=[];
   const originalFetch=globalThis.fetch;
   const users=new Map(Object.keys(ids).map(name=>[name,{id:ids[name],email:name+"@example.test",email_confirmed_at:"2026-10-14T00:00:00Z"}]));
   const sessions=new Map(users);
@@ -17,6 +18,18 @@ export async function mockService({tiktok=false,origin="https://rel.example.test
   const response=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json"}});
   globalThis.fetch=async(input,options={})=>{
     const url=new URL(input);
+    if(google&&url.origin==="https://oauth2.googleapis.com"){
+      googleLog.push({path:url.pathname,body:options.body});
+      if(url.pathname==='/revoke')return response({},failures.googleRevoke?503:200);
+      const params=new URLSearchParams(options.body);
+      if(failures.googleToken||(params.get('grant_type')!=='refresh_token'&&params.get("code")!=="fixture-youtube-code"))return response({error:"invalid_grant"},400);
+      return response({access_token:"fixture-google-token",refresh_token:"fixture-refresh-token",token_type:"Bearer",scope:failures.googleScope?"openid":"https://www.googleapis.com/auth/youtube.readonly"});
+    }
+    if(google&&url.origin==="https://www.googleapis.com"){
+      googleLog.push({path:url.pathname,headers:options.headers,query:url.search});
+      if(failures.googleChannels)return response({},503);
+      return response({items:googleState.channels});
+    }
     // Synthetic avatar responses exercise uploads without contacting TikTok.
     if(url.href==='https://www.tiktok.com/@fixture_editor')return new Response('{"avatarLarger":"https://p16.tiktokcdn.com/fixture-avatar.png"}');
     if(url.href==='https://p16.tiktokcdn.com/fixture-avatar.png')return new Response(new Uint8Array([137,80,78,71]),{headers:{'Content-Type':'image/png'}});
@@ -27,11 +40,11 @@ export async function mockService({tiktok=false,origin="https://rel.example.test
         if(failures.tiktokToken)return response({error:'provider_error'},failures.tiktokToken);
         if(body.get('client_key')!==env.REL_TIKTOK_CLIENT_KEY||body.get('client_secret')!==env.REL_TIKTOK_CLIENT_SECRET||body.get('redirect_uri')!==env.REL_TIKTOK_REDIRECT_URI||body.get('grant_type')!=='authorization_code'||!body.get('code')?.startsWith('fixture-tiktok-code-')||usedTikTokCodes.has(body.get('code')))return response({error:'invalid_request'},400);
         usedTikTokCodes.add(body.get('code'));
-        return response({access_token:'act.fixture-token',refresh_token:'rft.fixture-token',token_type:'Bearer',scope:failures.tiktokScopes??'user.info.basic,user.info.profile',open_id:failures.tiktokOpenId??'fixture-open-id',expires_in:86400});
+        return response({access_token:'act.fixture-token',refresh_token:'rft.fixture-token',token_type:'Bearer',scope:failures.tiktokScopes??'user.info.basic,user.info.profile,user.info.stats',open_id:failures.tiktokOpenId??'fixture-open-id',expires_in:86400});
       }
       if(url.pathname==='/v2/user/info/'){
         if(failures.tiktokInfo)return response({error:{code:'server_error'}},failures.tiktokInfo);
-        return response({data:{user:{open_id:failures.tiktokUserMismatch?'different-id':failures.tiktokOpenId??'fixture-open-id',username:failures.tiktokUsername??'fixture_editor',display_name:failures.tiktokDisplay??'Fixture TikTok editor'}},error:{code:'ok'}});
+        return response({data:{user:{open_id:failures.tiktokUserMismatch?'different-id':failures.tiktokOpenId??'fixture-open-id',username:failures.tiktokUsername??'fixture_editor',display_name:failures.tiktokDisplay??'Fixture TikTok editor',follower_count:failures.tiktokFollowers??42000}},error:{code:'ok'}});
       }
       if(url.pathname==='/v2/oauth/revoke/')return failures.tiktokRevoke?response({error:'provider_error'},failures.tiktokRevoke):response({});
       throw new Error('Unexpected TikTok fixture request');
@@ -97,7 +110,7 @@ export async function mockService({tiktok=false,origin="https://rel.example.test
       return new Response(null,{status:204});
     }
     if(url.pathname.startsWith("/rest/v1/rpc/")){
-      if(["rel_public_profile","rel_public_contributors","rel_tiktok_exchange"].includes(url.pathname.split('/').pop())&&token===env.SUPABASE_SERVICE_ROLE_KEY){
+      if(["rel_public_profile","rel_public_contributors","rel_tiktok_exchange","rel_youtube_exchange","rel_youtube_tokens","rel_public_youtube","rel_audience_stage","rel_public_popularity","rel_audience_cleanup","rel_public_clans","rel_clan_prefixes","rel_public_account_clan","rel_clan_invitation"].includes(url.pathname.split('/').pop())&&token===env.SUPABASE_SERVICE_ROLE_KEY){
         if(failures.profiles)return response({},failures.profiles);
         const name=url.pathname.split('/').pop(),args=JSON.parse(options.body);
         try{return response(await db.transaction(async tx=>{
@@ -128,12 +141,14 @@ export async function mockService({tiktok=false,origin="https://rel.example.test
     throw new Error("Unexpected test request "+url.pathname);
   };
   const routes={
-    "/api/data":"data", "/api/save":"save", "/api/avatar":"avatar", "/api/applications":"applications", "/api/profiles":"profiles", "/api/contributors":"contributors",
+    "/api/clans":"clans", "/api/clans/invite":"clans/invite", "/api/account/clans":"account/clans",
+    "/api/data":"data", "/api/popularity":"popularity", "/api/save":"save", "/api/avatar":"avatar", "/api/applications":"applications", "/api/profiles":"profiles", "/api/contributors":"contributors",
     "/api/applications/admin":"applications/admin",
     "/api/applications/pending":"applications/pending",
     ...Object.fromEntries(["signin","signup","session","refresh","signout","forgot-password","reset-password","confirmation"].map(name=>["/api/auth/"+name,"auth/"+name])),
     ...Object.fromEntries(["site","profile","claim","users","username","links","contributor","contributors"].map(name=>["/api/account/"+name,"account/"+name])),
     ...Object.fromEntries(["tiktok","tiktok/start","tiktok/callback"].map(name=>["/api/account/"+name,"account/"+name])),
+    ...Object.fromEntries(["youtube","youtube/start","youtube/callback"].map(name=>["/api/account/"+name,"account/"+name])),
   };
   async function handle(request){
     const route=routes[new URL(request.url).pathname];
@@ -145,5 +160,5 @@ export async function mockService({tiktok=false,origin="https://rel.example.test
   }
   const {onRequest:adminGate}=await import("../functions/admin/_middleware.js");
   const handleAdmin=(request,next)=>adminGate({request,env,next});
-  return {db,rpc,env,handle,handleAdmin,sessions,recoveryCodes,failures,providerRequests,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
+  return {db,rpc,env,handle,handleAdmin,sessions,recoveryCodes,failures,providerRequests,googleState,googleLog,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
 }

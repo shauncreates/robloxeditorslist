@@ -54,7 +54,7 @@ async function begin(request, user = "member") {
   assert.equal(parsed.pathname, "/v2/auth/authorize/");
   assert.equal(
     parsed.searchParams.get("scope"),
-    "user.info.basic,user.info.profile",
+    "user.info.basic,user.info.profile,user.info.stats",
   );
   assert.equal(parsed.searchParams.get("disable_auto_auth"), "1");
   assert.ok(!url.includes("fixture-client-secret"));
@@ -596,7 +596,7 @@ test("bounded TikTok responses and immediate revocation do not retain provider t
         },
         "code",
       ),
-      { open_id: "id", username: "fixture", display_name: "Fixture" },
+      { open_id: "id", username: "fixture", display_name: "Fixture", followers: null },
     );
     assert.equal(calls, 3);
     globalThis.fetch = async () => new Response(null, { status: 204 });

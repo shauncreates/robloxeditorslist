@@ -1,4 +1,5 @@
 import { accountApi, accountFetch } from "./account.js";
+import { countText, publicationNotice } from "./social-audience.js";
 
 const root = document.querySelector("#tiktokConnection");
 const esc = (value) =>
@@ -47,7 +48,8 @@ async function load() {
       throw new Error(
         data.error || "Your TikTok connection could not be loaded.",
       );
-    const connection = data.connection,
+    const audience = data.audience,
+      connection = data.connection,
       pending = data.pending;
     root.innerHTML = `<h2 id="tiktokTitle">Connect TikTok</h2><p>Confirm that your TikTok account belongs to you, without adding a code to your bio.</p>
       ${
@@ -56,9 +58,21 @@ async function load() {
           : `
       ${connection ? `<div class="tiktok-card"><p class="tiktok-label">Connected account</p><h3>${esc(connection.display_name)}</h3>${channelLink(connection.username)}<p class="tiktok-help">Confirmed through TikTok on ${esc(date(connection.verified_at))}. Reconnect by ${esc(date(connection.expires_at))} to renew this dated confirmation.</p><button id="disconnectTikTok" type="button">Disconnect TikTok</button></div>` : "<p>No TikTok account is connected.</p>"}
       ${pending ? `<form id="confirmTikTok" class="tiktok-card"><p class="tiktok-label">Ready to confirm</p><h3>${esc(pending.display_name)}</h3>${channelLink(pending.username)}<p>This account was returned by TikTok. Confirm to show this dated ownership check on your REL public profile.</p><div class="tiktok-actions"><button class="pri" type="submit">Confirm TikTok link</button><button id="cancelTikTok" type="button">Cancel</button></div><p class="tiktok-help">Your current connection stays until you confirm. A ranked editor profile still needs Owner review.</p></form>` : `<button class="pri" id="connectTikTok" type="button">${connection ? "Reconnect" : "Connect"} TikTok</button>`}
-      <p class="tiktok-help">REL reads your TikTok account ID, username and display name, then revokes temporary access. We keep a dated confirmation for 29 days. TikTok is not used to sign into REL.</p>`
+      <p class="tiktok-help">REL reads your TikTok account ID, username and display name. The optional statistics permission adds your follower count to Popularity after you confirm. You can decline statistics and still connect. We revoke temporary access and keep the dated confirmation for 29 days.</p>`
       }
       <p class="tiktok-help"><a class="tiktok-privacy-link" href="/tiktok-privacy/">TikTok connection privacy ${icon("arrow")}</a></p><p id="tiktokNotice" role="status">${esc(notice)}</p>`;
+    if (pending) {
+      const paragraph = document.createElement("p");
+      paragraph.className = "tiktok-help";
+      paragraph.textContent = countText(audience?.pending?.followers, "tiktok") + " " + publicationNotice;
+      root.querySelector("#confirmTikTok .tiktok-actions").before(paragraph);
+    }
+    if (connection) {
+      const paragraph = document.createElement("p");
+      paragraph.className = "tiktok-help";
+      paragraph.textContent = countText(audience?.connection?.count, "tiktok") + (audience?.connection?.observed_at ? " Last updated " + date(audience.connection.observed_at) + ". Reconnect to update your count." : " Reconnect and allow statistics to add a count.");
+      root.querySelector(".tiktok-card button").before(paragraph);
+    }
   } catch (error) {
     root.innerHTML = `<h2 id="tiktokTitle">Connect TikTok</h2><p class="tiktok-error" role="status">${esc(error.message)}</p><button id="retryTikTok" type="button">Reload TikTok connection</button>`;
   } finally {

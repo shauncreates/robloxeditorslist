@@ -31,14 +31,16 @@
         accounts.
       </p>
       <p>
-        REL does not request posting, messaging, followers, likes, statistics or
+        REL also requests the optional <code>user.info.stats</code> permission
+        to read your follower count. You can decline statistics and still connect.
+        REL does not read your follower list or request posting, messaging or
         video-list permissions. TikTok handles its own sign-in and consent
         screen. Your TikTok password is never sent to REL.
       </p>
       <h2>Temporary access and confirmation</h2>
       <p>
         The server exchanges TikTok's authorisation code for temporary access,
-        reads those three fields, then revokes that access before accepting the
+        reads those fields and your follower count if permitted, then revokes access before accepting the
         proof. TikTok access and refresh tokens are not saved in REL's database,
         audit log, browser storage or public APIs. If the check or revocation
         fails, a new connection is not saved.
@@ -51,6 +53,7 @@
         REL session must confirm it.
       </p>
       <h2>What is public and how long it lasts</h2>
+      <p>The confirmation screen shows any available follower count and explains its publication. After confirmation, ranked editors with an Owner-approved REL account link can appear in the public Popularity list with their follower count and update date. Counts are snapshots from connection or reconnection. Missing statistics are excluded, and counts expire after 29 days. Disconnecting removes the count immediately.</p>
       <p>
         After you confirm, your REL public profile can show your TikTok
         username, display name, profile link, confirmation date and expiry. The

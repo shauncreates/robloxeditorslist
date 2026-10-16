@@ -1,3 +1,7 @@
+.rel-clan-prefix { display:inline-flex; align-items:center; min-height:44px; margin-right:6px; color:#7af500; font-size:.85em; font-weight:650; text-decoration:none; white-space:nowrap; }
+.rel-clan-prefix:hover { color:#c1ff84; }
+.rel-clan-prefix:focus-visible { outline:2px solid #7af500; outline-offset:3px; }
+
 .rel-icon {
   width: 20px;
   height: 20px;

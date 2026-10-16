@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rel-social-maintenance",
+  "main": "workers/social-maintenance.js",
+  "compatibility_date": "2026-10-16",
+  "workers_dev": false,
+  "triggers": { "crons": ["17 * * * *"] }
+}
