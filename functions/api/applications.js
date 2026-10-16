@@ -1,4 +1,6 @@
-import { json, readJson, supabaseRequest } from "../_lib.js";
+import { HttpError, json, readJson } from "../_lib.js";
+import { requireAccount, userRpc } from "../_auth.js";
+import { deliverApplicationEmails } from "../_application-email.js";
 
 import { readSite } from "../_site.js";
 
@@ -26,12 +28,14 @@ function profileMatchesPlatform(value, platform) {
 }
 
 export async function onRequestPost({ request, env }) {
+  const { token } = await requireAccount(request, env);
   const body = await readJson(request, MAX_BODY);
 
   // Honeypot: ordinary users never see or fill this field.
   if (typeof body?.website === "string" && body.website.trim()) {
     return json({ ok: true });
   }
+  if(typeof body.requestId!=="string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.requestId)) throw new HttpError(400,"Reload the application form before submitting.");
 
   const displayName = typeof body?.displayName === "string" ? body.displayName.trim() : "";
   const platform = typeof body?.platform === "string" ? body.platform : "";
@@ -64,11 +68,9 @@ export async function onRequestPost({ request, env }) {
   }
   if (notes.length > 1000) return json({ error: "Additional notes must be under 1,000 characters." }, 400);
 
-  try {
-    const response = await supabaseRequest(env, "editor_applications", {
-      method: "POST",
-      headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({
+  const result = await userRpc(env,token,"rel_submit_application",{
+    p_request_id:body.requestId,
+    p_data:{
         display_name: displayName,
         platform,
         profile_url: profileUrl,
@@ -76,14 +78,8 @@ export async function onRequestPost({ request, env }) {
         styles,
         examples_url: examplesUrl,
         notes: notes || null,
-        status: "pending",
-      }),
-    });
-    if (!response.ok) {
-      return json({ error: "We couldn't save your application right now. Please try again later." }, 500);
-    }
-    return json({ ok: true }, 201);
-  } catch {
-    return json({ error: "Applications are temporarily unavailable. Please try again later." }, 500);
-  }
+    },
+  });
+  const notification=await deliverApplicationEmails(env,result.id);
+  return json({...result,notification},result.replayed?200:201);
 }

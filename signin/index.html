@@ -99,6 +99,7 @@
 
       const $ = (selector) => document.querySelector(selector);
       const form = $("#authForm");
+      const next=new URLSearchParams(location.search).get("next")==="/apply/"?"/apply/":null;
 
       // Confirmation authorizes no action here.
       // Discard Supabase's URL fragment tokens.
@@ -201,14 +202,14 @@
           if (submittingSignup) {
             $("#message").textContent = result.message;
           } else {
-            location.assign(
+            location.assign(next || (
               result.account?.roles?.some((role) =>
                 ["owner", "list_contributor", "application_reviewer"].includes(
                   role,
                 ),
               )
                 ? "/admin/"
-                : "/account/",
+                : "/account/"),
             );
           }
         } catch (error) {

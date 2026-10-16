@@ -7,6 +7,7 @@ Use the root [README](../README.md) for the project overview and commands. These
 | [Development and deployment](DEPLOY_AND_TEST.md) | Local fixture, actual Pages Functions, tests and releases |
 | [Accounts and permissions](AUTH_SETUP.md) | Roles, verified editor links, sessions and database authorization |
 | [Applications](APPLICATIONS_STAGE_1.md) | Current submission/review behavior and unfinished notification work |
+| [Application tracking and YouTube](APPLICATION_TRACKING_AND_YOUTUBE.md) | Account-owned status, decision emails, private archives, Google authorisation and release prerequisites |
 | [Public profiles](PUBLIC_PROFILES.md) | Stable profile links, contributor account links and public fields |
 | [Contributor tiers](CONTRIBUTOR_TIERS.md) | Owner editing and the required contributor migration |
 | [Signup email](SIGNUP_EMAIL_SETUP.md) | Supabase confirmation templates and SMTP configuration reference |

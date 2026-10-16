@@ -105,6 +105,7 @@ Applications contain an editor's profile, styles and example work. Reviewers app
 | Application submission and staff review | [`functions/api/applications.js`](functions/api/applications.js), [`functions/api/applications/admin.js`](functions/api/applications/admin.js) |
 | Ranking saves and conflict handling | [`functions/api/save.js`](functions/api/save.js), [ranking preservation guide](docs/RANKING_STORAGE.md) |
 | Contributor tiers and Owner editing | [`assets/contributors.js`](assets/contributors.js), [`assets/contributors-admin.js`](assets/contributors-admin.js) |
+| Application status, notifications and Google-authorised YouTube links | [Implementation and release guide](docs/APPLICATION_TRACKING_AND_YOUTUBE.md) |
 | Isolated account and database tests | [`tests/`](tests/), [development guide](docs/DEPLOY_AND_TEST.md) |
 
 ## Try the development version
@@ -124,7 +125,9 @@ The build writes static files to `dist/`. `npm run check:cloudflare` compiles th
 
 ## What is still being developed
 
-Account-required applications, submission/decision emails and Owner-managed application archiving remain on the separate `feat/application-notifications-audit` branch. They are not part of the current main application flow. Transactional email configuration and real delivery tests belong to that feature's rollout.
+This branch adds account-required applications, account-owned status, decision emails, private Owner archives and Google-authorised YouTube connections. Their [migration and provider prerequisites](docs/APPLICATION_TRACKING_AND_YOUTUBE.md) must be reviewed before release. The earlier notification branch is retained as historical development work rather than deployed configuration.
+
+TikTok verification, public daily ranking history, share cards and clans remain later phases. Manual Owner linking stays available. Live Google consent/revocation and email delivery still require configured providers and approved end-to-end tests.
 
 New environments also need the SQL prerequisites for accounts, public profiles and [contributor editing](docs/CONTRIBUTOR_TIERS.md). Real email delivery and launch abuse controls need verification in the intended environment; the local fixture cannot prove those settings.
 

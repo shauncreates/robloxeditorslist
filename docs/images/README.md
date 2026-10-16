@@ -1,5 +1,11 @@
 # Website screenshots
 
+## Application and YouTube captures, 16 October 2026
+
+`application-tracking.png`, `youtube-confirmation.png` and `application-approved-email.png` show the actual implementation running against fictional local records. The Google authorisation page and provider responses are simulated; no production account, token or recipient appears. The email capture shows generated HTML, not a delivery test in a real inbox. These PNG files are documentation-only and are excluded from the website build.
+
+## Original website captures, 15 October 2026
+
 Captured on 15 October 2026 from the REL source used by this documentation PR. The images are WebP screenshots from Chromium, using the site's existing Red Hat Text and Material Symbols fonts. They are not generated illustrations or redesigned mockups.
 
 | Image | Source |

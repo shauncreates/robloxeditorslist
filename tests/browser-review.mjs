@@ -20,6 +20,11 @@ let nextId = 0;
 const pending = new Map(), exceptions = [];
 socket.addEventListener("message", event => {
   const message = JSON.parse(event.data);
+  if(message.method==="Fetch.requestPaused"){
+    const state=new URL(message.params.request.url).searchParams.get("state");
+    const html='<!doctype html><title>Local authorisation fixture</title><p>Isolated provider fixture. No Google account is used.</p><a id="fixtureAuthorise" href="'+base+'/api/account/youtube/callback?code=fixture-youtube-code&amp;state='+encodeURIComponent(state)+'">Authorise fixture channel</a>';
+    void send("Fetch.fulfillRequest",{requestId:message.params.requestId,responseCode:200,responseHeaders:[{name:"Content-Type",value:"text/html"}],body:Buffer.from(html).toString("base64")},message.sessionId);
+  }
   if(message.method === "Runtime.exceptionThrown") exceptions.push(message.params.exceptionDetails.text);
   if(!message.id) return;
   const callback = pending.get(message.id);pending.delete(message.id);
@@ -83,6 +88,8 @@ async function checkLayout(page, name, widths = [1440,768,390,320]) {
     assert.ok(state.scrollWidth <= state.width, `${name} overflow at ${width}: ${JSON.stringify(state)}`);
     assert.deepEqual(state.fonts,[],`${name} font mismatch`);
     assert.equal(state.loaded,true,`${name} Red Hat Text did not load`);
+    const overlap=await evaluate(page,"(()=>{const form=document.querySelector('#confirmYouTube');if(!form)return false;const buttons=[...form.querySelectorAll('button')].filter(e=>e.getClientRects().length),paragraphs=[...form.querySelectorAll('p')].filter(e=>e.getClientRects().length);return buttons.some(button=>paragraphs.some(p=>{const a=button.getBoundingClientRect(),b=p.getBoundingClientRect();return a.bottom>b.top&&a.top<b.bottom&&a.right>b.left&&a.left<b.right}))})()");
+    assert.equal(overlap,false,`${name} channel actions overlap explanatory text at ${width}px`);
     if(width===1440||width===390||width===320)await screenshot(page,`${name}-${width}`);
   }
   console.log(`PASS ${name}: fonts and layout at ${widths.join(', ')}px`);
@@ -134,6 +141,11 @@ try {
   await navigate(publicPage,"/");
   assert.equal(await evaluate(publicPage,"document.querySelector('a[href=\"/apply/\"]').textContent"),"Apply");
   await click(publicPage,'a[href="/apply/"]');await waitFor(publicPage,"location.pathname==='/apply/'");
+  await waitFor(publicPage,"!document.querySelector('#applicationSignIn').hidden");
+  assert.equal(await evaluate(publicPage,"document.querySelector('#applicationForm').hidden"),true);
+  await checkLayout(publicPage,"application-signin-gate");
+  await signIn(publicPage,"stranger");await navigate(publicPage,"/apply/");
+  await waitFor(publicPage,"!document.querySelector('#applicationForm').hidden && !document.querySelector('#submitButton').disabled");
   await checkLayout(publicPage,"application");
   await waitFor(publicPage,"document.querySelector('#styleOptions input')!==null");
   assert.equal(await evaluate(publicPage,"document.querySelector('#styleOptions input').value"),"Test style");
@@ -145,6 +157,7 @@ try {
   await click(publicPage,"#styleOptions input");
   await click(publicPage,"#submitButton");await waitFor(publicPage,"document.querySelector('#message').classList.contains('ok')");
   assert.equal(await evaluate(publicPage,"document.querySelector('#otherStyleField').hidden"),true);
+  await navigate(publicPage,"/account/");await waitFor(publicPage,"document.querySelector('#myApplications').textContent.includes('Pending review')");await checkLayout(publicPage,"application-tracking-pending");
   await navigate(publicPage,"/list/");await waitFor(publicPage,"document.querySelector('[data-profile]')!==null");
   await checkLayout(publicPage,"rankings");
   assert.equal(await evaluate(publicPage,"document.querySelector('#cta').getAttribute('href')"),"/apply/");
@@ -279,7 +292,8 @@ try {
   await click(contributor,'[data-act="down"][data-id="editor1"]');await waitFor(contributor,"document.querySelector('#status').textContent==='Saved. Live on the site.'");
   await send('Page.bringToFront',{},publicPage.sessionId);
   await waitFor(publicPage,"document.querySelector('.row .nm').textContent==='Two'");
-  const optionsPage=await newPage();contexts.push(optionsPage);await navigate(optionsPage,'/apply/');
+  const optionsPage=await newPage();contexts.push(optionsPage);await signIn(optionsPage,'member');await navigate(optionsPage,'/apply/');
+  await waitFor(optionsPage,"!document.querySelector('#applicationForm').hidden");
   await waitFor(optionsPage,"document.querySelector('#styleOptions input')!==null");
   await fill(optionsPage,'#displayName','Draft kept during style updates');await click(optionsPage,'#styleOptions input');
   await click(contributor,'[data-act="tab"][data-v="styles"]');await click(contributor,'[data-act="addStyle"]');
@@ -291,7 +305,7 @@ try {
   assert.equal(await evaluate(optionsPage,"document.querySelector('#styleOptions input').checked"),true);
   await checkLayout(optionsPage,'live-style-options');
   await click(contributor,'[data-act="tab"][data-v="editors"]');await waitFor(contributor,"document.querySelector('#pendingTitle').textContent==='Pending - (0)'");
-  assert.equal(await evaluate(publicPage,`fetch('/api/applications',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({displayName:'Rejected browser applicant',platform:'YouTube',profileUrl:'https://youtube.com/@rejected',software:'CapCut',styles:['Test style'],examplesUrl:'https://example.test'})}).then(response=>response.status)`),201);
+  assert.equal(await evaluate(member,`fetch('/api/applications',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:crypto.randomUUID(),displayName:'Rejected browser applicant',platform:'YouTube',profileUrl:'https://youtube.com/@rejected',software:'CapCut',styles:['Test style'],examplesUrl:'https://example.test'})}).then(response=>response.status)`),201);
   const reviewer = await newPage();contexts.push(reviewer);await signIn(reviewer,"reviewer");
   await evaluate(reviewer,'window.confirm=()=>true');
   assert.equal(await evaluate(reviewer,"document.querySelector('#tabs').textContent.includes('Profile link requests')"),false);
@@ -301,18 +315,21 @@ try {
   await click(reviewer,`[data-act="applicationStatus"][data-id="${rejectedId}"][data-status="rejected"]`);
   assert.match(await evaluate(reviewer,"document.querySelector('#status').textContent"),/Enter a reason/);
   await fill(reviewer,'#review-reason-'+rejectedId,'Private rejection reason');
+  await fill(reviewer,'#review-message-'+rejectedId,'Please include a public showreel with more examples.');
   await click(reviewer,`[data-act="applicationStatus"][data-id="${rejectedId}"][data-status="rejected"]`);
-  await waitFor(reviewer,`document.querySelector('[data-application="${rejectedId}"] .app-status.rejected')!==null`);
-  assert.equal(await evaluate(reviewer,`document.querySelectorAll('[data-application="${rejectedId}"] [data-act=applicationStatus]').length`),0);
-  assert.equal(await evaluate(reviewer,`document.querySelector('#review-reason-${rejectedId}').readOnly`),true);
+  await waitFor(reviewer,`document.querySelector('[data-application="${rejectedId}"]')===null`);
   const approvedId=await evaluate(reviewer,"document.querySelector('.app-status.pending').closest('[data-application]').dataset.application");
   await fill(reviewer,'#review-reason-'+approvedId,'Private approval reason');
+  await fill(reviewer,'#review-message-'+approvedId,'Your examples meet our current editing criteria.');
   await click(reviewer,`[data-act="applicationStatus"][data-id="${approvedId}"][data-status="approved"]`);
   await send('Page.bringToFront',{},contributor.sessionId);
-  await waitFor(reviewer,`document.querySelector('[data-application="${approvedId}"]').textContent.includes('Approved by reviewer')`);
+  await waitFor(reviewer,`document.querySelector('[data-application="${approvedId}"]')===null`);
   assert.equal(await evaluate(reviewer,`document.querySelectorAll('[data-application="${approvedId}"] [data-act=applicationStatus]').length`),0);
   assert.equal(await evaluate(reviewer,"document.body.textContent.includes('@example.test')"),false);
   await checkLayout(reviewer,"reviewer");
+  await navigate(member,"/account/");await waitFor(member,"document.querySelector('#myApplications').textContent.includes('Denied')");
+  assert.equal(await evaluate(member,"document.querySelector('#myApplications').textContent.includes('Private rejection reason')"),false);await checkLayout(member,"application-tracking-denied");
+  await navigate(stranger,"/account/");await waitFor(stranger,"document.querySelector('#myApplications').textContent.includes('Approved')");await checkLayout(stranger,"application-tracking-approved");
   await waitFor(contributor,"document.querySelector('#pendingTitle').textContent==='Pending - (1)'");
   assert.equal(await evaluate(publicPage,"document.body.textContent.includes('Browser fixture applicant')"),false);
   await click(contributor,"#pendingQueue summary");await delay(300);await checkLayout(contributor,"approved-queue");
@@ -368,6 +385,29 @@ try {
   await fill(recoveryPage,"#email","reviewer@example.test");await fill(recoveryPage,"#password","Abcdef12");
   await click(recoveryPage,"#submit");await waitFor(recoveryPage,"location.pathname==='/admin/' && document.querySelector('#signout')!==null");
   await click(recoveryPage,"#signout");await waitFor(recoveryPage,"location.pathname==='/signin/'");
+  const youtubePage=await newPage();contexts.push(youtubePage);await signIn(youtubePage,"owner");await navigate(youtubePage,"/account/");
+  await waitFor(youtubePage,"document.querySelector('#connectYouTube')!==null");await checkLayout(youtubePage,"youtube-before-connect");
+  await send("Fetch.enable",{patterns:[{urlPattern:"https://accounts.google.com/o/oauth2/v2/auth*"}]},youtubePage.sessionId);
+  await click(youtubePage,"#connectYouTube");await waitFor(youtubePage,"document.querySelector('#fixtureAuthorise')!==null");
+  await click(youtubePage,"#fixtureAuthorise");await waitFor(youtubePage,"location.pathname==='/account/' && document.querySelector('#confirmYouTube')!==null");
+  assert.equal(await evaluate(youtubePage,"document.querySelector('#youtubeConnection').textContent.includes('No YouTube channel is connected.')"),true);
+  await checkLayout(youtubePage,"youtube-confirm-channel");await click(youtubePage,"#confirmYouTube button");
+  await waitFor(youtubePage,"document.querySelector('#disconnectYouTube')!==null");await checkLayout(youtubePage,"youtube-connected");
+  const publicUrl=await evaluate(youtubePage,"document.querySelector('#publicProfileLink').getAttribute('href')");
+  await navigate(youtubePage,publicUrl);await waitFor(youtubePage,"document.querySelector('#publicProfile').textContent.includes('Channel control confirmed through Google.')");await checkLayout(youtubePage,"youtube-public-profile");
+  await navigate(youtubePage,"/account/");await waitFor(youtubePage,"document.querySelector('#disconnectYouTube')!==null");await evaluate(youtubePage,"window.confirm=()=>true");await click(youtubePage,"#disconnectYouTube");await waitFor(youtubePage,"document.querySelector('#youtubeNotice')?.textContent.includes('YouTube disconnected')");
+  assert.equal(await evaluate(youtubePage,"fetch('/api/profiles?account=00000000-0000-4000-8000-000000000004').then(r=>r.json()).then(p=>p.youtube)"),null);
+  await navigate(youtubePage,"/youtube-privacy/");await checkLayout(youtubePage,"youtube-privacy");
+  await navigate(youtubePage,"/admin/");await waitFor(youtubePage,"document.querySelector('[data-v=applications]')!==null");
+  await click(youtubePage,'[data-v="applications"]');await fill(youtubePage,"#applicationFilter","list_reviewed");
+  await waitFor(youtubePage,"document.querySelector('#review-reason-"+rejectedId+"')!==null");
+  assert.equal(await evaluate(youtubePage,`document.querySelector('#review-message-${rejectedId}').readOnly`),true);await checkLayout(youtubePage,"owner-reviewed-applications");
+  await evaluate(youtubePage,"window.confirm=()=>true");await click(youtubePage,`[data-act="archiveApplication"][data-id="${rejectedId}"]`);
+  await waitFor(youtubePage,`document.querySelector('[data-application="${rejectedId}"]')===null`);
+  await fill(youtubePage,"#applicationFilter","list_archived");await waitFor(youtubePage,`document.querySelector('[data-application="${rejectedId}"]')!==null`);await checkLayout(youtubePage,"owner-private-archive");
+  await click(youtubePage,'[data-v="activity"]');await waitFor(youtubePage,"document.querySelector('#activityList').textContent.includes('Application reviewed')");await checkLayout(youtubePage,"owner-activity-log");
+  for(const kind of ["submitted","approved","denied"]){await navigate(youtubePage,"/test-email/application-"+kind+"/");for(const width of [1440,390,320]){await send("Emulation.setDeviceMetricsOverride",{width,height:900,deviceScaleFactor:1,mobile:width<500},youtubePage.sessionId);assert.equal(await evaluate(youtubePage,"document.documentElement.scrollWidth<=innerWidth"),true);await screenshot(youtubePage,"application-email-"+kind+"-"+width)}}
+  console.log("PASS Google-authorised YouTube browser round-trip with intercepted provider, explicit channel confirmation and public connection; Owner archive/activity and three application email previews.");
   assert.deepEqual(exceptions,[]);
   console.log("PASS password recovery: request, existing code, change email, mismatch, invalid code, resend without a password, password policy, reset and fresh sign-in; desktop/mobile layouts.");
   console.log("PASS branded signup/recovery emails and verified/expired/missing confirmation states; verified state returns to sign-in without creating login cookies.");

@@ -95,6 +95,8 @@ Database migration status and SMTP/provider settings must be checked separately 
 
 ## Release an approved change
 
+The application-tracking/YouTube feature has [two ordered SQL prerequisites, a coordinated submit/review maintenance window and a separate scheduled worker](APPLICATION_TRACKING_AND_YOUTUBE.md#release-order-and-production-boundaries). Read that release order before applying SQL or enabling provider credentials. A Pages deployment alone does not install the worker or database functions.
+
 1. Start a new feature branch from freshly fetched `origin/main`, preserving local work. Follow [CONTRIBUTING.md](../CONTRIBUTING.md).
 2. Run the relevant checks and review the diff. Preserve `data.js` and ranking data; exclude `.dev.vars`, `.wrangler/`, `dist/` and private backups.
 3. Document database/configuration dependencies in the pull request. Obtain separate approval for production SQL, and apply approved prerequisites before releasing dependent features.

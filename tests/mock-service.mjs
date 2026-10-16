@@ -2,18 +2,39 @@ import { fixture, ids, sessionId } from "./auth-fixture.mjs";
 import { randomUUID } from "node:crypto";
 import { onRequest as middleware } from "../functions/api/_middleware.js";
 
-export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server"};
-export async function mockService(){
-  const {db,rpc}=await fixture({profiles:true});
+export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server",RESEND_API_KEY:"fixture-email-key",REL_EMAIL_FROM:"REL <fixture@example.test>"};
+export async function mockService({google=false,origin="https://rel.example.test"}={}){
+  const {db,rpc}=await fixture({profiles:true,notifications:true,youtube:true});
+  const serviceEnv={...env,...(google?{REL_GOOGLE_CLIENT_ID:"fixture-client.apps.googleusercontent.com",REL_GOOGLE_CLIENT_SECRET:"fixture-google-secret",REL_GOOGLE_TOKEN_KEY:Buffer.alloc(32,1).toString('base64'),REL_YOUTUBE_REDIRECT_URI:origin+"/api/account/youtube/callback"}:{})};
+  const googleState={channels:[{id:"UC"+"a".repeat(22),snippet:{title:"Fixture YouTube channel"}}]},googleLog=[];
   const originalFetch=globalThis.fetch;
   const users=new Map(Object.keys(ids).map(name=>[name,{id:ids[name],email:name+"@example.test",email_confirmed_at:"2026-10-14T00:00:00Z"}]));
   const sessions=new Map(users);
   const passwords=new Map([...users.values()].map(user=>[user.id,"test-password-123"]));
   const recoveryCodes=new Map(),failures={};
+  const emails=[],emailKeys=new Map();
   let requestLog=[];
   const response=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json"}});
   globalThis.fetch=async(input,options={})=>{
     const url=new URL(input);
+    if(url.origin==="https://oauth2.googleapis.com"){
+      googleLog.push({path:url.pathname,body:options.body});
+      if(url.pathname==='/revoke')return response({},failures.googleRevoke?503:200);
+      const params=new URLSearchParams(options.body);
+      if(failures.googleToken||(params.get('grant_type')!=='refresh_token'&&params.get("code")!=="fixture-youtube-code"))return response({error:"invalid_grant"},400);
+      return response({access_token:"fixture-google-token",refresh_token:"fixture-refresh-token",token_type:"Bearer",scope:failures.googleScope?"openid":"https://www.googleapis.com/auth/youtube.readonly"});
+    }
+    if(url.origin==="https://www.googleapis.com"){
+      googleLog.push({path:url.pathname,headers:options.headers});
+      if(failures.googleChannels)return response({},503);
+      return response({items:googleState.channels});
+    }
+    if(url.href==="https://api.resend.com/emails"){
+      if(failures.email)return response({message:"Synthetic email failure"},failures.email);
+      const key=new Headers(options.headers).get("idempotency-key");
+      if(!emailKeys.has(key)){emailKeys.set(key,randomUUID());emails.push(JSON.parse(options.body))}
+      return response({id:emailKeys.get(key)});
+    }
     // Synthetic avatar responses exercise uploads without contacting TikTok.
     if(url.href==='https://www.tiktok.com/@fixture_editor')return new Response('{"avatarLarger":"https://p16.tiktokcdn.com/fixture-avatar.png"}');
     if(url.href==='https://p16.tiktokcdn.com/fixture-avatar.png')return new Response(new Uint8Array([137,80,78,71]),{headers:{'Content-Type':'image/png'}});
@@ -78,7 +99,16 @@ export async function mockService(){
       return new Response(null,{status:204});
     }
     if(url.pathname.startsWith("/rest/v1/rpc/")){
-      if(["rel_public_profile","rel_public_contributors"].includes(url.pathname.split('/').pop())&&token===env.SUPABASE_SERVICE_ROLE_KEY){
+      if(["rel_email_work","rel_youtube_exchange","rel_youtube_tokens"].includes(url.pathname.split('/').pop())&&token===env.SUPABASE_SERVICE_ROLE_KEY){
+        const name=url.pathname.split('/').pop(),args=JSON.parse(options.body),keys=Object.keys(args);
+        if(failures.emailAck&&args.p_action==="sent")return response({},503);
+        try{return response(await db.transaction(async tx=>{
+          await tx.exec("set local role service_role");
+          await tx.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({role:"service_role"})]);
+          return (await tx.query(`select public.${name}(${keys.map((key,i)=>key+'=> $'+(i+1)).join(',')}) as result`,Object.values(args))).rows[0].result;
+        }))}catch(error){return response({message:error.message,code:error.code},400)}
+      }
+      if(["rel_public_profile","rel_public_contributors","rel_public_youtube"].includes(url.pathname.split('/').pop())&&token===env.SUPABASE_SERVICE_ROLE_KEY){
         if(failures.profiles)return response({},failures.profiles);
         const name=url.pathname.split('/').pop(),args=JSON.parse(options.body);
         try{return response(await db.transaction(async tx=>{
@@ -111,8 +141,11 @@ export async function mockService(){
     "/api/data":"data", "/api/save":"save", "/api/avatar":"avatar", "/api/applications":"applications", "/api/profiles":"profiles", "/api/contributors":"contributors",
     "/api/applications/admin":"applications/admin",
     "/api/applications/pending":"applications/pending",
+    "/api/applications/notifications":"applications/notifications",
+    "/api/account/youtube/start":"account/youtube/start",
+    "/api/account/youtube/callback":"account/youtube/callback",
     ...Object.fromEntries(["signin","signup","session","refresh","signout","forgot-password","reset-password","confirmation"].map(name=>["/api/auth/"+name,"auth/"+name])),
-    ...Object.fromEntries(["site","profile","claim","users","username","links","contributor","contributors"].map(name=>["/api/account/"+name,"account/"+name])),
+    ...Object.fromEntries(["site","profile","claim","users","username","links","contributor","contributors","activity","applications","youtube"].map(name=>["/api/account/"+name,"account/"+name])),
   };
   async function handle(request){
     const route=routes[new URL(request.url).pathname];
@@ -120,9 +153,9 @@ export async function mockService(){
     const mod=await import("../functions/api/"+route+".js");
     const handler=mod['onRequest'+request.method[0]+request.method.slice(1).toLowerCase()];
     if(!handler)return response({error:"Method not allowed"},405);
-    return middleware({request,env,next:()=>handler({request,env})});
+    return middleware({request,env:serviceEnv,next:()=>handler({request,env:serviceEnv})});
   }
   const {onRequest:adminGate}=await import("../functions/admin/_middleware.js");
   const handleAdmin=(request,next)=>adminGate({request,env,next});
-  return {db,rpc,handle,handleAdmin,sessions,recoveryCodes,failures,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
+  return {db,rpc,handle,handleAdmin,sessions,recoveryCodes,failures,emails,googleState,googleLog,env:serviceEnv,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
 }

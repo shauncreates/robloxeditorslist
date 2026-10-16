@@ -2,13 +2,16 @@
 import {createServer} from "node:http";
 import {readFile} from "node:fs/promises";
 import {mockService} from "./mock-service.mjs";
-const service=await mockService();
+import {applicationMessage} from "../functions/_application-email.js";
+const service=await mockService({google:process.env.REL_FIXTURE_YOUTUBE==="1",origin:"http://127.0.0.1:"+(process.env.REL_PREVIEW_PORT||8789)});
 const port=Number(process.env.REL_PREVIEW_PORT||8789);
 if(!Number.isInteger(port)||port<1024||port>65535)throw new Error("Use a valid local fixture port.");
 const server=createServer(async(req,res)=>{
   try{
     const url=new URL(req.url,"http://127.0.0.1:"+port);
-    if(['/apply','/account','/profile','/admin','/reset-password','/email-verified','/changelog'].includes(url.pathname)){res.writeHead(301,{Location:url.pathname+'/'+url.search});return res.end()}
+    const applicationEmail={"/test-email/application-submitted/":"submitted","/test-email/application-approved/":"approved","/test-email/application-denied/":"rejected"}[url.pathname];
+    if(applicationEmail){const message=applicationMessage(applicationEmail,applicationEmail==='approved'?'Your examples meet our current editing criteria.':'Please share a public showreel with more examples of your chosen style.');res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});return res.end(message.html.replaceAll('https://robloxeditors.com',url.origin))}
+    if(['/apply','/account','/profile','/admin','/reset-password','/email-verified','/changelog','/youtube-privacy'].includes(url.pathname)){res.writeHead(301,{Location:url.pathname+'/'+url.search});return res.end()}
     const emailTemplate={"/test-email/signup/":"confirm-signup","/test-email/recovery/":"reset-password"}[url.pathname];
     if(emailTemplate){
       const html=(await readFile(new URL('../supabase/email-templates/'+emailTemplate+'.html',import.meta.url),'utf8'))
@@ -27,7 +30,7 @@ const server=createServer(async(req,res)=>{
     }
     let file=url.pathname==='/'?'index.html':url.pathname.slice(1);
     if(file.endsWith('/'))file+='index.html';
-    if(!/^(index\.html|data\.js|(?:admin|account|profile|signin|list|apply|reset-password|email-verified|changelog)\/index\.html|(?:assets|media)\/[a-zA-Z0-9_-]+\.(?:js|css|svg))$/.test(file)){
+    if(!/^(index\.html|data\.js|(?:admin|account|profile|signin|list|apply|reset-password|email-verified|changelog|youtube-privacy)\/index\.html|(?:assets|media)\/[a-zA-Z0-9_-]+\.(?:js|css|svg))$/.test(file)){
       res.writeHead(404);return res.end('Not found');
     }
     if(file==='admin/index.html'){

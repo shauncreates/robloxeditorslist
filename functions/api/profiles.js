@@ -10,5 +10,7 @@ export async function onRequestGet({ request, env }) {
     editor: /^[A-Za-z0-9_-]{1,120}$/, contributor: /^[a-z0-9-]{1,60}$/,
   };
   if (!Object.hasOwn(valid, kind) || !valid[kind].test(id)) throw new HttpError(400, "Invalid profile link.");
-  return json(await publicProfileRpc(env, "rel_public_profile", { ["p_" + (kind === "contributor" ? "credit" : kind)]: id }));
+  const profile=await publicProfileRpc(env, "rel_public_profile", { ["p_" + (kind === "contributor" ? "credit" : kind)]: id });
+  profile.youtube=profile.account ? await publicProfileRpc(env,"rel_public_youtube",{p_account:profile.account.id}) : null;
+  return json(profile);
 }

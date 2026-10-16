@@ -4,3 +4,13 @@
 SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVER_ONLY_SERVICE_ROLE_KEY
+
+# Optional application notifications: configure securely in the intended environment.
+RESEND_API_KEY=
+REL_EMAIL_FROM=
+
+# Optional Connect YouTube. Leave blank until the Google OAuth app is configured.
+REL_GOOGLE_CLIENT_ID=
+REL_GOOGLE_CLIENT_SECRET=
+REL_GOOGLE_TOKEN_KEY=
+REL_YOUTUBE_REDIRECT_URI=
