@@ -24,5 +24,6 @@ begin
 end $$;
 
 revoke all on function rel_private.pending_editors(text,uuid,uuid),rel_private.pending_editors_with_platform(text,uuid,uuid) from public,anon,authenticated;
+grant execute on function rel_private.pending_editors(text,uuid,uuid) to authenticated;
 notify pgrst, 'reload schema';
 commit;
