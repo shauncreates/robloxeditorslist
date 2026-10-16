@@ -8,6 +8,7 @@ export async function onRequestGet({ request, env }) {
   return json({
     available: true,
     ...(await userRpc(env, token, "rel_tiktok", { p_action: "status" })),
+    audience: await userRpc(env, token, "rel_audience_status", { p_platform: "tiktok" }),
   });
 }
 export async function onRequestPost({ request, env }) {

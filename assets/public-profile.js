@@ -19,6 +19,7 @@ function icon(name) { return `<svg class="rel-icon" aria-hidden="true"><use href
 function render(profile) {
   const {account, editor, credits, placements, styles} = profile;
   const name = account?.username || editor?.name || credits[0]?.name;
+  const clanPrefix=profile.clan?`<a class="rel-clan-prefix" href="/clans/?id=${encodeURIComponent(profile.clan.id)}" aria-label="View clan ${esc(profile.clan.name)}">[${esc(profile.clan.prefix)}]</a>`:"";
   if (!name) throw new Error("This profile has no public information.");
   document.title = name + " | Roblox Editors List";
   const picture = safeUrl(editor?.thumb);
@@ -35,10 +36,12 @@ function render(profile) {
   const software = editor?.software ? section("Editing software", `<p>${esc(editor.software)}</p>`) : "";
   const connectedTikTok=profile.tiktok&&/^[A-Za-z0-9._]{1,40}$/.test(profile.tiktok.username||"")?section("Connected TikTok",`<p>${esc(profile.tiktok.display_name)}</p><a class="rel-action" href="https://www.tiktok.com/@${encodeURIComponent(profile.tiktok.username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @${esc(profile.tiktok.username)} on TikTok in a new tab">${icon("external")}<span>@${esc(profile.tiktok.username)}</span></a><p class="hint">Ownership confirmed through TikTok on ${esc(new Date(profile.tiktok.verified_at).toLocaleDateString("en-GB"))}. This dated confirmation expires ${esc(new Date(profile.tiktok.expires_at).toLocaleDateString("en-GB"))}.</p>`):"";
   const showcase = vid ? section("Showcase", `<iframe class="showcase" src="https://www.youtube-nocookie.com/embed/${vid}" title="Showcase edit by ${esc(editor.name)}" loading="lazy" allowfullscreen></iframe>`) : "";
-  const details = contribution + connectedTikTok + about + showcase + (external.length ? section("Links", `<div class="profile-links">${external.map(link => `<a class="rel-action rel-action--reveal" href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(link.label)} (opens in a new tab)">${icon("external")}<span>${esc(link.label)}</span></a>`).join("")}</div>`) : "");
+  const connectedYouTube=profile.youtube&&/^UC[A-Za-z0-9_-]{22}$/.test(profile.youtube.channel_id||"")?section("Connected YouTube",`<p>${esc(profile.youtube.title)}</p><a class="rel-action" href="https://www.youtube.com/channel/${encodeURIComponent(profile.youtube.channel_id)}" target="_blank" rel="noopener noreferrer">${icon("external")}<span>View YouTube channel</span></a><p class="hint">Ownership confirmed through Google on ${esc(new Date(profile.youtube.verified_at).toLocaleDateString("en-GB"))}.</p>`):"";
+  const details = contribution + connectedTikTok + connectedYouTube + about + showcase + (external.length ? section("Links", `<div class="profile-links">${external.map(link => `<a class="rel-action rel-action--reveal" href="${esc(link.url)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(link.label)} (opens in a new tab)">${icon("external")}<span>${esc(link.label)}</span></a>`).join("")}</div>`) : "");
   main.innerHTML = `<div class="profile-identity">${portrait}<div><h1>${esc(name)}</h1><p class="profile-subtitle">${esc(subtitle)}</p>${styles.length ? `<div class="styles">${styles.map(style => `<span>${esc(style.name)}</span>`).join("")}</div>` : ""}</div></div>
     ${!account && credits.length ? '<p class="hint">An account has not been linked to this contributor credit.</p>' : ""}
     <div class="profile-columns${details ? '' : ' simple-profile'}">${details ? `<div>${details}</div>` : ''}<div>${ranking}${software}${account ? section("REL account", `<a class="account-profile-link rel-action rel-action--reveal" href="/profile/?account=${encodeURIComponent(account.id)}">${icon("account")}<span>${esc(account.username)}</span></a>`) : ""}</div></div>`;
+  if(clanPrefix)main.querySelector("h1").insertAdjacentHTML("afterbegin",clanPrefix);
   const image = main.querySelector("img.portrait");
   if (image) {
     const fallback = image.nextElementSibling;

@@ -4,7 +4,7 @@ const output = new URL("./dist/", import.meta.url);
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 
-for (const path of ["index.html", "data.js", "list", "admin", "account", "profile", "apply", "media", "signin", "reset-password", "email-verified", "changelog", "tiktok-privacy", "assets", "_redirects"]) {
+for (const path of ["index.html", "data.js", "list", "admin", "account", "profile", "apply", "media", "signin", "reset-password", "email-verified", "changelog", "tiktok-privacy", "youtube-privacy", "popularity", "clans", "assets", "_redirects"]) {
   await cp(new URL(`./${path}`, import.meta.url), new URL(`./dist/${path}`, import.meta.url), {
     recursive: true,
   });

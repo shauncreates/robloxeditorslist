@@ -952,6 +952,8 @@
           ><img src="../media/logo.svg" alt="Roblox Funk Editors"
         /></a>
         <nav class="list-actions" aria-label="List navigation">
+          <a class="rel-action rel-action--reveal" href="/clans/" aria-label="Clans"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#users"/></svg><span>Clans</span></a>
+          <a class="rel-action rel-action--reveal" href="/popularity/" aria-label="Popularity"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#rankings"/></svg><span>Popularity</span></a>
           <a data-icon="applications" id="cta" href="/apply/">Apply</a>
           <a class="rel-action rel-action--account rel-action--reveal" href="/account/" aria-label="My account"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#account"/></svg><span>My account</span></a>
         </nav>
@@ -1005,6 +1007,7 @@
 
         var D = null,
           byId = {},
+          clanPrefixes = {},
           styleById = {},
           key = "main",
           query = "",
@@ -1229,6 +1232,7 @@
             "</span>" +
             avatar(e) +
             '<span class="who"><span class="nm">' +
+            (clanPrefixes[e.id] ? '<a class="rel-clan-prefix" href="/clans/?id='+encodeURIComponent(clanPrefixes[e.id].id)+'" aria-label="View clan '+esc(clanPrefixes[e.id].name)+'">['+esc(clanPrefixes[e.id].prefix)+']</a>' : '') +
             esc(e.name) +
             "</span>" +
             handleHtml +
@@ -1532,6 +1536,7 @@
           try {
             D = await loadData();
             if (!valid(D)) throw new Error("bad data");
+            try { const response=await fetch('/api/clans?prefixes=1',{cache:'no-store'});clanPrefixes=response.ok?(await response.json()).prefixes:{}; } catch { clanPrefixes={}; }
           } catch (err) {
             showError();
             return;

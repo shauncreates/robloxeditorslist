@@ -1,5 +1,7 @@
 # Website screenshots
 
+The `popularity-tiktok.png`, `popularity-youtube-mobile.png`, `clan-members.png` and `clan-invitation-mobile.png` previews were captured on 16 October 2026 from this development branch's actual local UI. They use fictional accounts, audience counts and a test clan from the isolated fixture, rather than production memberships or real social statistics. Red Hat Text was loaded locally. No production request or private production data was used. See the [Popularity](../POPULARITY.md) and [Clans](../CLANS.md) guides for setup and limits.
+
 Captured on 15 October 2026 from the REL source used by this documentation PR. The images are WebP screenshots from Chromium, using the site's existing Red Hat Text and Material Symbols fonts. They are not generated illustrations or redesigned mockups.
 
 | Image | Source |

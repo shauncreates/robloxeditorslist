@@ -99,6 +99,12 @@
 
       const $ = (selector) => document.querySelector(selector);
       const form = $("#authForm");
+      const clanInvite = new URLSearchParams(
+        (location.hash || "").slice(1),
+      ).get("clan-invite");
+      const clanReturn = /^[A-Za-z0-9_-]{43}$/.test(clanInvite || "")
+        ? "/clans/#invite=" + clanInvite
+        : null;
 
       // Confirmation authorizes no action here.
       // Discard Supabase's URL fragment tokens.
@@ -113,7 +119,9 @@
         history.replaceState(null, "", "/signin/");
 
         $("#message").textContent =
-          error ||
+          (clanReturn
+            ? "Sign in to review your clan invitation. Joining requires confirmation."
+            : error) ||
           "If you followed your confirmation link, sign in to continue.";
       }
 
@@ -199,16 +207,23 @@
           $("#password").value = "";
 
           if (submittingSignup) {
-            $("#message").textContent = result.message;
+            $("#message").textContent =
+              result.message +
+              (clanReturn
+                ? " After confirming your email, reopen the invitation to join."
+                : "");
           } else {
             location.assign(
-              result.account?.roles?.some((role) =>
-                ["owner", "list_contributor", "application_reviewer"].includes(
-                  role,
-                ),
-              )
-                ? "/admin/"
-                : "/account/",
+              clanReturn ||
+                (result.account?.roles?.some((role) =>
+                  [
+                    "owner",
+                    "list_contributor",
+                    "application_reviewer",
+                  ].includes(role),
+                )
+                  ? "/admin/"
+                  : "/account/"),
             );
           }
         } catch (error) {

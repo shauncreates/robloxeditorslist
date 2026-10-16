@@ -70,6 +70,14 @@ export async function userRpc(env, token, name, args = {}) {
       "REL_TIKTOK_WAIT": [429, "Wait a minute before retrying. You can start five TikTok connections per hour."],
       "REL_TIKTOK_EXPIRED": [400, "This TikTok confirmation expired. Start again from My account."],
       "REL_TIKTOK_TAKEN": [409, "This TikTok account is already connected to another REL account. Contact an Owner for help."],
+      "REL_OAUTH_EXPIRED": [409, "This authorisation expired. Start again from My account."],
+      "REL_YOUTUBE_WAIT": [429, "Wait a minute before retrying. You can start five YouTube connections per hour."],
+      "REL_YOUTUBE_TAKEN": [409, "This YouTube channel is already connected to another REL account. Contact an Owner for help."],
+      "REL_CLAN_MEMBER": [409, "You already belong to a clan. Leave it before joining or creating another."],
+      "REL_CLAN_TAKEN": [409, "That clan name or prefix is already in use. Choose another."],
+      "REL_CLAN_INVITE": [404, "This invitation expired or was revoked. Ask the creator for a new link."],
+      "REL_CLAN_CREATOR": [409, "The creator cannot leave or remove themselves. Disband the clan to remove it and release its members."],
+      "REL_CLAN_WAIT": [429, "Too many clan actions. Try again later."],
     };
     const mapped = errors[data.message];
     if (mapped) throw new HttpError(...mapped);

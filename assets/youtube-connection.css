@@ -1,0 +1,103 @@
+.youtube-connection {
+  border-top: 1px solid #68796b;
+  margin: 28px 0;
+  padding-top: 24px;
+  overflow-wrap: anywhere;
+}
+.youtube-connection h2 {
+  font-size: 22px;
+  margin: 0 0 12px;
+}
+.youtube-connection h3 {
+  font-size: 19px;
+  margin: 0;
+}
+.youtube-connection p {
+  line-height: 1.55;
+}
+.youtube-connection .hint {
+  color: #b5c2b8;
+  font-size: 13px;
+}
+.account-wrap .youtube-connection .hint {
+  margin: 12px 0;
+}
+.youtube-connection .application-card {
+  padding: 18px;
+  border: 1px solid #68796b;
+  border-radius: 10px;
+  margin: 16px 0;
+  background: #0b100c;
+}
+.account-wrap .youtube-connection button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 11px 15px;
+  border: 1px solid #68796b;
+  border-radius: 8px;
+  color: #eef5ef;
+  background: #0b100c;
+  margin: 10px 6px 0 0;
+  font: 600 15px/1.4 var(--font);
+  cursor: pointer;
+}
+.account-wrap .youtube-connection .pri {
+  background: #7af500;
+  border-color: #7af500;
+  color: #061109;
+}
+.account-wrap .youtube-connection button:hover {
+  background: #16251a;
+  border-color: #7af500;
+}
+.account-wrap .youtube-connection .pri:hover {
+  background: #95f51e;
+}
+.account-wrap .youtube-connection button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.youtube-connection a {
+  color: #7af500;
+  text-underline-offset: 4px;
+}
+.youtube-connection .account-inline-link {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  gap: 6px;
+  text-decoration: none;
+}
+.youtube-connection .account-feature-error {
+  color: #ffb3b3;
+}
+.youtube-connection :focus-visible,
+.youtube-privacy-page :focus-visible {
+  outline: 2px solid #7af500;
+  outline-offset: 3px;
+}
+.youtube-privacy-page .account-wrap {
+  width: min(100%, 800px);
+  margin: 24px auto;
+  line-height: 1.65;
+}
+.youtube-privacy-page .account-wrap h1 {
+  text-align: left;
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  letter-spacing: -0.025em;
+}
+.youtube-privacy-page .account-wrap a {
+  color: #7af500;
+}
+@media (max-width: 400px) {
+  .youtube-connection .application-card {
+    padding: 14px;
+  }
+  .account-wrap .youtube-connection form button {
+    width: 100%;
+    margin-right: 0;
+  }
+}

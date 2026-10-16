@@ -1,4 +1,5 @@
 import { HttpError, supabaseRequest } from "./_lib.js";
+import { audienceCount } from "./_audience.js";
 
 export const scopes = ["user.info.basic", "user.info.profile"];
 export const randomToken = () =>
@@ -189,8 +190,9 @@ export async function proveAccount(config, code) {
       token.open_id.length > 200
     )
       throw new Error("Missing TikTok permissions");
+    const hasStats = String(token.scope).split(",").map(value => value.trim()).includes("user.info.stats");
     const data = await providerJson(
-      "https://open.tiktokapis.com/v2/user/info/?fields=open_id,username,display_name",
+      "https://open.tiktokapis.com/v2/user/info/?fields=open_id,username,display_name" + (hasStats ? ",follower_count" : ""),
       { headers: { Authorization: "Bearer " + accessToken } },
     );
     const user = data.data?.user;
@@ -207,6 +209,7 @@ export async function proveAccount(config, code) {
       open_id: user.open_id,
       username: user.username,
       display_name: user.display_name,
+      followers: hasStats ? audienceCount(user.follower_count) : null,
     };
   } finally {
     // Proof is accepted only after temporary TikTok access has been revoked.

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Clans | Roblox Editors List</title>
+    <meta
+      name="description"
+      content="Create a Roblox editing clan, invite members and view their REL rankings."
+    />
+    <link rel="icon" type="image/svg+xml" href="/media/icon.svg" />
+    <link rel="stylesheet" href="/assets/typography.css" />
+    <link rel="stylesheet" href="/assets/actions.css" />
+    <link rel="stylesheet" href="/assets/popularity.css" />
+    <link rel="stylesheet" href="/assets/clans.css" />
+    <script type="module" src="/assets/action-buttons.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to clans</a>
+    <header class="pop-top">
+      <div class="pop-wrap pop-bar">
+        <a class="rel-brand" href="/" aria-label="Roblox Editors List home"
+          ><img src="/media/logo.svg" alt="Roblox Editors List"
+        /></a>
+        <nav aria-label="Site navigation">
+          <a
+            class="rel-action rel-action--reveal"
+            href="/list/"
+            aria-label="View rankings"
+            ><svg class="rel-icon" aria-hidden="true">
+              <use href="/media/action-icons.svg#rankings" /></svg
+            ><span>Rankings</span></a
+          >
+          <a
+            class="rel-action rel-action--reveal"
+            href="/popularity/"
+            aria-label="Popularity"
+            ><svg class="rel-icon" aria-hidden="true">
+              <use href="/media/action-icons.svg#rankings" /></svg
+            ><span>Popularity</span></a
+          >
+          <a
+            class="rel-action rel-action--account rel-action--reveal"
+            href="/account/"
+            aria-label="My account"
+            ><svg class="rel-icon" aria-hidden="true">
+              <use href="/media/action-icons.svg#account" /></svg
+            ><span>My account</span></a
+          >
+        </nav>
+      </div>
+    </header>
+    <main class="pop-wrap" id="main">
+      <div class="pop-heading">
+        <p class="pop-kicker">The community</p>
+        <h1>Clans.</h1>
+        <p>Find your people. Keep your place on the list.</p>
+      </div>
+      <p id="clanNotice" role="status" aria-live="polite"></p>
+      <div id="clanResults" aria-busy="true">
+        <p role="status">Loading clans…</p>
+      </div>
+      <noscript
+        ><p>
+          Enable JavaScript to browse clans and review invitations.
+        </p></noscript
+      >
+    </main>
+    <footer class="pop-wrap pop-footer">
+      <p>
+        Clan prefixes are public labels. They do not grant staff permissions or
+        change rankings.
+      </p>
+    </footer>
+    <script type="module" src="/assets/clans.js"></script>
+  </body>
+</html>

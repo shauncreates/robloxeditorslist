@@ -4,11 +4,11 @@ import {readFile} from "node:fs/promises";
 import {mockService} from "./mock-service.mjs";
 const port=Number(process.env.REL_PREVIEW_PORT||8789);
 if(!Number.isInteger(port)||port<1024||port>65535)throw new Error("Use a valid local fixture port.");
-const service=await mockService({tiktok:process.env.REL_FIXTURE_TIKTOK==="1",origin:"http://127.0.0.1:"+port});
+const service=await mockService({tiktok:process.env.REL_FIXTURE_TIKTOK==="1",google:process.env.REL_FIXTURE_YOUTUBE==="1",origin:"http://127.0.0.1:"+port});
 const server=createServer(async(req,res)=>{
   try{
     const url=new URL(req.url,"http://127.0.0.1:"+port);
-    if(['/apply','/account','/profile','/admin','/reset-password','/email-verified','/changelog','/tiktok-privacy'].includes(url.pathname)){res.writeHead(301,{Location:url.pathname+'/'+url.search});return res.end()}
+    if(['/apply','/account','/profile','/admin','/reset-password','/email-verified','/changelog','/tiktok-privacy','/youtube-privacy','/popularity','/clans'].includes(url.pathname)){res.writeHead(301,{Location:url.pathname+'/'+url.search});return res.end()}
     const emailTemplate={"/test-email/signup/":"confirm-signup","/test-email/recovery/":"reset-password"}[url.pathname];
     if(emailTemplate){
       const html=(await readFile(new URL('../supabase/email-templates/'+emailTemplate+'.html',import.meta.url),'utf8'))
@@ -27,7 +27,7 @@ const server=createServer(async(req,res)=>{
     }
     let file=url.pathname==='/'?'index.html':url.pathname.slice(1);
     if(file.endsWith('/'))file+='index.html';
-    if(!/^(index\.html|data\.js|(?:admin|account|profile|signin|list|apply|reset-password|email-verified|changelog|tiktok-privacy)\/index\.html|(?:assets|media)\/[a-zA-Z0-9_-]+\.(?:js|css|svg))$/.test(file)){
+    if(!/^(index\.html|data\.js|(?:admin|account|profile|signin|list|apply|reset-password|email-verified|changelog|tiktok-privacy|youtube-privacy|popularity|clans)\/index\.html|(?:assets|media)\/[a-zA-Z0-9_-]+\.(?:js|css|svg))$/.test(file)){
       res.writeHead(404);return res.end('Not found');
     }
     if(file==='admin/index.html'){
