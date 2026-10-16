@@ -67,6 +67,9 @@ export async function userRpc(env, token, name, args = {}) {
       "REL_INVALID_USERNAME": [400, "Use 3 to 40 letters, digits, underscores or hyphens for your username."],
       "REL_USERNAME_TAKEN": [409, "That username is already taken. Choose another."],
       "REL_USERNAME_COOLDOWN": [409, "You can change your username once every 7 days. Check your account for the next change date."],
+      "REL_TIKTOK_WAIT": [429, "Wait a minute before retrying. You can start five TikTok connections per hour."],
+      "REL_TIKTOK_EXPIRED": [400, "This TikTok confirmation expired. Start again from My account."],
+      "REL_TIKTOK_TAKEN": [409, "This TikTok account is already connected to another REL account. Contact an Owner for help."],
     };
     const mapped = errors[data.message];
     if (mapped) throw new HttpError(...mapped);

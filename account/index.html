@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="../assets/typography.css">
   <link rel="stylesheet" href="../assets/account.css">
   <link rel="stylesheet" href="../assets/profile.css">
+  <link rel="stylesheet" href="../assets/tiktok-connection.css">
   <link rel="stylesheet" href="../assets/actions.css">
   <script type="module" src="../assets/action-buttons.js"></script>
   <style>
@@ -28,6 +29,7 @@
   <header><a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="../media/logo.svg" alt="Roblox Editors List"></a><nav aria-label="Account navigation"><a class="rel-action rel-action--reveal" href="/list/" aria-label="View rankings"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#rankings"/></svg><span>View rankings</span></a><a class="rel-action rel-action--reveal" id="manage" href="/admin/" aria-label="Manage REL" hidden><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#manage"/></svg><span>Manage REL</span></a><button class="rel-action rel-action--reveal" id="signout" type="button" aria-label="Sign out" hidden><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#signout"/></svg><span>Sign out</span></button></nav></header>
   <h1>My account</h1><p id="identity" class="hint"></p><a id="publicProfileLink" class="account-link rel-text-link" hidden><span>View public profile</span><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#arrow"/></svg></a>
   <form id="usernameForm" hidden><label for="accountUsername">Username</label><input id="accountUsername" minlength="3" maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9_\-]{2,39}" required autocomplete="nickname" autocapitalize="none" spellcheck="false" aria-describedby="usernameHint usernameAvailability"><p class="hint" id="usernameHint">Use 3 to 40 letters, digits, underscores or hyphens, starting with a letter or digit. Stored in lowercase. Reviews show your username; sign-in still uses your email.</p><p class="hint" id="usernameAvailability" role="status"></p><button data-icon="save" type="submit">Save username</button></form><p id="usernameNotice" role="status"></p>
+  <section id="tiktokConnection" class="tiktok-connection" aria-labelledby="tiktokTitle" aria-busy="true"><h2 id="tiktokTitle">Connect TikTok</h2><p role="status">Loading TikTok connection…</p></section>
   <p id="status" role="status">Loading your account…</p><div id="profile"></div>
-</main><script type="module" src="../assets/profile-page.js"></script></body>
+</main><script type="module" src="../assets/profile-page.js"></script><script type="module" src="../assets/tiktok-connection.js"></script></body>
 </html>

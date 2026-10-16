@@ -8,6 +8,7 @@ Use the root [README](../README.md) for the project overview and commands. These
 | [Accounts and permissions](AUTH_SETUP.md) | Roles, verified editor links, sessions and database authorization |
 | [Applications](APPLICATIONS_STAGE_1.md) | Current submission/review behavior and unfinished notification work |
 | [Public profiles](PUBLIC_PROFILES.md) | Stable profile links, contributor account links and public fields |
+| [Connect TikTok](TIKTOK_CONNECTION.md) | Optional ownership confirmation, privacy, provider setup and cleanup |
 | [Contributor tiers](CONTRIBUTOR_TIERS.md) | Owner editing and the required contributor migration |
 | [Signup email](SIGNUP_EMAIL_SETUP.md) | Supabase confirmation templates and SMTP configuration reference |
 | [Ranking preservation](RANKING_STORAGE.md) | Backups, revision history and approved hosting/data moves |
