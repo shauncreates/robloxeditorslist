@@ -404,6 +404,7 @@
       }
       .av {
         grid-area: av;
+        position: relative;
         width: var(--av);
         height: var(--av);
         border-radius: 50%;
@@ -420,17 +421,35 @@
         flex: none;
       }
       .av img {
+        position: absolute;
+        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
         display: block;
       }
+      .av img[hidden] {
+        display: none;
+      }
+      .avatar-link {
+        grid-area: av;
+        display: block;
+        border-radius: 50%;
+      }
       .who {
         grid-area: who;
         min-width: 0;
       }
+      a.who {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 44px;
+        text-decoration: none;
+      }
       .nm {
         display: block;
+        text-decoration: none;
         font-family: var(--font-num);
         font-weight: 700;
         font-size: 22px;
@@ -979,7 +998,8 @@
     <script>
       window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
-    <script>
+    <script type="module">
+      import {primaryLink, tiktokLink} from "../assets/editor-platform.js";
       (function () {
         "use strict";
 
@@ -1064,19 +1084,11 @@
             : styleById[k].name + " ranking";
         }
 
-        function ttUser(e) {
-          return String(e.tiktok || "")
-            .replace(/^@/, "")
-            .trim();
-        }
         function ttUrl(e) {
-          var u = ttUser(e);
-          if (/^[A-Za-z0-9._]{1,40}$/.test(u))
-            return "https://www.tiktok.com/@" + u;
-          return safeUrl((e.links || {}).tiktok);
+          return tiktokLink(e);
         }
         function shownHandle(e) {
-          return e.handle || (ttUser(e) ? "@" + ttUser(e) : "");
+          return primaryLink(e).handle;
         }
         function ytId(u) {
           var m = String(u || "").match(
@@ -1106,14 +1118,18 @@
           var u = safeUrl(e.thumb);
           return (
             '<span class="av">' +
+            '<span aria-hidden="true">' + esc((e.name || "?").trim().charAt(0).toUpperCase()) + '</span>' +
             (u
               ? '<img src="' +
                 esc(u) +
                 '" alt="" loading="lazy" referrerpolicy="no-referrer">'
-              : esc((e.name || "?").trim().charAt(0).toUpperCase())) +
+              : "") +
             "</span>"
           );
         }
+        document.addEventListener("error", function(event) {
+          if(event.target.matches?.(".av img"))event.target.hidden = true;
+        }, true);
         function tag(id) {
           var s = styleById[id];
           if (!s) return "";
@@ -1216,30 +1232,27 @@
 
         function rowHtml(e, rank) {
           var tier = rank <= 3 ? "t" + rank : "";
-          var tt = ttUrl(e);
+          var primary = primaryLink(e), tt = primary.url;
           var handle = shownHandle(e);
           var handleHtml = handle
             ? tt
-              ? '<a class="hd handle-link" href="' +
-                esc(tt) +
-                '" target="_blank" rel="noopener noreferrer" aria-label="Open ' +
+              ? '<span class="hd handle-link">' +
                 esc(handle) +
-                ' on TikTok in a new tab">' +
-                esc(handle) +
-                '<span class="external-mark" aria-hidden="true">↗</span></a>'
+                '<span class="external-mark" aria-hidden="true">↗</span></span>'
               : '<span class="hd">' + esc(handle) + "</span>"
             : "";
           var inner =
             '<span class="rank">#' +
             rank +
             "</span>" +
-            avatar(e) +
-            '<span class="who"><span class="nm">' +
+            (tt ? '<a class="avatar-link" href="' + esc(tt) + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + esc(e.name) + ' on ' + primary.platform + ' in a new tab">' + avatar(e) + '</a>' : avatar(e)) +
+            '<span class="who">' +
             (clanPrefixes[e.id] ? '<a class="rel-clan-prefix" href="/clans/?id='+encodeURIComponent(clanPrefixes[e.id].id)+'" aria-label="View clan '+esc(clanPrefixes[e.id].name)+'">['+esc(clanPrefixes[e.id].prefix)+']</a>' : '') +
+            (tt ? '<a class="editor-identity-link" href="' + esc(tt) + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + esc(e.name) + ' on ' + primary.platform + ' in a new tab">' : '<span>') + '<span class="nm">' +
             esc(e.name) +
-            "</span>" +
+            '</span>' +
             handleHtml +
-            "</span>" +
+            (tt ? '</a>' : '</span>') + '</span>' +
             '<span class="tags">' +
             (e.flares || []).map(tag).join("") +
             "</span>" +
@@ -1430,15 +1443,17 @@
             .filter(function (x) {
               return x.r > 0;
             });
-          var tt = ttUrl(e),
+          var primary = primaryLink(e),
+            tt = primary.url,
             vid = ytId(e.video),
-            links = extraLinks(e),
+            links = extraLinks(e).filter(l => l.url !== e.links?.youtube || primary.platform !== "YouTube"),
             note = String(e.note || "").trim();
+          if(primary.platform==="YouTube" && ttUrl(e))links.unshift({label:"TikTok",url:ttUrl(e)});
           var ext =
             (tt
               ? '<a href="' +
                 esc(tt) +
-                '" data-icon="external" target="_blank" rel="noopener noreferrer">TikTok<span class="sr"> (opens in a new tab)</span></a>'
+                '" data-icon="external" target="_blank" rel="noopener noreferrer">' + primary.platform + '<span class="sr"> (opens in a new tab)</span></a>'
               : "") +
             links
               .map(function (l) {

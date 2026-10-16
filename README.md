@@ -103,6 +103,7 @@ Applications contain an editor's profile, styles and example work. Reviewers app
 | --- | --- |
 | Ranking filters, search and editor details | [`list/index.html`](list/index.html) |
 | Public profile rendering and data | [`assets/public-profile.js`](assets/public-profile.js), [`functions/api/profiles.js`](functions/api/profiles.js) |
+| TikTok/YouTube main platforms and pictures | [`assets/editor-platform.js`](assets/editor-platform.js), [platform setup](docs/EDITOR_PLATFORMS.md) |
 | TikTok account ownership confirmation | [`assets/tiktok-connection.js`](assets/tiktok-connection.js), [setup and verification](docs/TIKTOK_CONNECTION.md) |
 | Popularity and YouTube authorisation | [`popularity/index.html`](popularity/index.html), [`functions/api/popularity.js`](functions/api/popularity.js), [setup and previews](docs/POPULARITY.md) |
 | Clans, prefixes and invitations | [`assets/clans.js`](assets/clans.js), [`functions/api/account/clans.js`](functions/api/account/clans.js), [clan guide](docs/CLANS.md) |

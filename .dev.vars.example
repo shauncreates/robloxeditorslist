@@ -19,3 +19,6 @@ REL_GOOGLE_CLIENT_ID=
 REL_GOOGLE_CLIENT_SECRET=
 REL_GOOGLE_TOKEN_KEY=
 REL_YOUTUBE_REDIRECT_URI=
+
+# Optional public YouTube channel pictures, server-only YouTube Data API key.
+REL_YOUTUBE_API_KEY=

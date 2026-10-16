@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { onRequest as middleware } from "../functions/api/_middleware.js";
 import { secureResponse } from "../functions/_security.js";
 
-export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server",RESEND_API_KEY:"fixture-email-key",REL_EMAIL_FROM:"REL <fixture@example.test>"};
+export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server",RESEND_API_KEY:"fixture-email-key",REL_EMAIL_FROM:"REL <fixture@example.test>",REL_YOUTUBE_API_KEY:"fixture-youtube-key"};
 const baseEnv=env;
 export async function mockService({tiktok=false,google=false,origin="https://rel.example.test"}={}){
   const env={...baseEnv,...(tiktok?{REL_TIKTOK_CLIENT_KEY:"fixture-client-key",REL_TIKTOK_CLIENT_SECRET:"fixture-client-secret",REL_TIKTOK_REDIRECT_URI:origin+"/api/account/tiktok/callback"}:{}),...(google?{REL_GOOGLE_CLIENT_ID:"fixture-client.apps.googleusercontent.com",REL_GOOGLE_CLIENT_SECRET:"fixture-google-secret",REL_GOOGLE_TOKEN_KEY:Buffer.alloc(32,1).toString('base64'),REL_YOUTUBE_REDIRECT_URI:origin+"/api/account/youtube/callback"}:{})};
@@ -33,14 +33,19 @@ export async function mockService({tiktok=false,google=false,origin="https://rel
       if(failures.googleToken||(params.get('grant_type')!=='refresh_token'&&params.get("code")!=="fixture-youtube-code"))return response({error:"invalid_grant"},400);
       return response({access_token:"fixture-google-token",refresh_token:"fixture-refresh-token",token_type:"Bearer",scope:failures.googleScope?"openid":"https://www.googleapis.com/auth/youtube.readonly"});
     }
-    if(google&&url.origin==="https://www.googleapis.com"){
+    if(google&&url.origin==="https://www.googleapis.com"&&new Headers(options.headers).has('Authorization')){
       googleLog.push({path:url.pathname,headers:options.headers,query:url.search});
       if(failures.googleChannels)return response({},503);
       return response({items:googleState.channels});
     }
     // Synthetic avatar responses exercise uploads without contacting TikTok.
     if(url.href==='https://www.tiktok.com/@fixture_editor')return new Response('{"avatarLarger":"https://p16.tiktokcdn.com/fixture-avatar.png"}');
-    if(url.href==='https://p16.tiktokcdn.com/fixture-avatar.png')return new Response(Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aP6cAAAAASUVORK5CYII='),c=>c.charCodeAt(0)),{headers:{'Content-Type':'image/png'}});
+    if(url.href==='https://p16.tiktokcdn.com/fixture-avatar.png'||url.href==='https://yt3.googleusercontent.com/fixture-avatar.png')return new Response(Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=','base64')),{headers:{'Content-Type':'image/png'}});
+    if(url.origin==='https://www.googleapis.com'&&url.pathname==='/youtube/v3/channels'){
+      if(failures.youtube)return response({},failures.youtube);
+      const found=url.searchParams.get('forHandle')==='@fixture_editor'||url.searchParams.get('id')==='UC'+'f'.repeat(22)||url.searchParams.get('forUsername')==='fixture_editor';
+      return response({items:found?[{id:'UC'+'f'.repeat(22),snippet:{thumbnails:{high:{url:'https://yt3.googleusercontent.com/fixture-avatar.png'}}}}]:[]});
+    }
     if(tiktok&&url.origin==='https://open.tiktokapis.com'){
       providerRequests.push({path:url.pathname,options});
       if(url.pathname==='/v2/oauth/token/'){
@@ -166,6 +171,7 @@ export async function mockService({tiktok=false,google=false,origin="https://rel
     throw new Error("Unexpected test request "+url.pathname);
   };
   const routes={
+    "/api/youtube-avatar":"youtube-avatar",
     "/api/clans":"clans", "/api/clans/invite":"clans/invite", "/api/account/clans":"account/clans",
     "/api/data":"data", "/api/popularity":"popularity", "/api/save":"save", "/api/avatar":"avatar", "/api/applications":"applications", "/api/profiles":"profiles", "/api/contributors":"contributors",
     "/api/applications/admin":"applications/admin",

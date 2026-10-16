@@ -2,6 +2,14 @@
   width: min(100%, 1040px);
   margin: 24px auto;
 }
+.account-dashboard .editor-platform-fields input,
+.account-dashboard .editor-platform-fields select {
+  border-color: #68796b;
+  min-height: 48px;
+}
+.account-dashboard .editor-platform-fields select {
+  margin: 0 0 17px;
+}
 .account-dashboard > h1 {
   text-align: left;
 }

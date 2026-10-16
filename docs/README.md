@@ -10,6 +10,7 @@ Use the root [README](../README.md) for the project overview and commands. These
 | [Applications](APPLICATIONS_STAGE_1.md) | Current submission/review behavior and unfinished notification work |
 | [Application tracking and YouTube](APPLICATION_TRACKING_AND_YOUTUBE.md) | Account-owned status, decision emails, private archives, Google authorisation and release prerequisites |
 | [Public profiles](PUBLIC_PROFILES.md) | Stable profile links, contributor account links and public fields |
+| [Editor platforms](EDITOR_PLATFORMS.md) | TikTok/YouTube ranking links, picture fetching and YouTube API setup |
 | [Connect TikTok](TIKTOK_CONNECTION.md) | Optional ownership confirmation, privacy, provider setup and cleanup |
 | [Popularity and YouTube](POPULARITY.md) | Ranked-editor audience lists, counts, Google setup and retention |
 | [Clans](CLANS.md) | Creator-set prefixes, invitation confirmation and member rankings |

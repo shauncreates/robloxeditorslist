@@ -2,6 +2,8 @@ import { HttpError, json, readJson, supabaseConfig } from "../_lib.js";
 import { hasRole, requireAccount } from "../_auth.js";
 import { boundedBytes, rasterMime, tiktokPage } from "../_remote-image.js";
 import { enforceRateLimit } from "../_rate-limit.js";
+import { youtubeChannel } from "../../assets/editor-platform.js";
+import { lookupChannel, channelPicture, youtubeAvatarUrl } from "../_youtube-avatar.js";
 
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
@@ -15,11 +17,26 @@ export async function onRequestPost({ request, env }) {
   }
   if (typeof body.editorId !== "string" || !/^[A-Za-z0-9_-]{1,80}$/.test(body.editorId)) throw new HttpError(400, "Invalid editor ID.");
 
+  const platform = body.platform ?? "TikTok";
+  if (!["TikTok", "YouTube"].includes(platform)) throw new HttpError(400, "Choose TikTok or YouTube.");
+  await enforceRateLimit(request, env, "avatar");
+  if (platform === "YouTube") {
+    const channel = youtubeChannel(body.channelUrl);
+    if (!channel) throw new HttpError(400, "Enter a YouTube channel URL, rather than a video link.");
+    try {
+      const resolved = await lookupChannel(env, channel);
+      await channelPicture(env, request, {parameter: "id", value: resolved.id}, resolved);
+      return json({ok: true, url: youtubeAvatarUrl(request, resolved.id)});
+    } catch (error) {
+      if (error instanceof HttpError) throw error;
+      throw new HttpError(502, "Could not fetch the YouTube picture. Your current picture is kept.");
+    }
+  }
+
   const username = String(body?.username || "").replace(/^@/, "").trim();
   if (!/^[A-Za-z0-9._]{1,40}$/.test(username)) {
     return json({ error: "that doesn't look like a TikTok username" }, 400);
   }
-  await enforceRateLimit(request, env, "avatar");
 
   try {
     const html = await tiktokPage(username, {

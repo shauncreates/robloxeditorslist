@@ -4,6 +4,7 @@ import {readFile} from "node:fs/promises";
 import {spawnSync} from "node:child_process";
 import vm from "node:vm";
 import { rankings } from "./auth-fixture.mjs";
+import {mainPlatform,primaryLink,avatarRequest} from "../assets/editor-platform.js";
 const mockAutosave=()=>({change(){},flush:async()=>{},pause(){},reset(){return true},dirty:false,busy:false,blocked:false});
 
 test("all browser scripts parse",async()=>{
@@ -29,6 +30,7 @@ test("Members leave admin for account while Owners retain management controls",a
       document:{querySelector:element,addEventListener(){}},window:{addEventListener(){}},location:{protocol:"https:",replace:path=>{redirect=path}},sessionStorage:{removeItem(){}},
       createAutosave:mockAutosave,watchChanges(){},announceChange(){},animateDisclosures(){},
       mountContributorEditor(){},contributorEditsPending:()=>false,clearContributorDraft(){},
+      mainPlatform,primaryLink,avatarRequest,
       getAccount:async()=>({email:"test@example.test",roles,editor_id}),
       accountFetch:async path=>({ok:true,json:async()=>path.includes('/pending')?{applications:[],total:0}:{data:structuredClone(rankings),revision:"test-revision"}}),accountApi:async()=>({ok:true,j:{users:[],total:0}}),signOut:async()=>{},
     });

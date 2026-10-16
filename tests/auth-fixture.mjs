@@ -12,7 +12,7 @@ export const rankings = {
   editors:[{id:"editor1",name:"One",flares:["style"],note:"Original"},{id:"editor2",name:"Two",flares:[],note:"Original two"}],
   lists:{main:["editor2","editor1"],style:["editor1"]},
 };
-export async function fixture({reviews=true,decisions=reviews,usernames=decisions,profiles=false,tiers=profiles,requestLimits=true,notifications=false,legacyApplications=false,tiktok=false,youtube=false,popularity=false,clans=false}={}){
+export async function fixture({reviews=true,decisions=reviews,usernames=decisions,profiles=false,tiers=profiles,requestLimits=true,notifications=false,legacyApplications=false,tiktok=false,youtube=false,popularity=false,clans=false,platforms=reviews}={}){
   const db = new PGlite();
   await db.exec(`
     create role anon; create role authenticated; create role service_role bypassrls;
@@ -64,8 +64,10 @@ export async function fixture({reviews=true,decisions=reviews,usernames=decision
   if(notifications)await db.exec(await readFile(new URL("../supabase/migrations/20261016120000_rel_application_tracking.sql",import.meta.url),"utf8"));
   if(tiktok)await db.exec(await readFile(new URL("../supabase/migrations/20261016180000_rel_tiktok_connections.sql",import.meta.url),"utf8"));
   if(youtube)await db.exec(await readFile(new URL("../supabase/migrations/20261016130000_rel_youtube_connections.sql",import.meta.url),"utf8"));
+  if(platforms)await db.exec(await readFile(new URL("../supabase/migrations/20261016160000_rel_editor_main_platform.sql",import.meta.url),"utf8"));
   if(popularity)await db.exec(await readFile(new URL("../supabase/migrations/20261016190000_rel_editor_popularity.sql",import.meta.url),"utf8"));
   if(clans)await db.exec(await readFile(new URL("../supabase/migrations/20261016200000_rel_clans.sql",import.meta.url),"utf8"));
+  if(notifications&&platforms)await db.exec(await readFile(new URL("../supabase/migrations/20261016210000_rel_integrated_pending_editors.sql",import.meta.url),"utf8"));
   const asUser = (id,sql,args=[])=>db.transaction(async tx=>{
     await tx.exec("set local role authenticated");
     await tx.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:id,session_id:sessionId(id),role:"authenticated"})]);

@@ -67,6 +67,8 @@
   .srow{display:flex;gap:10px;align-items:center}
   .srow input[type=text]{flex:1}
   .hint{color:var(--muted);font-size:13.5px;margin:6px 0 14px}
+  .editor-platform-fields input,.editor-platform-fields select{min-height:44px;border-color:#68796b}
+  .editor-platform-fields :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
   [data-act=fetchLegacy]{min-height:44px;border-color:#68796b}
   [data-act=fetchLegacy]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -126,6 +128,7 @@ import {createAutosave,watchChanges,announceChange} from "/assets/autosave.js";
 import {animateDisclosures} from "/assets/disclosure.js";
 import {mountContributorEditor,contributorEditsPending,clearContributorDraft} from "/assets/contributors-admin.js";
 import {mountActivity} from "/assets/activity-admin.js";
+import {mainPlatform,primaryLink,avatarRequest} from "/assets/editor-platform.js";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $ = s => document.querySelector(s);
 const accountListMarkup = new WeakMap();
@@ -209,14 +212,19 @@ function vEditors(){
       <div class="profile-body">
       <div class="two">
         <div><label for="editor-name-${i}">Name</label><input id="editor-name-${i}" type="text" data-t="e" data-i="${i}" data-f="name" value="${esc(e.name)}"></div>
-        <div><label for="editor-handle-${i}">Handle (optional – shows TikTok name if empty)</label><input id="editor-handle-${i}" type="text" data-t="e" data-i="${i}" data-f="handle" value="${esc(e.handle)}"></div>
+        <div><label for="editor-handle-${i}">Handle (optional)</label><input id="editor-handle-${i}" type="text" data-t="e" data-i="${i}" data-f="handle" value="${esc(e.handle)}"></div>
       </div>
+      <div class="two">
+        <div class="editor-platform-fields"><label for="editor-platform-${i}">Main platform</label><select id="editor-platform-${i}" data-t="e" data-i="${i}" data-f="main_platform">${["TikTok","YouTube"].map(p=>`<option ${mainPlatform(e)===p?'selected':''}>${p}</option>`).join("")}</select></div>
+        <div class="editor-platform-fields"><label for="editor-youtube-${i}">YouTube channel URL</label><input id="editor-youtube-${i}" type="url" data-t="link" data-i="${i}" data-f="youtube" value="${esc(e.links?.youtube)}" placeholder="https://www.youtube.com/@yourchannel"></div>
+      </div>
+      <p class="hint">The main platform sets the ranking link and picture source. Use Fetch to update the picture. Both social links are kept.</p>
       <div class="two">
         <div><label for="editor-tiktok-${i}">TikTok username (no @)</label><input id="editor-tiktok-${i}" type="text" data-t="e" data-i="${i}" data-f="tiktok" value="${esc(e.tiktok)}" placeholder="e.g. someeditor"></div>
         <div><p class="hint">Profile picture</p>
           <div class="inline" style="margin:0">
             ${/^https?:\/\//.test(e.thumb || "") ? `<img src="${esc(e.thumb)}" alt="" referrerpolicy="no-referrer" style="width:38px;height:38px;border-radius:9px;object-fit:cover">` : ""}
-            ${ONLINE ? `<button class="sm" data-act="fetchPic" data-i="${i}" ${pictureFetchRunning?'disabled':''}>Fetch from TikTok</button>` : `<span class="hint" style="margin:0">Fetching works on the live /admin</span>`}
+            ${ONLINE ? `<button class="sm" data-act="fetchPic" data-i="${i}" ${pictureFetchRunning?'disabled':''}>Fetch from ${mainPlatform(e)}</button>` : `<span class="hint" style="margin:0">Fetching works on the live /admin</span>`}
           </div>
         </div>
       </div>
@@ -229,7 +237,7 @@ function vEditors(){
         <div><label for="editor-thumb-${i}">Profile picture URL (filled by Fetch, or paste your own)</label><input id="editor-thumb-${i}" type="url" data-t="e" data-i="${i}" data-f="thumb" value="${esc(e.thumb)}" placeholder="https://…"></div>
         <div><label for="editor-video-${i}">Showcase YouTube link (optional)</label><input id="editor-video-${i}" type="url" data-t="e" data-i="${i}" data-f="video" value="${esc(e.video)}" placeholder="https://youtube.com/watch?v=…"></div>
       </div>
-      <div class="two">${LINKS.map(k => `<div><label for="editor-${k}-${i}">${k}</label><input id="editor-${k}-${i}" type="url" data-t="link" data-i="${i}" data-f="${k}" value="${esc((e.links || {})[k])}" placeholder="https://…"></div>`).join("")}</div>
+      <div class="two">${LINKS.filter(k=>k!=="youtube").map(k => `<div><label for="editor-${k}-${i}">${k}</label><input id="editor-${k}-${i}" type="url" data-t="link" data-i="${i}" data-f="${k}" value="${esc((e.links || {})[k])}" placeholder="https://…"></div>`).join("")}</div>
       ${can("list_contributor") ? `<div style="margin-top:14px"><button class="bad sm" data-act="delEditor" data-i="${i}">Delete editor</button></div>` : ""}
       </div></details>`).join("") + (can("list_contributor") ? `<details class="card profile-card" id="pendingQueue"><summary id="pendingTitle">Pending</summary><div class="profile-body"><p class="hint">Approved applications awaiting conversion to an editor profile.</p><p id="pendingNotice" role="status">Loading approved applications…</p><div id="pendingList"></div></div></details>` : "");
 }
@@ -462,6 +470,10 @@ document.addEventListener("input", ev => {
   else if (k === "s") S.styles[i][t.dataset.f] = t.value;
   else if (k === "site") S.site[t.dataset.f] = t.value;
   else return;
+  if(t.dataset.f==="main_platform"){
+    const button=document.querySelector(`[data-act="fetchPic"][data-i="${i}"]`);
+    if(button)button.textContent="Fetch from "+mainPlatform(S.editors[i]);
+  }
   save();
 });
 
@@ -523,7 +535,7 @@ document.addEventListener("click", async ev => {
   }
   if (a === "tab") { tab = b.dataset.v; return view(); }
   if (a === "addEditor") {
-    const e = { id: "e" + Date.now().toString(36), name: "New editor", handle: "", tiktok: "", flares: [], note: "", thumb: "", video: "", links: {} };
+    const e = { id: "e" + Date.now().toString(36), name: "New editor", handle: "", main_platform: "TikTok", tiktok: "", flares: [], note: "", thumb: "", video: "", links: {} };
     openIdx = S.editors.length;
     S.editors.push(e); (S.lists.main ||= []).push(e.id);
   }
@@ -590,7 +602,6 @@ function isLegacyBlobPicture(value) {
     return url.protocol === "https:" && /^[a-z0-9-]+\.(?:public|private)\.blob\.vercel-storage\.com$/i.test(url.hostname);
   } catch { return false; }
 }
-const ttUser = e => String(e.tiktok || "").replace(/^@/, "").trim();
 document.addEventListener("toggle", ev => {
   const d = ev.target;
   if (!d.matches || !d.matches("details.card[data-idx]")) return;
@@ -600,12 +611,12 @@ document.addEventListener("toggle", ev => {
 
 async function fetchOne(i){
   const e = S.editors[i];
-  const username=ttUser(e),previous=e.thumb;
-  if (!username) return "no TikTok username";
+  const source=avatarRequest(e),previous=e.thumb;
+  if (!primaryLink(e).url) return mainPlatform(e)==="YouTube"?"add a valid YouTube channel URL":"no TikTok username";
   try {
-    const { ok, status, j } = await api("/api/avatar", {editorId:e.id,username});
+    const { ok, status, j } = await api("/api/avatar", source);
     if (ok && j.url) {
-      if(!S.editors.includes(e)||e.thumb!==previous||ttUser(e)!==username)return "profile changed during the fetch; the current picture is kept";
+      if(!S.editors.includes(e)||e.thumb!==previous||JSON.stringify(avatarRequest(e))!==JSON.stringify(source))return "profile changed during the fetch; the current picture is kept";
       e.thumb = j.url; save(); return "";
     }
     if (status === 401) return "session expired – log in again";
@@ -622,9 +633,9 @@ async function runFetch(idx, replaceLegacy = false){
     if(autosave.dirty||autosave.blocked)return setStatus("Resolve unsaved changes before replacing pictures.","bad");
   }
   const todo = idx === null
-    ? S.editors.filter(e => replaceLegacy ? isLegacyBlobPicture(e.thumb) : ttUser(e) && !e.thumb).map(e=>e.id)
+    ? S.editors.filter(e => replaceLegacy ? isLegacyBlobPicture(e.thumb) : primaryLink(e).url && !e.thumb).map(e=>e.id)
     : [S.editors[idx]?.id];
-  if (!todo.length) return setStatus(replaceLegacy?"No Vercel pictures remain.":"Nothing to fetch (add TikTok usernames first)");
+  if (!todo.length) return setStatus(replaceLegacy?"No Vercel pictures remain.":"Nothing to fetch. Add a TikTok username or YouTube channel URL first.");
   pictureFetchRunning=true;
   document.querySelectorAll('[data-act="fetchPic"],[data-act="fetchAll"],[data-act="fetchLegacy"]').forEach(button=>{button.disabled=true});
   const fails = [];let fetched=0,stopped=false;
@@ -660,7 +671,7 @@ const autosave = createAutosave({
   async write(){
     if(!S||!revision||!canEdit())throw new Error("Live rankings must load before saving.");
     const contributor=can("list_contributor"),profile=S.editors.find(e=>e.id===account.editor_id);
-    const fields=["name","handle","tiktok","note","thumb","video","links","software"];
+    const fields=["name","handle","tiktok","note","thumb","video","links","software","main_platform"];
     const payload=contributor?{data:S,revision}:{profile:Object.fromEntries(fields.filter(k=>profile&&k in profile).map(k=>[k,profile[k]])),revision};
     const {ok,status,j}=await api(contributor?"/api/save":"/api/account/profile",structuredClone(payload));
     if(!ok)throw Object.assign(new Error(j.error||"Save failed."),{status});

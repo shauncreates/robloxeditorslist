@@ -1,6 +1,7 @@
 import { accountApi, accountFetch, getAccount, signOut } from "./account.js";
 import { createAutosave, watchChanges, announceChange } from "./autosave.js";
 import { animateDisclosures } from "./disclosure.js";
+import { mainPlatform, avatarRequest } from "./editor-platform.js";
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -52,20 +53,32 @@ function render() {
     $("#profile").innerHTML = `<p class="hint">Edit your own profile. Changes save automatically; rankings and style membership are managed by List Contributors.</p>
       <details class="card profile-card" open><summary>${esc(editor.name)}</summary><div class="profile-body"><form id="profileForm">
       <div class="two">${input("name","Name")}${input("handle","Handle")}${input("tiktok","TikTok username (without @)")}${input("software","Editing software")}</div>
-      ${input("thumb","Profile picture URL","url",2000)}<button type="button" id="fetchPic">Fetch picture from TikTok</button>
+      <div class="two editor-platform-fields"><div><label for="profile-main_platform">Main platform</label><select id="profile-main_platform" data-field="main_platform">${["TikTok","YouTube"].map(p=>`<option ${mainPlatform(editor)===p?'selected':''}>${p}</option>`).join("")}</select></div>
+      <div><label for="link-youtube">YouTube channel URL</label><input id="link-youtube" data-link="youtube" type="url" maxlength="2000" value="${esc(editor.links?.youtube)}" placeholder="https://www.youtube.com/@yourchannel"></div></div>
+      <p class="hint">The main platform sets your ranking link and picture source. Fetch a picture after changing it. Both social links are kept.</p>
+      ${input("thumb","Profile picture URL","url",2000)}<button type="button" id="fetchPic">Fetch picture from ${mainPlatform(editor)}</button>
+      <p id="pictureNotice" class="hint" role="status"></p>
       ${input("video","Showcase YouTube URL","url",2000)}
       <label for="profile-note">About</label><textarea id="profile-note" data-field="note" maxlength="2000">${esc(editor.note)}</textarea>
-      <div class="two">${links.map(link=>`<div><label for="link-${link}">${link[0].toUpperCase()+link.slice(1)} URL</label><input id="link-${link}" data-link="${link}" type="url" maxlength="2000" value="${esc(editor.links?.[link])}"></div>`).join("")}</div>
+      <div class="two">${links.filter(link=>link!=="youtube").map(link=>`<div><label for="link-${link}">${link[0].toUpperCase()+link.slice(1)} URL</label><input id="link-${link}" data-link="${link}" type="url" maxlength="2000" value="${esc(editor.links?.[link])}"></div>`).join("")}</div>
       <button id="saveNow" type="submit" class="pri">Save now</button></form></div></details>`;
     $("#profileForm").addEventListener("input", () => autosave.change());
     $("#profileForm").addEventListener("submit", event => {event.preventDefault();void autosave.flush()});
+    const pictureSource=()=>avatarRequest({id:account.editor_id,main_platform:$("#profile-main_platform").value,tiktok:$("#profile-tiktok").value,links:{youtube:$("#link-youtube").value,tiktok:editor.links?.tiktok}});
+    $("#profile-main_platform").addEventListener("change",()=>{$("#fetchPic").textContent="Fetch picture from "+$("#profile-main_platform").value});
     $("#fetchPic").addEventListener("click", async event => {
       const button = event.currentTarget;button.disabled = true;
+      const form=$("#profileForm"),notice=$("#pictureNotice");
+      const source=pictureSource(),previous=$("#profile-thumb").value;
+      notice.textContent="Fetching picture from "+source.platform+"…";
       try {
-        const {ok,j} = await accountApi("/api/avatar", {editorId:account.editor_id,username:$("#profile-tiktok").value.trim().replace(/^@/, "")});
+        const {ok,j} = await accountApi("/api/avatar", source);
         if (!ok) throw new Error(j.error || "Could not fetch the picture.");
+        if($("#profileForm")!==form)return;
+        if(JSON.stringify(pictureSource())!==JSON.stringify(source)||$("#profile-thumb").value!==previous)throw new Error("Your profile changed during the fetch. Your current picture is kept; fetch again when ready.");
         $("#profile-thumb").value = j.url;autosave.change();
-      } catch(error) {status(error.message,true)} finally {button.disabled=false}
+        notice.textContent="Picture fetched. Changes save automatically.";
+      } catch(error) {notice.textContent=error.message} finally {button.disabled=false}
     });
     animateDisclosures($("#profile"));
   } else {
