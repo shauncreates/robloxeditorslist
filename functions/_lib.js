@@ -47,7 +47,7 @@ export async function supabaseRequest(env, path, options = {}) {
 }
 
 export class HttpError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
+  constructor(status, message, headers = {}) { super(message); this.status = status; this.headers = headers; }
 }
 
 // Enforce bytes actually received, including requests without Content-Length.

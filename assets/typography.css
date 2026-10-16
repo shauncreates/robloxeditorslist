@@ -9,6 +9,11 @@ body {
   font-family: var(--font);
 }
 
+.rel-policy-links{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:20px;font-size:14px}
+.rel-policy-links a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent,#7af500);text-decoration:none}
+.rel-policy-links a:hover{text-decoration:underline;text-underline-offset:4px}
+.rel-policy-links a:focus-visible{outline:2px solid var(--accent,#7af500);outline-offset:3px}
+
 button, input, select, textarea, option, optgroup {
   font-family: inherit;
 }

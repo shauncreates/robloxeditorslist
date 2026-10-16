@@ -56,9 +56,11 @@
         <div class="field full"><label for="notes">Anything else we should know? (optional)</label><textarea id="notes" name="notes" maxlength="1000" placeholder="A little about your experience or what makes your edits yours."></textarea></div>
       </div>
       <label class="consent"><input id="consent" type="checkbox" required><span>I confirm these links are mine or that I have permission to share them, and I understand my application will be reviewed manually.</span></label>
+      <p class="fine">Read the <a href="/privacy/">Privacy notice</a> and <a href="/terms/">Terms</a> before applying. Share only the information needed to review your work.</p>
       <p style="margin:18px 0 0"><button class="pri" id="submitButton" type="submit" disabled>Submit application</button></p>
       <p class="fine">Applications stay private to the REL team. Approved applications enter the Contributor queue; your editor profile becomes public when a Contributor adds it to the list. Submission notes and review reasons stay private.</p>
     </form>
+    <nav class="rel-policy-links" aria-label="Website policies"><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/terms/">Terms</a></nav>
   </main>
   <script type="module">
     import {watchChanges,announceChange} from "../assets/autosave.js";

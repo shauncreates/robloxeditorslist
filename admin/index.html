@@ -205,12 +205,12 @@ function vEditors(){
       <summary><span>${esc(e.name || "(unnamed)")}</span><span class="sub">${esc((e.flares || []).map(f => S.styles.find(s => s.id === f)?.name).filter(Boolean).join(", "))}</span></summary>
       <div class="profile-body">
       <div class="two">
-        <div><label>Name</label><input type="text" data-t="e" data-i="${i}" data-f="name" value="${esc(e.name)}"></div>
-        <div><label>Handle (optional – shows TikTok name if empty)</label><input type="text" data-t="e" data-i="${i}" data-f="handle" value="${esc(e.handle)}"></div>
+        <div><label for="editor-name-${i}">Name</label><input id="editor-name-${i}" type="text" data-t="e" data-i="${i}" data-f="name" value="${esc(e.name)}"></div>
+        <div><label for="editor-handle-${i}">Handle (optional – shows TikTok name if empty)</label><input id="editor-handle-${i}" type="text" data-t="e" data-i="${i}" data-f="handle" value="${esc(e.handle)}"></div>
       </div>
       <div class="two">
-        <div><label>TikTok username (no @)</label><input type="text" data-t="e" data-i="${i}" data-f="tiktok" value="${esc(e.tiktok)}" placeholder="e.g. someeditor"></div>
-        <div><label>Profile picture</label>
+        <div><label for="editor-tiktok-${i}">TikTok username (no @)</label><input id="editor-tiktok-${i}" type="text" data-t="e" data-i="${i}" data-f="tiktok" value="${esc(e.tiktok)}" placeholder="e.g. someeditor"></div>
+        <div><p class="hint">Profile picture</p>
           <div class="inline" style="margin:0">
             ${/^https?:\/\//.test(e.thumb || "") ? `<img src="${esc(e.thumb)}" alt="" referrerpolicy="no-referrer" style="width:38px;height:38px;border-radius:9px;object-fit:cover">` : ""}
             ${ONLINE ? `<button class="sm" data-act="fetchPic" data-i="${i}" ${pictureFetchRunning?'disabled':''}>Fetch from TikTok</button>` : `<span class="hint" style="margin:0">Fetching works on the live /admin</span>`}
@@ -218,15 +218,15 @@ function vEditors(){
         </div>
       </div>
       <label for="editor-software-${i}">Editing software</label><input id="editor-software-${i}" type="text" maxlength="120" data-t="e" data-i="${i}" data-f="software" value="${esc(e.software)}" placeholder="e.g. After Effects, CapCut">
-<label>Flares (styles)</label>
-      <div class="flarepick">${S.styles.map(s => `<label><input type="checkbox" ${can("list_contributor") ? "" : "disabled"} data-t="flare" data-i="${i}" data-s="${esc(s.id)}" ${(e.flares || []).includes(s.id) ? "checked" : ""}> <span style="color:${esc(s.color)}">●</span> ${esc(s.name)}</label>`).join("") || `<span class="hint">Create styles in the Styles tab first.</span>`}</div>
-      <label>About / note</label>
-      <textarea data-t="e" data-i="${i}" data-f="note">${esc(e.note)}</textarea>
+<p id="editor-styles-${i}" class="hint">Flares (styles)</p>
+      <div class="flarepick" role="group" aria-labelledby="editor-styles-${i}">${S.styles.map(s => `<label><input type="checkbox" ${can("list_contributor") ? "" : "disabled"} data-t="flare" data-i="${i}" data-s="${esc(s.id)}" ${(e.flares || []).includes(s.id) ? "checked" : ""}> <span style="color:${esc(s.color)}">●</span> ${esc(s.name)}</label>`).join("") || `<span class="hint">Create styles in the Styles tab first.</span>`}</div>
+      <label for="editor-note-${i}">About / note</label>
+      <textarea id="editor-note-${i}" data-t="e" data-i="${i}" data-f="note">${esc(e.note)}</textarea>
       <div class="two">
-        <div><label>Profile picture URL (filled by Fetch, or paste your own)</label><input type="url" data-t="e" data-i="${i}" data-f="thumb" value="${esc(e.thumb)}" placeholder="https://…"></div>
-        <div><label>Showcase YouTube link (optional)</label><input type="url" data-t="e" data-i="${i}" data-f="video" value="${esc(e.video)}" placeholder="https://youtube.com/watch?v=…"></div>
+        <div><label for="editor-thumb-${i}">Profile picture URL (filled by Fetch, or paste your own)</label><input id="editor-thumb-${i}" type="url" data-t="e" data-i="${i}" data-f="thumb" value="${esc(e.thumb)}" placeholder="https://…"></div>
+        <div><label for="editor-video-${i}">Showcase YouTube link (optional)</label><input id="editor-video-${i}" type="url" data-t="e" data-i="${i}" data-f="video" value="${esc(e.video)}" placeholder="https://youtube.com/watch?v=…"></div>
       </div>
-      <div class="two">${LINKS.map(k => `<div><label>${k}</label><input type="url" data-t="link" data-i="${i}" data-f="${k}" value="${esc((e.links || {})[k])}" placeholder="https://…"></div>`).join("")}</div>
+      <div class="two">${LINKS.map(k => `<div><label for="editor-${k}-${i}">${k}</label><input id="editor-${k}-${i}" type="url" data-t="link" data-i="${i}" data-f="${k}" value="${esc((e.links || {})[k])}" placeholder="https://…"></div>`).join("")}</div>
       ${can("list_contributor") ? `<div style="margin-top:14px"><button class="bad sm" data-act="delEditor" data-i="${i}">Delete editor</button></div>` : ""}
       </div></details>`).join("") + (can("list_contributor") ? `<details class="card profile-card" id="pendingQueue"><summary id="pendingTitle">Pending</summary><div class="profile-body"><p class="hint">Approved applications awaiting conversion to an editor profile.</p><p id="pendingNotice" role="status">Loading approved applications…</p><div id="pendingList"></div></div></details>` : "");
 }
@@ -249,8 +249,8 @@ function vStyles(){
   return `<p class="hint">Each style becomes a flare and its own ranked list on the site.</p>` +
     S.styles.map((s, i) => `
     <div class="card srow">
-      <input type="color" data-t="s" data-i="${i}" data-f="color" value="${esc(s.color)}">
-      <input type="text" data-t="s" data-i="${i}" data-f="name" value="${esc(s.name)}">
+      <input aria-label="Colour for ${esc(s.name)}" type="color" data-t="s" data-i="${i}" data-f="color" value="${esc(s.color)}">
+      <input aria-label="Style name" type="text" data-t="s" data-i="${i}" data-f="name" value="${esc(s.name)}">
       <button class="bad sm" data-act="delStyle" data-i="${i}">Delete</button>
     </div>`).join("") +
     `<button class="pri" data-act="addStyle">+ Add style</button>`;
@@ -431,7 +431,7 @@ document.addEventListener("click",async event=>{
 });
 
 function vSite(){
-  const f = (k, l) => `<label>${l}</label><input type="text" data-t="site" data-f="${k}" value="${esc(S.site[k])}">`;
+  const f = (k, l) => `<label for="site-${k}">${l}</label><input id="site-${k}" type="text" data-t="site" data-f="${k}" value="${esc(S.site[k])}">`;
   return `<div class="card">${f("title","Site title")}${f("subtitle","Subtitle")}${f("updated","Last updated text")}${f("tiktok","Your TikTok username (no @) – shows a “DM me on TikTok” button for rank suggestions")}${f("contact","Backup contact link (mailto: or URL, used only if no TikTok username is set)")}</div>`;
 }
 

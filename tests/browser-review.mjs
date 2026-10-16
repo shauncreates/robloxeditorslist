@@ -17,9 +17,13 @@ const version = await (await fetch("http://127.0.0.1:9223/json/version")).json()
 const socket = new WebSocket(version.webSocketDebuggerUrl);
 await new Promise((resolve, reject) => {socket.addEventListener("open", resolve);socket.addEventListener("error", reject)});
 let nextId = 0;
-const pending = new Map(), exceptions = [];
+const pending = new Map(), exceptions = [], youtubeRequests = [];
 socket.addEventListener("message", event => {
   const message = JSON.parse(event.data);
+  if(message.method === "Fetch.requestPaused") {
+    youtubeRequests.push(message.params.request.url);
+    void send("Fetch.fulfillRequest", {requestId:message.params.requestId,responseCode:200,responseHeaders:[{name:"Content-Type",value:"text/html"}],body:Buffer.from('<!doctype html><title>Local player fixture</title><p>Player request verified; external playback is not tested.</p>').toString('base64')}, message.sessionId);
+  }
   if(message.method === "Runtime.exceptionThrown") exceptions.push(message.params.exceptionDetails.text);
   if(!message.id) return;
   const callback = pending.get(message.id);pending.delete(message.id);
@@ -99,6 +103,40 @@ await mkdir(new URL("../.wrangler/ui-review/",import.meta.url),{recursive:true})
 const contexts = [];
 try {
   const publicPage = await newPage();contexts.push(publicPage);
+  for(const path of ["privacy","cookies","terms"]) {
+    await navigate(publicPage,"/"+path+"/");await checkLayout(publicPage,path);
+    assert.equal(await evaluate(publicPage,"document.querySelector('.policy-nav [aria-current=page]').pathname"),"/"+path+"/");
+    assert.equal(await evaluate(publicPage,"[...document.querySelectorAll('.policy-nav a')].every(a=>a.getBoundingClientRect().height>=44)"),true);
+  }
+  await click(publicPage,'.policy-nav a[href="/privacy/"]');await waitFor(publicPage,"location.pathname==='/privacy/' && document.readyState==='complete'");
+  assert.equal(await evaluate(publicPage,"document.querySelector('a[href^=\"mailto:\"]').getAttribute('href')"),"mailto:shaun@seeshaun.xyz");
+  await evaluate(publicPage,"(()=>{window.relCspViolation=false;document.addEventListener('securitypolicyviolation',e=>{if(e.effectiveDirective==='script-src-elem')window.relCspViolation=true});const script=document.createElement('script');script.textContent='window.relInjectedScript=true';document.body.append(script)})()");
+  await waitFor(publicPage,"window.relCspViolation===true");
+  assert.equal(await evaluate(publicPage,"window.relInjectedScript===undefined"),true);
+  console.log("PASS CSP rejects an injected inline script; policy pages, navigation, contact and responsive layouts.");
+
+  const videoPage = await newPage();contexts.push(videoPage);
+  await send("Fetch.enable",{patterns:[{urlPattern:"https://www.youtube-nocookie.com/*"}]},videoPage.sessionId);
+  await send("Page.addScriptToEvaluateOnNewDocument",{source:`{const original=window.fetch;window.fetch=async(...args)=>{const response=await original(...args);if(!['/api/profiles','/api/data'].some(path=>String(args[0]).startsWith(path))||!response.ok)return response;const data=await response.json();if(data.editor)data.editor.video='https://www.youtube.com/watch?v=abcdefghijk';if(data.editors)data.editors[0].video='https://www.youtube.com/watch?v=abcdefghijk';return new Response(JSON.stringify(data))}}`},videoPage.sessionId);
+  await navigate(videoPage,"/profile/?editor=editor1");await waitFor(videoPage,"document.querySelector('button[data-youtube]')!==null");
+  await checkLayout(videoPage,"video-before-choice");
+  assert.equal(youtubeRequests.length,0);
+  assert.equal(await evaluate(videoPage,"document.querySelector('iframe')===null"),true);
+  await evaluate(videoPage,"document.querySelector('button[data-youtube]').focus()");await key(videoPage,"Enter","Enter",13);
+  await waitFor(videoPage,"document.querySelector('.video-consent iframe')!==null");
+  for(let tries=0;!youtubeRequests.length&&tries<50;tries++)await delay(100);
+  assert.deepEqual(youtubeRequests,["https://www.youtube-nocookie.com/embed/abcdefghijk"]);
+  await checkLayout(videoPage,"video-after-choice");
+  await navigate(videoPage,"/list/");await waitFor(videoPage,"document.querySelector('[data-profile=editor1]')!==null");
+  await click(videoPage,'[data-profile="editor1"]');await waitFor(videoPage,"document.querySelector('#drawer button[data-youtube]')!==null");
+  assert.equal(youtubeRequests.length,1);
+  assert.equal(await evaluate(videoPage,"document.querySelector('#drawer iframe')===null"),true);
+  await checkLayout(videoPage,"drawer-video-before-choice");
+  await click(videoPage,'#drawer button[data-youtube]');await waitFor(videoPage,"document.querySelector('#drawer iframe')!==null");
+  await evaluate(videoPage,"document.querySelector('#drawer [data-close]').focus()");await key(videoPage,"Escape","Escape",27);
+  await waitFor(videoPage,"!document.querySelector('#drawer').open && document.querySelector('#drawer iframe')===null");
+  await click(videoPage,'[data-profile="editor1"]');await waitFor(videoPage,"document.querySelector('#drawer button[data-youtube]')!==null");
+  console.log("PASS YouTube loads only after a keyboard/click choice on both profile views; Escape removes the player and reopening requires a new choice. Player network request intercepted locally.");
   await navigate(publicPage,"/changelog/");await checkLayout(publicPage,"changelog");
   const slashless=await fetch(base+'/apply',{redirect:'manual'});assert.equal(slashless.status,301);assert.equal(slashless.headers.get('location'),'/apply/');
   const profileRedirect=await fetch(base+'/profile?editor=editor1',{redirect:'manual'});assert.equal(profileRedirect.status,301);assert.equal(profileRedirect.headers.get('location'),'/profile/?editor=editor1');
@@ -123,7 +161,7 @@ try {
   await screenshot(publicPage,"public-profile-200-percent");await evaluate(publicPage,"document.querySelector('.profile-wrap').style.zoom=''");
   const hostileFixture=await send("Page.addScriptToEvaluateOnNewDocument",{source:`{const original=window.fetch;window.fetch=async(...args)=>{const response=await original(...args);if(!String(args[0]).startsWith('/api/profiles')||!response.ok)return response;const data=await response.json();data.editor.note='<img src=x onerror=window.relXss=true>';data.editor.links={unsafe:'javascript:window.relXss=true',credentials:'https://user:password@example.test/',plain:'http://example.test/',safe:'https://example.test/fixture'};data.editor.video='https://youtube.com.untrusted.test/watch?v=abcdefghijk';return new Response(JSON.stringify(data))}}`},publicPage.sessionId);
   await navigate(publicPage,"/profile/?editor=editor1");await waitFor(publicPage,"document.querySelector('h1').textContent==='member'");
-  assert.equal(await evaluate(publicPage,"window.relXss===undefined && document.querySelector('main').textContent.includes('<img src=x onerror=') && !document.querySelector('main img[src=x]') && !document.querySelector('.showcase')"),true);
+  assert.equal(await evaluate(publicPage,"window.relXss===undefined && document.querySelector('main').textContent.includes('<img src=x onerror=') && !document.querySelector('main img[src=x]') && !document.querySelector('.video-consent')"),true);
   assert.deepEqual(await evaluate(publicPage,"[...document.querySelectorAll('.profile-links a')].map(a=>a.href)"),['https://example.test/fixture']);
   await checkLayout(publicPage,"public-profile-safe-content");
   await send("Page.removeScriptToEvaluateOnNewDocument",{identifier:hostileFixture.identifier},publicPage.sessionId);
@@ -157,6 +195,7 @@ try {
   assert.equal(await evaluate(publicPage,"document.activeElement.id"),"email");
   assert.notEqual(await evaluate(publicPage,"getComputedStyle(document.activeElement).outlineStyle"),"none");
   await click(publicPage,"#switch");await checkLayout(publicPage,"signup");
+  assert.equal(await evaluate(publicPage,"!document.querySelector('#signupPolicies').hidden && document.querySelector('#signupPolicies a[href=\"/privacy/\"]')!==null"),true);
   await fill(publicPage,"#email","browser-fixture@example.test");await fill(publicPage,"#password","SignupTest123");
   await click(publicPage,"#submit");
   assert.equal(await evaluate(publicPage,"document.querySelector('#signupUsername').validity.valueMissing"),true);
@@ -182,6 +221,12 @@ try {
   await click(publicPage,'a[href*="/reset-password/"]');await waitFor(publicPage,"location.pathname==='/reset-password/'");
 
   const owner = await newPage();contexts.push(owner);await signIn(owner,"owner");
+  assert.deepEqual(await evaluate(owner,"[...document.querySelectorAll('#app input,#app textarea,#app select')].filter(e=>!e.labels?.length&&!e.getAttribute('aria-label')&&!e.getAttribute('aria-labelledby')).map(e=>e.outerHTML)"),[]);
+  await click(owner,'[data-act="tab"][data-v="site"]');
+  await waitFor(owner,"document.querySelector('[data-t=site]')!==null");
+  assert.equal(await evaluate(owner,"[...document.querySelectorAll('[data-t=site]')].every(e=>e.labels.length===1)"),true);
+  await click(owner,'[data-act="tab"][data-v="editors"]');
+  await waitFor(owner,"document.querySelector('.profile-card')!==null");
   await evaluate(owner, `(async()=>{
     const site=await (await fetch('/api/account/site')).json();
     site.data.editors[0].tiktok='fixture_editor';

@@ -1,10 +1,12 @@
 import { HttpError, json, readJson } from "../../_lib.js";
 import { authRequest } from "../../_auth.js";
 import { validEmail } from "../../_password.js";
+import { enforceRateLimit } from "../../_rate-limit.js";
 
 export async function onRequestPost({ request, env }) {
   const body = await readJson(request, 4000);
   if (!validEmail(body.email)) throw new HttpError(400, "Enter a valid email address.");
+  await enforceRateLimit(request, env, "recover");
   const redirect = new URL("/reset-password/", request.url).href;
   const response = await authRequest(env, `recover?redirect_to=${encodeURIComponent(redirect)}`, {
     method: "POST", body: JSON.stringify({ email: body.email.trim() }),

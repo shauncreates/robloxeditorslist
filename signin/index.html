@@ -65,6 +65,7 @@
           autocomplete="current-password"
         />
 
+        <p class="hint" id="signupPolicies" hidden>Creating an account means agreeing to the <a href="/terms/">Terms</a>. Read the <a href="/privacy/">Privacy notice</a> for how REL uses your information.</p>
         <button class="pri" id="submit" data-icon="account">Sign in</button>
       </form>
 
@@ -92,6 +93,7 @@
       <p class="hint">
         New accounts are members until an owner grants additional access.
       </p>
+      <nav class="rel-policy-links" aria-label="Website policies"><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/terms/">Terms</a></nav>
     </main>
 
     <script type="module">
@@ -135,6 +137,7 @@
         $("#password").minLength = signup ? 8 : 1;
 
         $("#signupUsernameField").hidden = !signup;
+        $("#signupPolicies").hidden = !signup;
         $("#signupUsername").disabled = !signup;
         $("#signupUsername").required = signup;
 

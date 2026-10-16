@@ -95,6 +95,8 @@ Database migration status and SMTP/provider settings must be checked separately 
 
 ## Release an approved change
 
+For the security/privacy change, first review [the request-limit prerequisite and rollout order](SECURITY_REVIEW.md#required-release-order). Its new SQL function must exist before the dependent website code is released; otherwise limited endpoints return 503. Applying that migration to production requires separate permission.
+
 1. Start a new feature branch from freshly fetched `origin/main`, preserving local work. Follow [CONTRIBUTING.md](../CONTRIBUTING.md).
 2. Run the relevant checks and review the diff. Preserve `data.js` and ranking data; exclude `.dev.vars`, `.wrangler/`, `dist/` and private backups.
 3. Document database/configuration dependencies in the pull request. Obtain separate approval for production SQL, and apply approved prerequisites before releasing dependent features.

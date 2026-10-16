@@ -1,6 +1,7 @@
 import { fixture, ids, sessionId } from "./auth-fixture.mjs";
 import { randomUUID } from "node:crypto";
 import { onRequest as middleware } from "../functions/api/_middleware.js";
+import { secureResponse } from "../functions/_security.js";
 
 export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server"};
 export async function mockService(){
@@ -16,7 +17,7 @@ export async function mockService(){
     const url=new URL(input);
     // Synthetic avatar responses exercise uploads without contacting TikTok.
     if(url.href==='https://www.tiktok.com/@fixture_editor')return new Response('{"avatarLarger":"https://p16.tiktokcdn.com/fixture-avatar.png"}');
-    if(url.href==='https://p16.tiktokcdn.com/fixture-avatar.png')return new Response(new Uint8Array([137,80,78,71]),{headers:{'Content-Type':'image/png'}});
+    if(url.href==='https://p16.tiktokcdn.com/fixture-avatar.png')return new Response(Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aP6cAAAAASUVORK5CYII='),c=>c.charCodeAt(0)),{headers:{'Content-Type':'image/png'}});
     if(url.origin!==env.SUPABASE_URL)throw new Error("Tests must not contact external services: "+url.origin);
     requestLog.push({path:url.pathname,body:typeof options.body==='string'?JSON.parse(options.body):options.body?{bytes:options.body.byteLength}:undefined,headers:options.headers});
     if(url.pathname.startsWith('/storage/v1/object/editor-avatars/'))return response({ok:true});
@@ -78,6 +79,14 @@ export async function mockService(){
       return new Response(null,{status:204});
     }
     if(url.pathname.startsWith("/rest/v1/rpc/")){
+      if(url.pathname.endsWith('/rel_take_rate_limit')&&token===env.SUPABASE_SERVICE_ROLE_KEY){
+        if(failures.rateLimit)return response({},failures.rateLimit);
+        const body=JSON.parse(options.body);
+        return response(await db.transaction(async tx=>{
+          await tx.exec('set local role service_role');
+          return (await tx.query('select public.rel_take_rate_limit($1,$2) as result',[body.p_action,body.p_subject_hash])).rows[0].result;
+        }));
+      }
       if(["rel_public_profile","rel_public_contributors"].includes(url.pathname.split('/').pop())&&token===env.SUPABASE_SERVICE_ROLE_KEY){
         if(failures.profiles)return response({},failures.profiles);
         const name=url.pathname.split('/').pop(),args=JSON.parse(options.body);
@@ -115,14 +124,18 @@ export async function mockService(){
     ...Object.fromEntries(["site","profile","claim","users","username","links","contributor","contributors"].map(name=>["/api/account/"+name,"account/"+name])),
   };
   async function handle(request){
+    const headers=new Headers(request.headers);
+    if(!headers.has('cf-connecting-ip'))headers.set('cf-connecting-ip','192.0.2.1');
+    request=new Request(request,{headers});
+    Object.defineProperty(request,'cf',{value:{}});
     const route=routes[new URL(request.url).pathname];
     if(!route)return response({error:"Not found"},404);
     const mod=await import("../functions/api/"+route+".js");
     const handler=mod['onRequest'+request.method[0]+request.method.slice(1).toLowerCase()];
     if(!handler)return response({error:"Method not allowed"},405);
-    return middleware({request,env,next:()=>handler({request,env})});
+    return secureResponse(await middleware({request,env,next:()=>handler({request,env})}));
   }
   const {onRequest:adminGate}=await import("../functions/admin/_middleware.js");
-  const handleAdmin=(request,next)=>adminGate({request,env,next});
+  const handleAdmin=async(request,next)=>secureResponse(await adminGate({request,env,next}));
   return {db,rpc,handle,handleAdmin,sessions,recoveryCodes,failures,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
 }
