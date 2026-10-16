@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TikTok connection privacy | Roblox Editors List</title>
+    <link rel="stylesheet" href="../assets/typography.css" />
+    <link rel="stylesheet" href="../assets/account.css" />
+    <link rel="stylesheet" href="../assets/actions.css" />
+    <link rel="stylesheet" href="../assets/tiktok-connection.css" />
+  </head>
+  <body class="tiktok-privacy">
+    <main class="account-wrap">
+      <a class="rel-brand" href="/" aria-label="Roblox Editors List home"
+        ><img src="../media/logo.svg" alt="Roblox Editors List"
+      /></a>
+      <h1>TikTok connection privacy</h1>
+      <p>Last updated 16 October 2026.</p>
+      <p>
+        Roblox Editors List (REL) is operated in the UK. Connecting TikTok is
+        optional and confirms control of a TikTok account at the time of
+        authorisation. It does not sign you into REL, give staff permissions or
+        claim a ranked editor profile.
+      </p>
+      <h2>What TikTok shares</h2>
+      <p>
+        With your permission, REL requests <code>user.info.basic</code> and
+        <code>user.info.profile</code>. REL reads your TikTok account ID,
+        username and display name. Your TikTok account ID is used privately to
+        prevent the same TikTok account being connected to different REL
+        accounts.
+      </p>
+      <p>
+        REL does not request posting, messaging, followers, likes, statistics or
+        video-list permissions. TikTok handles its own sign-in and consent
+        screen. Your TikTok password is never sent to REL.
+      </p>
+      <h2>Temporary access and confirmation</h2>
+      <p>
+        The server exchanges TikTok's authorisation code for temporary access,
+        reads those three fields, then revokes that access before accepting the
+        proof. TikTok access and refresh tokens are not saved in REL's database,
+        audit log, browser storage or public APIs. If the check or revocation
+        fails, a new connection is not saved.
+      </p>
+      <p>
+        My account asks you to confirm the returned TikTok username before
+        publishing the connection. Closing or cancelling this step keeps your
+        existing connection. Short-lived HttpOnly cookies and a private
+        ten-minute challenge protect the authorisation flow; the same signed-in
+        REL session must confirm it.
+      </p>
+      <h2>What is public and how long it lasts</h2>
+      <p>
+        After you confirm, your REL public profile can show your TikTok
+        username, display name, profile link, confirmation date and expiry. The
+        private TikTok account ID, email address, session identity and
+        authorisation secrets are not published.
+      </p>
+      <p>
+        The dated confirmation expires after 29 days. You need to reconnect to
+        renew it. It is a record of control on that date, not TikTok's blue
+        verification badge or a continuous ownership check. Changes you make to
+        your TikTok username are not monitored; reconnect after changing it.
+      </p>
+      <p>
+        Expired connections disappear from public results immediately. A
+        scheduled cleanup removes expired private connections and challenges
+        hourly. Disconnect removes your saved connection and pending challenge
+        immediately. Minimal REL actor/action audit entries remain without the
+        removed TikTok ID, username or display name. Existing database backups
+        follow the operator's retention process.
+      </p>
+      <h2>Disconnect or request removal</h2>
+      <p>
+        Use <strong>My account → Disconnect TikTok</strong> to remove the
+        connection. Temporary TikTok access is revoked during verification, so
+        REL does not retain continuing access to disconnect later. If a
+        provider/network failure left REL listed under TikTok's app permissions,
+        remove it in TikTok's settings under Security &amp; permissions → Apps
+        and services permissions.
+      </p>
+      <p>
+        For privacy questions or removal requests, email
+        <a href="mailto:shaun@seeshaun.xyz">shaun@seeshaun.xyz</a>. TikTok also
+        processes authorisation under its own
+        <a
+          href="https://www.tiktok.com/legal/page/eea/privacy-policy/en"
+          target="_blank"
+          rel="noopener noreferrer"
+          >privacy policy</a
+        >.
+      </p>
+      <p><a class="rel-action" href="/account/">Return to My account</a></p>
+    </main>
+  </body>
+</html>

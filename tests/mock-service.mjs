@@ -3,13 +3,16 @@ import { randomUUID } from "node:crypto";
 import { onRequest as middleware } from "../functions/api/_middleware.js";
 
 export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server"};
-export async function mockService(){
-  const {db,rpc}=await fixture({profiles:true});
+const baseEnv=env;
+export async function mockService({tiktok=false,origin="https://rel.example.test"}={}){
+  const env={...baseEnv,...(tiktok?{REL_TIKTOK_CLIENT_KEY:"fixture-client-key",REL_TIKTOK_CLIENT_SECRET:"fixture-client-secret",REL_TIKTOK_REDIRECT_URI:origin+"/api/account/tiktok/callback"}:{})};
+  const {db,rpc}=await fixture({profiles:true,tiktok});
   const originalFetch=globalThis.fetch;
   const users=new Map(Object.keys(ids).map(name=>[name,{id:ids[name],email:name+"@example.test",email_confirmed_at:"2026-10-14T00:00:00Z"}]));
   const sessions=new Map(users);
   const passwords=new Map([...users.values()].map(user=>[user.id,"test-password-123"]));
   const recoveryCodes=new Map(),failures={};
+  const providerRequests=[],usedTikTokCodes=new Set();
   let requestLog=[];
   const response=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json"}});
   globalThis.fetch=async(input,options={})=>{
@@ -17,6 +20,22 @@ export async function mockService(){
     // Synthetic avatar responses exercise uploads without contacting TikTok.
     if(url.href==='https://www.tiktok.com/@fixture_editor')return new Response('{"avatarLarger":"https://p16.tiktokcdn.com/fixture-avatar.png"}');
     if(url.href==='https://p16.tiktokcdn.com/fixture-avatar.png')return new Response(new Uint8Array([137,80,78,71]),{headers:{'Content-Type':'image/png'}});
+    if(tiktok&&url.origin==='https://open.tiktokapis.com'){
+      providerRequests.push({path:url.pathname,options});
+      if(url.pathname==='/v2/oauth/token/'){
+        const body=new URLSearchParams(options.body);
+        if(failures.tiktokToken)return response({error:'provider_error'},failures.tiktokToken);
+        if(body.get('client_key')!==env.REL_TIKTOK_CLIENT_KEY||body.get('client_secret')!==env.REL_TIKTOK_CLIENT_SECRET||body.get('redirect_uri')!==env.REL_TIKTOK_REDIRECT_URI||body.get('grant_type')!=='authorization_code'||!body.get('code')?.startsWith('fixture-tiktok-code-')||usedTikTokCodes.has(body.get('code')))return response({error:'invalid_request'},400);
+        usedTikTokCodes.add(body.get('code'));
+        return response({access_token:'act.fixture-token',refresh_token:'rft.fixture-token',token_type:'Bearer',scope:failures.tiktokScopes??'user.info.basic,user.info.profile',open_id:failures.tiktokOpenId??'fixture-open-id',expires_in:86400});
+      }
+      if(url.pathname==='/v2/user/info/'){
+        if(failures.tiktokInfo)return response({error:{code:'server_error'}},failures.tiktokInfo);
+        return response({data:{user:{open_id:failures.tiktokUserMismatch?'different-id':failures.tiktokOpenId??'fixture-open-id',username:failures.tiktokUsername??'fixture_editor',display_name:failures.tiktokDisplay??'Fixture TikTok editor'}},error:{code:'ok'}});
+      }
+      if(url.pathname==='/v2/oauth/revoke/')return failures.tiktokRevoke?response({error:'provider_error'},failures.tiktokRevoke):response({});
+      throw new Error('Unexpected TikTok fixture request');
+    }
     if(url.origin!==env.SUPABASE_URL)throw new Error("Tests must not contact external services: "+url.origin);
     requestLog.push({path:url.pathname,body:typeof options.body==='string'?JSON.parse(options.body):options.body?{bytes:options.body.byteLength}:undefined,headers:options.headers});
     if(url.pathname.startsWith('/storage/v1/object/editor-avatars/'))return response({ok:true});
@@ -78,11 +97,12 @@ export async function mockService(){
       return new Response(null,{status:204});
     }
     if(url.pathname.startsWith("/rest/v1/rpc/")){
-      if(["rel_public_profile","rel_public_contributors"].includes(url.pathname.split('/').pop())&&token===env.SUPABASE_SERVICE_ROLE_KEY){
+      if(["rel_public_profile","rel_public_contributors","rel_tiktok_exchange"].includes(url.pathname.split('/').pop())&&token===env.SUPABASE_SERVICE_ROLE_KEY){
         if(failures.profiles)return response({},failures.profiles);
         const name=url.pathname.split('/').pop(),args=JSON.parse(options.body);
         try{return response(await db.transaction(async tx=>{
           await tx.exec("set local role service_role");
+          await tx.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({role:"service_role"})]);
           return (await tx.query(`select public.${name}(${Object.keys(args).map((key,i)=>key+'=> $'+(i+1)).join(',')}) as result`,Object.values(args))).rows[0].result;
         }))}catch(error){return response({message:error.message,code:error.code},400)}
       }
@@ -113,6 +133,7 @@ export async function mockService(){
     "/api/applications/pending":"applications/pending",
     ...Object.fromEntries(["signin","signup","session","refresh","signout","forgot-password","reset-password","confirmation"].map(name=>["/api/auth/"+name,"auth/"+name])),
     ...Object.fromEntries(["site","profile","claim","users","username","links","contributor","contributors"].map(name=>["/api/account/"+name,"account/"+name])),
+    ...Object.fromEntries(["tiktok","tiktok/start","tiktok/callback"].map(name=>["/api/account/"+name,"account/"+name])),
   };
   async function handle(request){
     const route=routes[new URL(request.url).pathname];
@@ -124,5 +145,5 @@ export async function mockService(){
   }
   const {onRequest:adminGate}=await import("../functions/admin/_middleware.js");
   const handleAdmin=(request,next)=>adminGate({request,env,next});
-  return {db,rpc,handle,handleAdmin,sessions,recoveryCodes,failures,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
+  return {db,rpc,env,handle,handleAdmin,sessions,recoveryCodes,failures,providerRequests,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
 }

@@ -1,0 +1,134 @@
+.tiktok-connection {
+  border-top: 1px solid #68796b;
+  margin: 28px 0;
+  padding-top: 24px;
+  overflow-wrap: anywhere;
+}
+.tiktok-connection h2 {
+  font-size: 22px;
+  margin: 0 0 12px;
+}
+.tiktok-connection h3 {
+  font-size: 19px;
+  margin: 0;
+  letter-spacing: normal;
+}
+.tiktok-card {
+  margin: 16px 0;
+  padding: 18px;
+  border: 1px solid #68796b;
+  border-radius: 10px;
+  background: #0b100c;
+}
+.tiktok-connection p {
+  margin: 10px 0;
+  line-height: 1.55;
+}
+.tiktok-connection .tiktok-help {
+  font-size: 13px;
+  color: #b5c2b8;
+  margin: 12px 0;
+}
+.tiktok-connection .tiktok-label {
+  font-size: 13px;
+  color: #b5c2b8;
+  margin: 0 0 8px;
+}
+.tiktok-connection a {
+  color: #7af500;
+  text-underline-offset: 4px;
+}
+.tiktok-channel,
+.tiktok-privacy-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  text-decoration: none;
+}
+.tiktok-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.account-wrap .tiktok-connection button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+  margin: 10px 0 0;
+  padding: 11px 15px;
+  border: 1px solid #68796b;
+  border-radius: 8px;
+  background: #0b100c;
+  color: #eef5ef;
+  font: 600 15px/1.4 var(--font);
+  cursor: pointer;
+}
+.account-wrap .tiktok-connection button.pri {
+  background: #7af500;
+  color: #061109;
+  border-color: #7af500;
+}
+.account-wrap .tiktok-connection button:hover {
+  background: #16251a;
+  border-color: #7af500;
+}
+.account-wrap .tiktok-connection button.pri:hover {
+  background: #95f51e;
+}
+.account-wrap .tiktok-connection button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.tiktok-connection :focus-visible {
+  outline: 2px solid #7af500;
+  outline-offset: 3px;
+}
+.tiktok-error {
+  color: #ffb3b3;
+}
+.tiktok-connection #tiktokNotice:empty {
+  margin: 0;
+}
+.tiktok-connection .sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.tiktok-privacy .account-wrap {
+  width: min(100%, 780px);
+  margin: 24px auto;
+  line-height: 1.65;
+}
+.tiktok-privacy .account-wrap > h1 {
+  text-align: left;
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+}
+.tiktok-privacy h2 {
+  margin-top: 28px;
+  font-size: 21px;
+}
+.tiktok-privacy a {
+  color: #7af500;
+  text-underline-offset: 4px;
+}
+@media (max-width: 420px) {
+  .tiktok-actions {
+    flex-direction: column;
+    gap: 0;
+  }
+  .tiktok-actions button {
+    width: 100%;
+  }
+}
+@media (forced-colors: active) {
+  .tiktok-card {
+    border-color: ButtonText;
+  }
+  .tiktok-connection :focus-visible {
+    outline-color: Highlight;
+  }
+}
