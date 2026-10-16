@@ -48,12 +48,18 @@ test("persistent limits enforce concurrent budgets, isolate subjects and keep ex
 test("submission and login abuse stop before further writes or Auth calls; failures do not bypass limits", async () => {
   const service = await mockService();
   try {
-    for (let i=0; i<10; i++) assert.equal((await request(service, "/api/applications", application)).status, 201);
-    const denied = await request(service, "/api/applications", application, { "X-Forwarded-For":"198.51.100.9" });
+    const headers={cookie:"__Host-rel_access=member"};
+    assert.equal((await request(service,"/api/applications",application)).status,401);
+    for (let i=0; i<10; i++) {
+      const submitted=await request(service,"/api/applications",{...application,requestId:crypto.randomUUID()},headers);
+      assert.equal(submitted.status,201);
+      await service.rpc(ids.owner,"rel_applications",{p_action:"archive",p_id:(await submitted.json()).id});
+    }
+    const denied = await request(service, "/api/applications", {...application,requestId:crypto.randomUUID()}, {...headers,"X-Forwarded-For":"198.51.100.9"});
     assert.equal(denied.status, 429);
     assert.ok(Number(denied.headers.get("Retry-After")) > 0);
     assert.equal((await service.db.query("select count(*)::int as n from public.editor_applications")).rows[0].n, 10);
-    assert.equal((await request(service, "/api/applications", application, { "CF-Connecting-IP":"192.0.2.2" })).status, 201);
+    assert.equal((await request(service, "/api/applications", {...application,requestId:crypto.randomUUID()}, {...headers,"CF-Connecting-IP":"192.0.2.2"})).status, 201);
     const credentials = { email:"owner@example.test", password:"wrong-password" };
     for (let i=0; i<30; i++) assert.equal((await request(service, "/api/auth/signin", credentials)).status, 401);
     service.clearLog();

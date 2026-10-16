@@ -90,7 +90,7 @@ async function wait(page, expression) {
     if (await evaluate(page, expression)) return;
     await delay(100);
   }
-  throw new Error("Timed out: " + expression);
+  throw new Error("Timed out: " + expression + " " + JSON.stringify(await evaluate(page,"({path:location.pathname,message:document.querySelector('#message')?.textContent,youtube:document.querySelector('#youtubeConnection')?.outerHTML,errors:window.fixtureErrors})")) + " " + JSON.stringify(errors));
 }
 async function page() {
   const { browserContextId } = await send("Target.createBrowserContext");
@@ -315,7 +315,7 @@ try {
   await click(member, "#retryPopularity");
   await settled(member);
   await click(member, ".pop-empty a");
-  await wait(member, "location.pathname==='/signin/'");
+  await wait(member, "location.pathname==='/signin/'&&document.readyState==='complete'");
   await fill(member, "#email", "member@example.test");
   await fill(member, "#password", "test-password-123");
   await click(member, "#submit");

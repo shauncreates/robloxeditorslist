@@ -356,7 +356,7 @@ try {
   assert.equal(
     await evaluate(
       publicPage,
-      "document.querySelector('[data-profile=editor1]').closest('.row').querySelector('a.who').href",
+      "document.querySelector('[data-profile=editor1]').closest('.row').querySelector('.editor-identity-link').href",
     ),
     "https://www.tiktok.com/@fixture_editor",
   );

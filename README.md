@@ -138,6 +138,6 @@ New environments also need the SQL prerequisites for accounts, public profiles, 
 
 ## Working on REL
 
-Read the [documentation index](docs/README.md) and [contribution guide](CONTRIBUTING.md). New work starts on a branch from the latest `origin/main`. Production deploys from `main` through Cloudflare Pages after the owner's approval.
+Read the [documentation index](docs/README.md) and [contribution guide](CONTRIBUTING.md). Continue changes on `fix/account-layout-navigation` throughout this review cycle. A new branch starts from the latest `origin/main` only after an approved release cycle is complete. Production deploys from `main` through Cloudflare Pages after the owner's approval.
 
 Preserve editor rankings and `data.js`. Website builds do not initialize the live database or apply migrations. Keep credentials and private backups out of Git, and use the isolated fixture for fictional edits.

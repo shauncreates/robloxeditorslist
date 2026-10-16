@@ -111,6 +111,21 @@ test("Owner archiving preserves decisions, prevents conversion and leaves rankin
   } finally { await service.close(); }
 });
 
+test("platform-aware conversion preserves existing ranks and its private helper cannot bypass archives",async()=>{
+  const {db,rpc,asUser}=await fixture({profiles:true,notifications:true,platforms:true});
+  try{
+    const before=await rpc(ids.owner,"rel_site");
+    const {id}=await rpc(ids.stranger,"rel_submit_application",{p_request_id:randomUUID(),p_data:{display_name:"YouTube applicant",platform:"YouTube",profile_url:"https://youtube.com/@fixture",software:"Blender",styles:["Test style"],examples_url:"https://example.test"}});
+    await rpc(ids.reviewer,"rel_applications",{p_action:"update",p_id:id,p_status:"approved",p_reason:"Private assessment",p_message:"Your examples meet our criteria."});
+    await assert.rejects(asUser(ids.contributor,"select rel_private.pending_editors_with_platform('convert',$1,$2)",[id,before.revision]),/permission denied/);
+    const result=await rpc(ids.contributor,"rel_pending_editors",{p_action:"convert",p_id:id,p_revision:before.revision});
+    const after=await rpc(ids.owner,"rel_site"),editor=after.data.editors.find(e=>e.id===result.editor_id);
+    assert.equal(editor.main_platform,"YouTube");assert.equal(editor.links.youtube,"https://youtube.com/@fixture");
+    assert.deepEqual(after.data.lists.main.slice(0,before.data.lists.main.length),before.data.lists.main);
+    assert.equal(JSON.stringify(editor).includes("Private assessment"),false);
+  }finally{await db.close()}
+});
+
 test("pending archives allow a replacement submission; direct RPCs cannot forge roles or bypass validation", async () => {
   const { db, rpc, asUser } = await fixture({ notifications: true });
   try {

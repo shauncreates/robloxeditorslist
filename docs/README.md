@@ -4,6 +4,7 @@ Use the root [README](../README.md) for the project overview and commands. These
 
 | Guide | Use it for |
 | --- | --- |
+| [Combined branch](COMBINED_BRANCH.md) | Integrated features, migration order and the shared working-branch policy |
 | [Development and deployment](DEPLOY_AND_TEST.md) | Local fixture, actual Pages Functions, tests and releases |
 | [Accounts and permissions](AUTH_SETUP.md) | Roles, verified editor links, sessions and database authorization |
 | [Account layout and navigation](ACCOUNT_NAVIGATION.md) | Desktop/dashboard sizing and session-aware account buttons |

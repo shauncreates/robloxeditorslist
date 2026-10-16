@@ -50,12 +50,18 @@ async function newPage() {
   return {sessionId,browserContextId};
 }
 async function evaluate(page, expression) {
-  const result = await send("Runtime.evaluate", {expression,returnByValue:true,awaitPromise:true},page.sessionId);
+  let result;
+  try { result = await send("Runtime.evaluate", {expression,returnByValue:true,awaitPromise:true},page.sessionId); }
+  catch(error) { throw new Error(`Browser evaluation failed: ${expression.slice(0,160)}\n${error.message}`); }
   if(result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text);
   return result.result.value;
 }
 async function waitFor(page, expression) {
-  for(let tries=0;tries<200;tries++) {if(await evaluate(page,expression))return;await delay(100)}
+  for(let tries=0;tries<200;tries++) {
+    try { if(await evaluate(page,expression))return; }
+    catch(error) { if(!/Inspected target navigated or closed|Execution context was destroyed/.test(error.message))throw error; }
+    await delay(100);
+  }
   throw new Error("Timed out: " + expression);
 }
 async function navigate(page, path) {
@@ -438,7 +444,9 @@ try {
   await checkLayout(youtubePage,"youtube-confirm-channel");await click(youtubePage,"#confirmYouTube button");
   await waitFor(youtubePage,"document.querySelector('#disconnectYouTube')!==null");await checkLayout(youtubePage,"youtube-connected");
   const publicUrl=await evaluate(youtubePage,"document.querySelector('#publicProfileLink').getAttribute('href')");
-  await navigate(youtubePage,publicUrl);await waitFor(youtubePage,"document.querySelector('#publicProfile').textContent.includes('Channel control confirmed through Google.')");await checkLayout(youtubePage,"youtube-public-profile");
+  await navigate(youtubePage,publicUrl);await waitFor(youtubePage,"document.querySelector('#publicProfile').textContent.includes('Ownership confirmed through Google on')");
+  assert.equal(await evaluate(youtubePage,"document.querySelector('#publicProfile a[href=\"https://www.youtube.com/channel/UCaaaaaaaaaaaaaaaaaaaaaa\"]')!==null"),true);
+  await checkLayout(youtubePage,"youtube-public-profile");
   await navigate(youtubePage,"/account/");await waitFor(youtubePage,"document.querySelector('#disconnectYouTube')!==null");await evaluate(youtubePage,"window.confirm=()=>true");await click(youtubePage,"#disconnectYouTube");await waitFor(youtubePage,"document.querySelector('#youtubeNotice')?.textContent.includes('YouTube disconnected')");
   assert.equal(await evaluate(youtubePage,"fetch('/api/profiles?account=00000000-0000-4000-8000-000000000004').then(r=>r.json()).then(p=>p.youtube)"),null);
   await navigate(youtubePage,"/youtube-privacy/");await checkLayout(youtubePage,"youtube-privacy");

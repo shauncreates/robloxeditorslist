@@ -30,6 +30,9 @@ export async function secureResponse(upstream) {
   const hashes = upstream.headers.get("Content-Type")?.includes("text/html") && upstream.body
     ? await inlineScriptHashes(await upstream.clone().text()) : [];
   const response = new Response(upstream.body, upstream);
-  for (const [name, value] of Object.entries(securityHeaders(hashes))) response.headers.set(name, value);
+  for (const [name, value] of Object.entries(securityHeaders(hashes))) {
+    if (name === "Referrer-Policy" && response.headers.get(name) === "no-referrer") continue;
+    response.headers.set(name, value);
+  }
   return response;
 }

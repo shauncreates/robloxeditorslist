@@ -2,7 +2,7 @@
 
 `/popularity/` has separate **TikTok followers** and **YouTube subscribers** lists. Official account-authorisation APIs supply counts when a member connects or reconnects and confirms the returned account. No scraping, bio codes, paid bot or combined audience total is used.
 
-This review branch starts from fetched `main` (`4ad2c76`). It carries forward the approved TikTok prerequisite and extracts YouTube connection files from `feat/application-tracking`. Application tracking/emails and the main-platform/avatar work remain separate. Existing editor pictures are used here, with initials when unavailable.
+The work is now integrated with application tracking, security/privacy, editor main platforms and the account layout fixes on `fix/account-layout-navigation`. Follow the [combined migration order](COMBINED_BRANCH.md) before release. Popularity uses existing editor pictures, with initials when unavailable.
 
 ## Eligibility and ordering
 
