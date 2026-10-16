@@ -1,11 +1,13 @@
 import { HttpError, readJson } from "../../_lib.js";
 import { authRequest, verifyAccount, sessionResponse } from "../../_auth.js";
+import { enforceRateLimit } from "../../_rate-limit.js";
 
 export async function onRequestPost({ request, env }) {
   const body = await readJson(request, 4000);
   if (typeof body.email !== "string" || body.email.length > 254 || typeof body.password !== "string" || body.password.length > 1024) {
     throw new HttpError(400, "Enter your email and password.");
   }
+  await enforceRateLimit(request, env, "signin");
   const response = await authRequest(env, "token?grant_type=password", {
     method: "POST", body: JSON.stringify({ email: body.email.trim(), password: body.password }),
   });

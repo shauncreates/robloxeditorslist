@@ -110,6 +110,7 @@ Applications contain an editor's profile, styles and example work. Reviewers app
 | Application submission and staff review | [`functions/api/applications.js`](functions/api/applications.js), [`functions/api/applications/admin.js`](functions/api/applications/admin.js) |
 | Ranking saves and conflict handling | [`functions/api/save.js`](functions/api/save.js), [ranking preservation guide](docs/RANKING_STORAGE.md) |
 | Contributor tiers and Owner editing | [`assets/contributors.js`](assets/contributors.js), [`assets/contributors-admin.js`](assets/contributors-admin.js) |
+| Security, privacy and optional video loading | [Review and release requirements](docs/SECURITY_REVIEW.md), [`assets/video-consent.js`](assets/video-consent.js) |
 | Isolated account and database tests | [`tests/`](tests/), [development guide](docs/DEPLOY_AND_TEST.md) |
 
 ## Try the development version
@@ -131,7 +132,7 @@ The build writes static files to `dist/`. `npm run check:cloudflare` compiles th
 
 Account-required applications, submission/decision emails and Owner-managed application archiving remain on the separate `feat/application-notifications-audit` branch. They are not part of the current main application flow. Transactional email configuration and real delivery tests belong to that feature's rollout.
 
-New environments also need the SQL prerequisites for accounts, public profiles and [contributor editing](docs/CONTRIBUTOR_TIERS.md). Real email delivery and launch abuse controls need verification in the intended environment; the local fixture cannot prove those settings.
+New environments also need the SQL prerequisites for accounts, public profiles, [contributor editing](docs/CONTRIBUTOR_TIERS.md) and [request limits](docs/SECURITY_REVIEW.md#required-release-order). The request-limit migration must be applied before releasing the dependent website code. Real email delivery and provider abuse controls need verification in the intended environment; the local fixture cannot prove those settings.
 
 ## Working on REL
 

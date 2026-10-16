@@ -12,7 +12,7 @@ export const rankings = {
   editors:[{id:"editor1",name:"One",flares:["style"],note:"Original"},{id:"editor2",name:"Two",flares:[],note:"Original two"}],
   lists:{main:["editor2","editor1"],style:["editor1"]},
 };
-export async function fixture({reviews=true,decisions=reviews,usernames=decisions,profiles=false,tiers=profiles,legacyApplications=false,tiktok=false,youtube=false,popularity=false,clans=false}={}){
+export async function fixture({reviews=true,decisions=reviews,usernames=decisions,profiles=false,tiers=profiles,requestLimits=true,legacyApplications=false,tiktok=false,youtube=false,popularity=false,clans=false}={}){
   const db = new PGlite();
   await db.exec(`
     create role anon; create role authenticated; create role service_role bypassrls;
@@ -60,6 +60,7 @@ export async function fixture({reviews=true,decisions=reviews,usernames=decision
   if(usernames)await db.exec(await readFile(new URL("../supabase/migrations/20261015001034_rel_signup_usernames.sql",import.meta.url),"utf8"));
   if(profiles)await db.exec(await readFile(new URL("../supabase/migrations/20261015110000_rel_public_profiles.sql",import.meta.url),"utf8"));
   if(tiers)await db.exec(await readFile(new URL("../supabase/migrations/20261015130000_rel_contributor_tiers.sql",import.meta.url),"utf8"));
+  if(requestLimits)await db.exec(await readFile(new URL("../supabase/migrations/20261015230000_rel_request_limits.sql",import.meta.url),"utf8"));
   if(tiktok)await db.exec(await readFile(new URL("../supabase/migrations/20261016180000_rel_tiktok_connections.sql",import.meta.url),"utf8"));
   if(youtube)await db.exec(await readFile(new URL("../supabase/migrations/20261016130000_rel_youtube_connections.sql",import.meta.url),"utf8"));
   if(popularity)await db.exec(await readFile(new URL("../supabase/migrations/20261016190000_rel_editor_popularity.sql",import.meta.url),"utf8"));

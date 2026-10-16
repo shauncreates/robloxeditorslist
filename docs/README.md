@@ -15,6 +15,7 @@ Use the root [README](../README.md) for the project overview and commands. These
 | [Contributor tiers](CONTRIBUTOR_TIERS.md) | Owner editing and the required contributor migration |
 | [Signup email](SIGNUP_EMAIL_SETUP.md) | Supabase confirmation templates and SMTP configuration reference |
 | [Ranking preservation](RANKING_STORAGE.md) | Backups, revision history and approved hosting/data moves |
+| [Security and privacy review](SECURITY_REVIEW.md) | Browser headers, avatar protection, policy pages and the request-limit release prerequisite |
 | [Cloudflare migration record](CLOUDFLARE_MIGRATION.md) | Existing hosting setup and the Vercel cutover |
 
 The [contribution guide](../CONTRIBUTING.md) covers branches and pull requests. SQL and email templates stay in [`supabase/`](../supabase/), at their existing paths.

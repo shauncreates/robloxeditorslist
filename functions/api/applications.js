@@ -1,6 +1,7 @@
 import { json, readJson, supabaseRequest } from "../_lib.js";
 
 import { readSite } from "../_site.js";
+import { enforceRateLimit } from "../_rate-limit.js";
 
 const MAX_BODY = 16000;
 const allowedPlatforms = new Set(["TikTok", "YouTube"]);
@@ -50,6 +51,7 @@ export async function onRequestPost({ request, env }) {
   if (software.length < 2 || software.length > 120) {
     return json({ error: "Tell us which editing software you use (2–120 characters)." }, 400);
   }
+  await enforceRateLimit(request, env, "application");
   const site = await readSite(env);
   const allowedStyles = new Set(site.styles.map(style => style.name));
   const validStyles = styles.length > 0 && styles.length <= 31 && styles.every((style) =>
