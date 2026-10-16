@@ -1,0 +1,114 @@
+.account-feature {
+  margin: 28px 0;
+  padding-top: 24px;
+  border-top: 1px solid #68796b;
+  overflow-wrap: anywhere;
+}
+.account-feature h2 {
+  font-size: 22px;
+  margin: 0 0 10px;
+}
+.account-feature h3 {
+  font-size: 18px;
+  margin: 0 0 6px;
+}
+.account-feature h4 {
+  font-size: 15px;
+  margin: 0 0 8px;
+}
+.application-card {
+  margin: 16px 0;
+  padding: 20px;
+  border: 1px solid #68796b;
+  border-radius: 10px;
+  background: var(--panel, #0b100c);
+}
+.application-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.application-heading > div {
+  min-width: 0;
+}
+.application-state {
+  display: inline-block;
+  min-height: 30px;
+  border: 1px solid #68796b;
+  border-radius: 5px;
+  padding: 4px 9px;
+  font-size: 13px;
+}
+.application-card p {
+  margin: 12px 0;
+  white-space: pre-wrap;
+}
+.applicant-message {
+  border-top: 1px solid #68796b;
+  padding-top: 16px;
+  margin-top: 18px;
+}
+.account-feature .hint {
+  color: #b5c2b8;
+}
+.account-feature-error {
+  color: #ffb3b3;
+}
+.account-wrap .account-feature button {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height: 44px;
+  margin:10px 0 0;
+  padding:11px 16px;
+  border:1px solid #68796b;
+  border-radius:8px;
+  background:#0b100c;
+  color:#eef5ef;
+  font:inherit;
+  font-weight:650;
+  cursor:pointer;
+}
+.account-wrap .account-feature button.pri{background:var(--accent,#7af500);border-color:var(--accent,#7af500);color:#061109}
+.account-wrap .account-feature button:hover{background:#16251a;border-color:var(--accent,#7af500)}
+.account-wrap .account-feature button.pri:hover{background:#95f51e}
+.account-wrap .account-feature .hint{margin:8px 0 14px;color:#b5c2b8}
+.account-wrap .account-feature a,.youtube-privacy-page .account-wrap a{color:var(--accent,#7af500)}
+.account-inline-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-right: 16px;
+  color: var(--accent, #7af500);
+  text-underline-offset: 4px;
+}
+
+.youtube-privacy-page .account-wrap {
+  width: min(100%, 800px);
+  margin: 24px auto;
+  line-height: 1.65;
+}
+.youtube-privacy-page .account-wrap > h1 {
+  text-align: left;
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  letter-spacing: -0.025em;
+}
+.application-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.account-feature select {
+  border-color: #68796b;
+}
+@media (max-width: 400px) {
+  .application-card {
+    padding: 16px;
+  }
+  .application-heading {
+    gap: 8px;
+  }
+}
+.youtube-privacy-page .account-wrap>.rel-brand{min-height:44px}

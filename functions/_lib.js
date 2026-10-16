@@ -17,7 +17,8 @@ export function validate(data) {
   if (!Array.isArray(data.styles) || data.styles.length > 30) return false;
   if (!data.styles.every((style) => style && isString(style.id) && isString(style.name) && isString(style.color))) return false;
   if (!Array.isArray(data.editors) || data.editors.length > 300) return false;
-  if (!data.editors.every((editor) => editor && isString(editor.id) && isString(editor.name))) return false;
+  if (!data.editors.every((editor) => editor && isString(editor.id) && isString(editor.name) &&
+    (!Object.hasOwn(editor,"main_platform") || ["TikTok","YouTube"].includes(editor.main_platform)))) return false;
   if (!data.lists || typeof data.lists !== "object") return false;
   for (const key of Object.keys(data.lists)) {
     if (!Array.isArray(data.lists[key]) || !data.lists[key].every(isString)) return false;
@@ -47,7 +48,7 @@ export async function supabaseRequest(env, path, options = {}) {
 }
 
 export class HttpError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
+  constructor(status, message, headers = {}) { super(message); this.status = status; this.headers = headers; }
 }
 
 // Enforce bytes actually received, including requests without Content-Length.

@@ -1,6 +1,7 @@
 import { HttpError, readJson } from "../../_lib.js";
 import { authRequest, verifyAccount, sessionResponse } from "../../_auth.js";
 import { validEmail, validPassword, passwordRequirement } from "../../_password.js";
+import { enforceRateLimit } from "../../_rate-limit.js";
 
 export async function onRequestPost({ request, env }) {
   const body = await readJson(request, 4000);
@@ -9,6 +10,7 @@ export async function onRequestPost({ request, env }) {
   }
   if (!validPassword(body.password)) throw new HttpError(400, passwordRequirement);
   if (body.password !== body.confirmPassword) throw new HttpError(400, "The passwords do not match.");
+  await enforceRateLimit(request, env, "reset");
   const verified = await authRequest(env, "verify", {
     method: "POST", body: JSON.stringify({ email: body.email.trim(), token: body.code, type: "recovery" }),
   });

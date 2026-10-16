@@ -94,13 +94,13 @@ test("application options follow saved styles and admin HTML is gated before it 
   const service=await mockService();
   const request=(path,token,body)=>service.handle(new Request("https://rel.example.test"+path,{method:body===undefined?"GET":"POST",headers:{origin:"https://rel.example.test","Content-Type":"application/json",...(token?{cookie:"__Host-rel_access="+token}: {})},body:body===undefined?undefined:JSON.stringify(body)}));
   try{
-    const applicant={displayName:"Applicant",platform:"YouTube",profileUrl:"https://youtube.com/@fixture",software:"CapCut",styles:[rankings.styles[0].name],examplesUrl:"https://example.test"};
-    assert.equal((await request("/api/applications",null,applicant)).status,201);
-    assert.equal((await request("/api/applications",null,{...applicant,styles:["Not offered"]})).status,400);
+    const applicant={requestId:crypto.randomUUID(),displayName:"Applicant",platform:"YouTube",profileUrl:"https://youtube.com/@fixture",software:"CapCut",styles:[rankings.styles[0].name],examplesUrl:"https://example.test"};
+    assert.equal((await request("/api/applications","member",applicant)).status,201);
+    assert.equal((await request("/api/applications","member",{...applicant,styles:["Not offered"]})).status,400);
     const current=(await request("/api/account/site","owner"));const site=await current.json();
     site.data.styles.push({id:"new-style",name:"New checkbox style",color:"#123456"});
     assert.equal((await request("/api/save","contributor",{data:site.data,revision:site.revision})).status,200);
-    assert.equal((await request("/api/applications",null,{...applicant,styles:["New checkbox style","Other: Custom"]})).status,201);
+    assert.equal((await request("/api/applications","stranger",{...applicant,requestId:crypto.randomUUID(),styles:["New checkbox style","Other: Custom"]})).status,201);
     assert.equal((await request("/api/applications/pending")).status,401);
     assert.equal((await request("/api/applications/pending","member")).status,403);
     assert.equal((await request("/api/applications/pending","reviewer")).status,403);

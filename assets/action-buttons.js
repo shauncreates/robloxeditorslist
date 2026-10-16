@@ -1,3 +1,5 @@
+import { syncAccountNavigation } from "./account-navigation.js";
+
 const actionIcons = {
   addEditor: "add",
   addStyle: "add",
@@ -141,6 +143,7 @@ function enhanceWithin(root) {
   }
 
   root.querySelectorAll(selector).forEach(enhanceAction);
+  syncAccountNavigation(root);
   measureNavigation(root);
 }
 
@@ -177,5 +180,6 @@ function refreshNavigation() {
   navigationFrame = requestAnimationFrame(() => measureNavigation(document.body));
 }
 window.addEventListener("resize", refreshNavigation, { passive: true });
+window.addEventListener("rel-navigation-change", refreshNavigation);
 document.fonts.ready.then(refreshNavigation);
 document.fonts.addEventListener("loadingdone", refreshNavigation);

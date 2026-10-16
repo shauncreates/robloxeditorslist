@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Admin — Roblox Editors</title>
+<link rel="icon" type="image/svg+xml" href="../media/icon.svg">
 <link rel="stylesheet" href="../assets/typography.css">
 <link rel="stylesheet" href="../assets/profile.css">
 <link rel="stylesheet" href="../assets/actions.css">
@@ -50,6 +51,7 @@
   @media(max-width:560px){.app-grid{grid-template-columns:1fr}.rrow{flex-wrap:wrap}.rrow .nm{min-width:100px}}
   .msg{background:#4ade8014;border:1px solid #4ade8044;color:#bbf7d0;padding:10px 14px;border-radius:10px;font-size:13.5px;margin-bottom:14px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+  #activityPanel .card{overflow-wrap:anywhere}
   label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.08em}
   input[type=text],input[type=url],input[type=password],textarea,select{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14.5px;font-family:inherit;outline:none}
   input[type=color]{width:46px;height:38px;background:none;border:1px solid var(--line);border-radius:9px;padding:2px}
@@ -66,6 +68,8 @@
   .srow{display:flex;gap:10px;align-items:center}
   .srow input[type=text]{flex:1}
   .hint{color:var(--muted);font-size:13.5px;margin:6px 0 14px}
+  .editor-platform-fields input,.editor-platform-fields select{min-height:44px;border-color:#68796b}
+  .editor-platform-fields :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
   [data-act=fetchLegacy]{min-height:44px;border-color:#68796b}
   [data-act=fetchLegacy]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -124,6 +128,8 @@ import {accountFetch,accountApi,getAccount,signOut} from "/assets/account.js";
 import {createAutosave,watchChanges,announceChange} from "/assets/autosave.js";
 import {animateDisclosures} from "/assets/disclosure.js";
 import {mountContributorEditor,contributorEditsPending,clearContributorDraft} from "/assets/contributors-admin.js";
+import {mountActivity} from "/assets/activity-admin.js";
+import {mainPlatform,primaryLink,avatarRequest} from "/assets/editor-platform.js";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $ = s => document.querySelector(s);
 const accountListMarkup = new WeakMap();
@@ -134,7 +140,7 @@ function renderAccountList(list, html) {
   }
 }
 const LINKS = ["youtube","instagram","twitter","discord"];   // TikTok has its own username field
-const tabIcons={editors:"account",styles:"tag",rank:"rankings",applications:"applications",site:"globe",links:"link",users:"users",contributors:"users"};
+const tabIcons={editors:"account",styles:"tag",rank:"rankings",applications:"applications",site:"globe",links:"link",users:"users",contributors:"users",activity:"review"};
 const actionIcon=name=>`<svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#${name}"/></svg>`;
 let openIdx = -1;   // which editor card is expanded (kept open when the list redraws)
 const ONLINE = /^https?:$/.test(location.protocol);   // false when opened straight from a folder
@@ -147,7 +153,7 @@ const valid = d => d && d.site && Array.isArray(d.styles) && Array.isArray(d.edi
 /* ---------- status / saving ---------- */
 function setStatus(text, cls){ const s = $("#status"); s.textContent = text || ""; s.className = "status " + (cls || ""); }
 function save(){editVersion++;dirty=true;autosave.change()}
-window.addEventListener("beforeunload",ev=>{if(dirty||applicationDrafts.size||contributorEditsPending()||$("form[data-user][data-dirty],form[data-credit-user][data-dirty]")){ev.preventDefault();ev.returnValue=""}});
+window.addEventListener("beforeunload",ev=>{if(dirty||applicationDrafts.size||applicantMessages.size||contributorEditsPending()||$("form[data-user][data-dirty],form[data-credit-user][data-dirty]")){ev.preventDefault();ev.returnValue=""}});
 const api=accountApi;
 async function loadLive(){
   revision=null;
@@ -182,7 +188,7 @@ function allowedTabs(){
   const tabs=[];
   if(S&&can("list_contributor"))tabs.push(["editors","Editors"],["styles","Styles / flares"],["rank","Rankings"]);
   if(can("application_reviewer"))tabs.push(["applications","Applications"]);
-  if(can("owner")){if(S)tabs.push(["site","Site"]);tabs.push(["contributors","Contributors"],["links","Profile link requests"],["users","Users & roles"])}
+  if(can("owner")){if(S)tabs.push(["site","Site"]);tabs.push(["contributors","Contributors"],["links","Profile link requests"],["users","Users & roles"],["activity","Activity log"])}
   return tabs;
 }
 function view(){
@@ -190,10 +196,11 @@ function view(){
   $("#tabs").innerHTML=tabs.map(([k,n])=>`<button data-act="tab" data-v="${k}" aria-label="${n}" aria-pressed="${tab===k}" class="rel-action rel-action--reveal ${tab===k?'on rel-action--account':''}">${actionIcon(tabIcons[k])}<span>${n}</span></button>`).join("");
   $("#saveSite").hidden=!canEdit()||tab==="contributors";$("#saveSite").disabled=!revision;
   $("#dl").hidden=!S||!can("list_contributor");$("#reset").hidden=!S||tab==="contributors";
-  $("#app").innerHTML=tab?({editors:vEditors,styles:vStyles,rank:vRank,applications:vApplications,site:vSite,users:vUsers,links:vProfileLinks,claim:vClaim,contributors:()=>'<div id="contributorEditor"></div>'})[tab]():'<p class="hint">Your account is ready. Reload to try loading the list again.</p>';
+  $("#app").innerHTML=tab?({editors:vEditors,styles:vStyles,rank:vRank,applications:vApplications,site:vSite,users:vUsers,links:vProfileLinks,claim:vClaim,contributors:()=>'<div id="contributorEditor"></div>',activity:()=>'<section id="activityPanel"></section>'})[tab]():'<p class="hint">Your account is ready. Reload to try loading the list again.</p>';
   if(tab==="contributors")mountContributorEditor($("#contributorEditor"),()=>{tab="users";view()});
   if(tab==="applications")loadApplications();if(tab==="users")loadUsers();if(tab==="editors"&&can("list_contributor"))loadPending();
   if(tab==="links")loadProfileLinks();
+  if(tab==="activity")mountActivity($("#activityPanel"),accountFetch,api);
   animateDisclosures($("#app"));
 }
 
@@ -205,28 +212,33 @@ function vEditors(){
       <summary><span>${esc(e.name || "(unnamed)")}</span><span class="sub">${esc((e.flares || []).map(f => S.styles.find(s => s.id === f)?.name).filter(Boolean).join(", "))}</span></summary>
       <div class="profile-body">
       <div class="two">
-        <div><label>Name</label><input type="text" data-t="e" data-i="${i}" data-f="name" value="${esc(e.name)}"></div>
-        <div><label>Handle (optional – shows TikTok name if empty)</label><input type="text" data-t="e" data-i="${i}" data-f="handle" value="${esc(e.handle)}"></div>
+        <div><label for="editor-name-${i}">Name</label><input id="editor-name-${i}" type="text" data-t="e" data-i="${i}" data-f="name" value="${esc(e.name)}"></div>
+        <div><label for="editor-handle-${i}">Handle (optional)</label><input id="editor-handle-${i}" type="text" data-t="e" data-i="${i}" data-f="handle" value="${esc(e.handle)}"></div>
       </div>
       <div class="two">
-        <div><label>TikTok username (no @)</label><input type="text" data-t="e" data-i="${i}" data-f="tiktok" value="${esc(e.tiktok)}" placeholder="e.g. someeditor"></div>
-        <div><label>Profile picture</label>
+        <div class="editor-platform-fields"><label for="editor-platform-${i}">Main platform</label><select id="editor-platform-${i}" data-t="e" data-i="${i}" data-f="main_platform">${["TikTok","YouTube"].map(p=>`<option ${mainPlatform(e)===p?'selected':''}>${p}</option>`).join("")}</select></div>
+        <div class="editor-platform-fields"><label for="editor-youtube-${i}">YouTube channel URL</label><input id="editor-youtube-${i}" type="url" data-t="link" data-i="${i}" data-f="youtube" value="${esc(e.links?.youtube)}" placeholder="https://www.youtube.com/@yourchannel"></div>
+      </div>
+      <p class="hint">The main platform sets the ranking link and picture source. Use Fetch to update the picture. Both social links are kept.</p>
+      <div class="two">
+        <div><label for="editor-tiktok-${i}">TikTok username (no @)</label><input id="editor-tiktok-${i}" type="text" data-t="e" data-i="${i}" data-f="tiktok" value="${esc(e.tiktok)}" placeholder="e.g. someeditor"></div>
+        <div><p class="hint">Profile picture</p>
           <div class="inline" style="margin:0">
             ${/^https?:\/\//.test(e.thumb || "") ? `<img src="${esc(e.thumb)}" alt="" referrerpolicy="no-referrer" style="width:38px;height:38px;border-radius:9px;object-fit:cover">` : ""}
-            ${ONLINE ? `<button class="sm" data-act="fetchPic" data-i="${i}" ${pictureFetchRunning?'disabled':''}>Fetch from TikTok</button>` : `<span class="hint" style="margin:0">Fetching works on the live /admin</span>`}
+            ${ONLINE ? `<button class="sm" data-act="fetchPic" data-i="${i}" ${pictureFetchRunning?'disabled':''}>Fetch from ${mainPlatform(e)}</button>` : `<span class="hint" style="margin:0">Fetching works on the live /admin</span>`}
           </div>
         </div>
       </div>
       <label for="editor-software-${i}">Editing software</label><input id="editor-software-${i}" type="text" maxlength="120" data-t="e" data-i="${i}" data-f="software" value="${esc(e.software)}" placeholder="e.g. After Effects, CapCut">
-<label>Flares (styles)</label>
-      <div class="flarepick">${S.styles.map(s => `<label><input type="checkbox" ${can("list_contributor") ? "" : "disabled"} data-t="flare" data-i="${i}" data-s="${esc(s.id)}" ${(e.flares || []).includes(s.id) ? "checked" : ""}> <span style="color:${esc(s.color)}">●</span> ${esc(s.name)}</label>`).join("") || `<span class="hint">Create styles in the Styles tab first.</span>`}</div>
-      <label>About / note</label>
-      <textarea data-t="e" data-i="${i}" data-f="note">${esc(e.note)}</textarea>
+<p id="editor-styles-${i}" class="hint">Flares (styles)</p>
+      <div class="flarepick" role="group" aria-labelledby="editor-styles-${i}">${S.styles.map(s => `<label><input type="checkbox" ${can("list_contributor") ? "" : "disabled"} data-t="flare" data-i="${i}" data-s="${esc(s.id)}" ${(e.flares || []).includes(s.id) ? "checked" : ""}> <span style="color:${esc(s.color)}">●</span> ${esc(s.name)}</label>`).join("") || `<span class="hint">Create styles in the Styles tab first.</span>`}</div>
+      <label for="editor-note-${i}">About / note</label>
+      <textarea id="editor-note-${i}" data-t="e" data-i="${i}" data-f="note">${esc(e.note)}</textarea>
       <div class="two">
-        <div><label>Profile picture URL (filled by Fetch, or paste your own)</label><input type="url" data-t="e" data-i="${i}" data-f="thumb" value="${esc(e.thumb)}" placeholder="https://…"></div>
-        <div><label>Showcase YouTube link (optional)</label><input type="url" data-t="e" data-i="${i}" data-f="video" value="${esc(e.video)}" placeholder="https://youtube.com/watch?v=…"></div>
+        <div><label for="editor-thumb-${i}">Profile picture URL (filled by Fetch, or paste your own)</label><input id="editor-thumb-${i}" type="url" data-t="e" data-i="${i}" data-f="thumb" value="${esc(e.thumb)}" placeholder="https://…"></div>
+        <div><label for="editor-video-${i}">Showcase YouTube link (optional)</label><input id="editor-video-${i}" type="url" data-t="e" data-i="${i}" data-f="video" value="${esc(e.video)}" placeholder="https://youtube.com/watch?v=…"></div>
       </div>
-      <div class="two">${LINKS.map(k => `<div><label>${k}</label><input type="url" data-t="link" data-i="${i}" data-f="${k}" value="${esc((e.links || {})[k])}" placeholder="https://…"></div>`).join("")}</div>
+      <div class="two">${LINKS.filter(k=>k!=="youtube").map(k => `<div><label for="editor-${k}-${i}">${k}</label><input id="editor-${k}-${i}" type="url" data-t="link" data-i="${i}" data-f="${k}" value="${esc((e.links || {})[k])}" placeholder="https://…"></div>`).join("")}</div>
       ${can("list_contributor") ? `<div style="margin-top:14px"><button class="bad sm" data-act="delEditor" data-i="${i}">Delete editor</button></div>` : ""}
       </div></details>`).join("") + (can("list_contributor") ? `<details class="card profile-card" id="pendingQueue"><summary id="pendingTitle">Pending</summary><div class="profile-body"><p class="hint">Approved applications awaiting conversion to an editor profile.</p><p id="pendingNotice" role="status">Loading approved applications…</p><div id="pendingList"></div></div></details>` : "");
 }
@@ -249,8 +261,8 @@ function vStyles(){
   return `<p class="hint">Each style becomes a flare and its own ranked list on the site.</p>` +
     S.styles.map((s, i) => `
     <div class="card srow">
-      <input type="color" data-t="s" data-i="${i}" data-f="color" value="${esc(s.color)}">
-      <input type="text" data-t="s" data-i="${i}" data-f="name" value="${esc(s.name)}">
+      <input aria-label="Colour for ${esc(s.name)}" type="color" data-t="s" data-i="${i}" data-f="color" value="${esc(s.color)}">
+      <input aria-label="Style name" type="text" data-t="s" data-i="${i}" data-f="name" value="${esc(s.name)}">
       <button class="bad sm" data-act="delStyle" data-i="${i}">Delete</button>
     </div>`).join("") +
     `<button class="pri" data-act="addStyle">+ Add style</button>`;
@@ -280,7 +292,7 @@ function vRank(){
 }
 
 function vApplications(){
-  return `<div class="inline"><div><h2>Editor applications</h2><p class="hint" style="margin:5px 0 0">Review submissions here without changing public rankings.</p></div><button data-act="refreshApplications">Refresh applications</button><select id="applicationFilter" aria-label="Filter applications" style="max-width:190px"><option value="all">All statuses</option><option value="pending">Pending review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div><p id="applicationNotice" class="hint" role="status">Loading applications…</p><div id="applicationList"></div><div class="inline"><button data-act="previousApplications" disabled>Previous page</button><button data-act="nextApplications" disabled>Next page</button></div>`;
+  return `<div class="inline"><div><h2>Editor applications</h2><p class="hint" style="margin:5px 0 0">Decided applications leave the pending queue. Only the applicant message is shared with the applicant.</p></div><button data-act="refreshApplications">Refresh applications</button>${can("owner")?`<select id="applicationFilter" aria-label="Application view" style="max-width:190px"><option value="list" ${applicationView==='list'?'selected':''}>Pending review</option><option value="list_reviewed" ${applicationView==='list_reviewed'?'selected':''}>Reviewed</option><option value="list_archived" ${applicationView==='list_archived'?'selected':''}>Private archive</option></select>`:''}</div><p id="applicationNotice" class="hint" role="status">Loading applications…</p><div id="applicationList"></div><div class="inline"><button data-act="previousApplications" disabled>Previous page</button><button data-act="nextApplications" disabled>Next page</button></div>`;
 }
 function updatePagination(kind, offset, total, loading = false){
   const previous = $('[data-act="previous' + kind + '"]');
@@ -288,29 +300,30 @@ function updatePagination(kind, offset, total, loading = false){
   if(previous)previous.disabled = loading || offset === 0;
   if(next)next.disabled = loading || offset + 50 >= total;
 }
-let applicationsCache = [], applicationOffset=0, applicationTotal=0;
-const applicationDrafts = new Map();
+let applicationsCache = [], applicationOffset=0, applicationTotal=0,applicationView="list";
+const applicationDrafts = new Map(),applicantMessages=new Map();
 async function loadApplications(quiet=false){
   const notice = $("#applicationNotice"), list = $("#applicationList");
   if (!notice || !list) return;
-  const offset=applicationOffset;
+  const offset=applicationOffset,requestedView=can("owner")?applicationView:"list";
   if(!quiet)updatePagination("Applications",applicationOffset,applicationTotal,true);
   notice.className = "hint";
   if(!quiet){notice.textContent = "Loading applications…";list.innerHTML = "";}
-  let result;try{result=await api("/api/applications/admin",{action:"list",offset:applicationOffset})}catch{notice.className="hint status bad";notice.textContent="Could not reach the server. Refresh to retry.";return}
-  if($("#applicationNotice")!==notice||offset!==applicationOffset)return;
+  let result;try{result=await api("/api/applications/admin",{action:requestedView,offset:applicationOffset})}catch{notice.className="hint status bad";notice.textContent="Could not reach the server. Refresh to retry.";return}
+  if($("#applicationNotice")!==notice||offset!==applicationOffset||requestedView!==(can("owner")?applicationView:"list"))return;
   const {ok,status,j}=result;
   if (!ok) { notice.className = "hint status bad"; notice.textContent = status === 401 ? "Session expired. Please log in again." : (j.error || "Could not load applications."); list.innerHTML = ""; return; }
   const unchanged=JSON.stringify(applicationsCache)===JSON.stringify(j.applications||[]) && applicationTotal===(j.total||0);
   applicationsCache = j.applications || []; applicationTotal=j.total||0;
+  if(!applicationsCache.length&&applicationOffset>0){applicationOffset=Math.max(0,applicationOffset-50);return loadApplications()}
   notice.className = "hint"; notice.textContent = applicationsCache.length + " applications on this page, " + applicationTotal + " total.";
   updatePagination("Applications",applicationOffset,applicationTotal);
   if(!quiet||!unchanged||!list.innerHTML)renderApplications();
 }
 function renderApplications(){
-  const list = $("#applicationList"), filter = $("#applicationFilter");
-  if (!list || !filter) return;
-  const shown = applicationsCache.filter(a => filter.value === "all" || a.status === filter.value);
+  const list = $("#applicationList");
+  if (!list) return;
+  const shown = applicationsCache;
   if (!shown.length) { list.innerHTML = '<div class="empty-state">No applications in this view.</div>'; return; }
   list.innerHTML = shown.map(a => {
     const status = ["pending","approved","rejected"].includes(a.status) ? a.status : "pending";
@@ -325,9 +338,11 @@ function renderApplications(){
         ${a.notes ? `<div class="app-detail" style="grid-column:1/-1"><strong>Additional notes</strong><span>${esc(a.notes)}</span></div>` : ""}
       </div>
       ${status!=="pending"?`<p class="hint">${status==="approved"?"Approved":"Rejected"} by ${esc(a.reviewer_username||a.reviewer_display||"Reviewer not recorded")}${a.reviewed_at?" · "+esc(new Date(a.reviewed_at).toLocaleString()):""}. Decision locked.</p>`:""}
-      <label for="review-reason-${esc(a.id)}">Review reason${status==="pending"?' (required)':''}</label><textarea id="review-reason-${esc(a.id)}" data-reason="${esc(a.id)}" maxlength="1000" ${status!=="pending"?'readonly':'required'} placeholder="${status!=="pending"?'No reason was recorded.':'Explain your decision to the review team.'}">${esc(status==="pending"?(applicationDrafts.get(a.id) ?? a.review_reason):a.review_reason)}</textarea>
+      <label for="review-message-${esc(a.id)}">Message to the applicant${status==="pending"&&!a.archived_at?' (required)':''}</label><textarea id="review-message-${esc(a.id)}" data-message="${esc(a.id)}" maxlength="1000" ${status!=="pending"||a.archived_at?'readonly':'required'} placeholder="This message appears in the applicant's account and decision email.">${esc(status==="pending"?(applicantMessages.get(a.id)??a.applicant_message):a.applicant_message)}</textarea>
+      <label for="review-reason-${esc(a.id)}">Private staff note${status==="pending"&&!a.archived_at?' (required)':''}</label><textarea id="review-reason-${esc(a.id)}" data-reason="${esc(a.id)}" maxlength="1000" ${status!=="pending"||a.archived_at?'readonly':'required'} placeholder="Only authorised staff can read this note.">${esc(status==="pending"?(applicationDrafts.get(a.id) ?? a.review_reason):a.review_reason)}</textarea>
       ${a.listed_editor_id?'<p class="hint">Converted to an editor profile. List Contributors manage the published profile.</p>':''}
-      ${status==="pending"&&!a.listed_editor_id?`<div class="app-actions"><button class="approve" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="approved">Approve</button><button class="reject" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="rejected">Reject</button></div>`:''}
+      ${status==="pending"&&!a.listed_editor_id&&!a.archived_at?`<div class="app-actions"><button class="approve" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="approved">Approve</button><button class="reject" data-act="applicationStatus" data-id="${esc(a.id)}" data-status="rejected">Reject</button></div>`:''}
+      ${a.archived_at?`<p class="hint">Privately archived by ${esc(a.archived_username)}.</p>`:can("owner")?`<button class="bad" data-act="archiveApplication" data-id="${esc(a.id)}">Archive application</button>`:''}
     </article>`;
   }).join("");
 }
@@ -431,7 +446,7 @@ document.addEventListener("click",async event=>{
 });
 
 function vSite(){
-  const f = (k, l) => `<label>${l}</label><input type="text" data-t="site" data-f="${k}" value="${esc(S.site[k])}">`;
+  const f = (k, l) => `<label for="site-${k}">${l}</label><input id="site-${k}" type="text" data-t="site" data-f="${k}" value="${esc(S.site[k])}">`;
   return `<div class="card">${f("title","Site title")}${f("subtitle","Subtitle")}${f("updated","Last updated text")}${f("tiktok","Your TikTok username (no @) – shows a “DM me on TikTok” button for rank suggestions")}${f("contact","Backup contact link (mailto: or URL, used only if no TikTok username is set)")}</div>`;
 }
 
@@ -448,6 +463,7 @@ document.addEventListener("input", ev => {
   const t = ev.target, k = t.dataset.t;
   if(t.closest("form[data-user],form[data-credit-user]"))t.closest("form[data-user],form[data-credit-user]").dataset.dirty="true";
   if(t.dataset.reason){if(t.value===(applicationsCache.find(a=>a.id===t.dataset.reason)?.review_reason||""))applicationDrafts.delete(t.dataset.reason);else applicationDrafts.set(t.dataset.reason,t.value);return}
+  if(t.dataset.message){if(t.value===(applicationsCache.find(a=>a.id===t.dataset.message)?.applicant_message||""))applicantMessages.delete(t.dataset.message);else applicantMessages.set(t.dataset.message,t.value);return}
   if (!k) return;
   const i = +t.dataset.i;
   if (k === "e") S.editors[i][t.dataset.f] = t.value;
@@ -455,13 +471,17 @@ document.addEventListener("input", ev => {
   else if (k === "s") S.styles[i][t.dataset.f] = t.value;
   else if (k === "site") S.site[t.dataset.f] = t.value;
   else return;
+  if(t.dataset.f==="main_platform"){
+    const button=document.querySelector(`[data-act="fetchPic"][data-i="${i}"]`);
+    if(button)button.textContent="Fetch from "+mainPlatform(S.editors[i]);
+  }
   save();
 });
 
 document.addEventListener("change", ev => {
   const t = ev.target, k = t.dataset.t;
   if(t.closest("form[data-user],form[data-credit-user]"))t.closest("form[data-user],form[data-credit-user]").dataset.dirty="true";
-  if (t.id === "applicationFilter") { renderApplications(); return; }
+  if (t.id === "applicationFilter") { applicationView=t.value;applicationOffset=0;void loadApplications();return; }
   if (t.id === "linkFilter") { linksOffset=0;void loadProfileLinks();return; }
   if (k === "flare") {
     const e = S.editors[+t.dataset.i], id = t.dataset.s;
@@ -474,6 +494,10 @@ document.addEventListener("change", ev => {
 document.addEventListener("click", async ev => {
   const b = ev.target.closest("[data-act]"); if (!b) return;
   const a = b.dataset.act, i = +b.dataset.i, id = b.dataset.id;
+  if(a==="archiveApplication"){
+    if(!confirm("Remove this application from the panel and keep it in the private archive?"))return;
+    b.disabled=true;try{const {ok,j}=await api("/api/applications/admin",{action:"archive",id});if(!ok)throw new Error(j.error||"Could not archive.");applicationDrafts.delete(id);applicantMessages.delete(id);announceChange();await loadApplications()}catch(error){setStatus(error.message,"bad")}finally{b.disabled=false}return;
+  }
   if(a==="convertApplication"){
     await autosave.flush();
     if(autosave.dirty||autosave.blocked||converting)return setStatus("Resolve unsaved changes before converting an application.","bad");
@@ -496,21 +520,23 @@ document.addEventListener("click", async ev => {
     b.disabled = true;
     try {
     const reason = ($("#review-reason-"+id)?.value || "").trim();
+    const message = ($("#review-message-"+id)?.value || "").trim();
     if(!reason){setStatus("Enter a reason before approving or rejecting.","bad");$("#review-reason-"+id)?.focus();return}
+    if(!message){setStatus("Enter a message to the applicant before deciding.","bad");$("#review-message-"+id)?.focus();return}
     if(!confirm("This decision will be locked. "+(b.dataset.status==="approved"?"Approve":"Reject")+" this application?"))return;
-    const {ok,status:code,j} = await api("/api/applications/admin", {action:"update",id,status:b.dataset.status,reason});
+    const {ok,status:code,j} = await api("/api/applications/admin", {action:"update",id,status:b.dataset.status,reason,message});
     if (!ok) { alert(j.error || "Could not update application.");if(code===409){applicationDrafts.delete(id);await loadApplications()}b.disabled = false; return; }
     const index = applicationsCache.findIndex(x => x.id === id); if (index>=0 && j.application) applicationsCache[index]=j.application;
-    applicationDrafts.delete(id);announceChange();
+    applicationDrafts.delete(id);applicantMessages.delete(id);announceChange();
     setStatus("Decision saved and locked.","ok");
-    renderApplications(); const notice = $("#applicationNotice"); if (notice) notice.textContent = "Application updated.";
+    await loadApplications();
     } catch(error) { setStatus(error.message || "Could not update application.", "bad"); }
     finally { b.disabled = false; }
     return;
   }
   if (a === "tab") { tab = b.dataset.v; return view(); }
   if (a === "addEditor") {
-    const e = { id: "e" + Date.now().toString(36), name: "New editor", handle: "", tiktok: "", flares: [], note: "", thumb: "", video: "", links: {} };
+    const e = { id: "e" + Date.now().toString(36), name: "New editor", handle: "", main_platform: "TikTok", tiktok: "", flares: [], note: "", thumb: "", video: "", links: {} };
     openIdx = S.editors.length;
     S.editors.push(e); (S.lists.main ||= []).push(e.id);
   }
@@ -577,7 +603,6 @@ function isLegacyBlobPicture(value) {
     return url.protocol === "https:" && /^[a-z0-9-]+\.(?:public|private)\.blob\.vercel-storage\.com$/i.test(url.hostname);
   } catch { return false; }
 }
-const ttUser = e => String(e.tiktok || "").replace(/^@/, "").trim();
 document.addEventListener("toggle", ev => {
   const d = ev.target;
   if (!d.matches || !d.matches("details.card[data-idx]")) return;
@@ -587,12 +612,12 @@ document.addEventListener("toggle", ev => {
 
 async function fetchOne(i){
   const e = S.editors[i];
-  const username=ttUser(e),previous=e.thumb;
-  if (!username) return "no TikTok username";
+  const source=avatarRequest(e),previous=e.thumb;
+  if (!primaryLink(e).url) return mainPlatform(e)==="YouTube"?"add a valid YouTube channel URL":"no TikTok username";
   try {
-    const { ok, status, j } = await api("/api/avatar", {editorId:e.id,username});
+    const { ok, status, j } = await api("/api/avatar", source);
     if (ok && j.url) {
-      if(!S.editors.includes(e)||e.thumb!==previous||ttUser(e)!==username)return "profile changed during the fetch; the current picture is kept";
+      if(!S.editors.includes(e)||e.thumb!==previous||JSON.stringify(avatarRequest(e))!==JSON.stringify(source))return "profile changed during the fetch; the current picture is kept";
       e.thumb = j.url; save(); return "";
     }
     if (status === 401) return "session expired – log in again";
@@ -609,9 +634,9 @@ async function runFetch(idx, replaceLegacy = false){
     if(autosave.dirty||autosave.blocked)return setStatus("Resolve unsaved changes before replacing pictures.","bad");
   }
   const todo = idx === null
-    ? S.editors.filter(e => replaceLegacy ? isLegacyBlobPicture(e.thumb) : ttUser(e) && !e.thumb).map(e=>e.id)
+    ? S.editors.filter(e => replaceLegacy ? isLegacyBlobPicture(e.thumb) : primaryLink(e).url && !e.thumb).map(e=>e.id)
     : [S.editors[idx]?.id];
-  if (!todo.length) return setStatus(replaceLegacy?"No Vercel pictures remain.":"Nothing to fetch (add TikTok usernames first)");
+  if (!todo.length) return setStatus(replaceLegacy?"No Vercel pictures remain.":"Nothing to fetch. Add a TikTok username or YouTube channel URL first.");
   pictureFetchRunning=true;
   document.querySelectorAll('[data-act="fetchPic"],[data-act="fetchAll"],[data-act="fetchLegacy"]').forEach(button=>{button.disabled=true});
   const fails = [];let fetched=0,stopped=false;
@@ -647,7 +672,7 @@ const autosave = createAutosave({
   async write(){
     if(!S||!revision||!canEdit())throw new Error("Live rankings must load before saving.");
     const contributor=can("list_contributor"),profile=S.editors.find(e=>e.id===account.editor_id);
-    const fields=["name","handle","tiktok","note","thumb","video","links","software"];
+    const fields=["name","handle","tiktok","note","thumb","video","links","software","main_platform"];
     const payload=contributor?{data:S,revision}:{profile:Object.fromEntries(fields.filter(k=>profile&&k in profile).map(k=>[k,profile[k]])),revision};
     const {ok,status,j}=await api(contributor?"/api/save":"/api/account/profile",structuredClone(payload));
     if(!ok)throw Object.assign(new Error(j.error||"Save failed."),{status});
@@ -690,7 +715,7 @@ $("#reset").addEventListener("click",async()=>{
       if(tab==="contributors")return;
       if(tab==="editors"&&can("list_contributor"))await loadPending();
       const editing=$("#app").contains(document.activeElement)&&document.activeElement.matches("input,textarea,select");
-      if(tab==="applications" && !applicationDrafts.size && !editing){await loadApplications(true);return}
+      if(tab==="applications" && !applicationDrafts.size && !applicantMessages.size && !editing){await loadApplications(true);return}
       if(tab==="users" && !$("form[data-user][data-dirty],form[data-credit-user][data-dirty]") && !editing){await loadUsers(true);return}
       if(tab==="links"&&!editing){await loadProfileLinks(true);return}
       if(dirty||autosave.busy||editing||pictureFetchRunning)return;

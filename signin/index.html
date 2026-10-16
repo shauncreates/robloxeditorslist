@@ -6,6 +6,7 @@
     <meta name="robots" content="noindex,nofollow" />
 
     <title>Account | Roblox Editors</title>
+    <link rel="icon" type="image/svg+xml" href="../media/icon.svg" />
 
     <link rel="stylesheet" href="../assets/typography.css" />
     <link rel="stylesheet" href="../assets/account.css" />
@@ -65,6 +66,7 @@
           autocomplete="current-password"
         />
 
+        <p class="hint" id="signupPolicies" hidden>Creating an account means agreeing to the <a href="/terms/">Terms</a>. Read the <a href="/privacy/">Privacy notice</a> for how REL uses your information.</p>
         <button class="pri" id="submit" data-icon="account">Sign in</button>
       </form>
 
@@ -92,6 +94,7 @@
       <p class="hint">
         New accounts are members until an owner grants additional access.
       </p>
+      <nav class="rel-policy-links" aria-label="Website policies"><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/terms/">Terms</a></nav>
     </main>
 
     <script type="module">
@@ -99,6 +102,13 @@
 
       const $ = (selector) => document.querySelector(selector);
       const form = $("#authForm");
+      const next = new URLSearchParams(location.search).get("next") === "/apply/" ? "/apply/" : null;
+      const clanInvite = new URLSearchParams(
+        (location.hash || "").slice(1),
+      ).get("clan-invite");
+      const clanReturn = /^[A-Za-z0-9_-]{43}$/.test(clanInvite || "")
+        ? "/clans/#invite=" + clanInvite
+        : null;
 
       // Confirmation authorizes no action here.
       // Discard Supabase's URL fragment tokens.
@@ -113,7 +123,9 @@
         history.replaceState(null, "", "/signin/");
 
         $("#message").textContent =
-          error ||
+          (clanReturn
+            ? "Sign in to review your clan invitation. Joining requires confirmation."
+            : error) ||
           "If you followed your confirmation link, sign in to continue.";
       }
 
@@ -135,6 +147,7 @@
         $("#password").minLength = signup ? 8 : 1;
 
         $("#signupUsernameField").hidden = !signup;
+        $("#signupPolicies").hidden = !signup;
         $("#signupUsername").disabled = !signup;
         $("#signupUsername").required = signup;
 
@@ -199,16 +212,28 @@
           $("#password").value = "";
 
           if (submittingSignup) {
-            $("#message").textContent = result.message;
+            $("#message").textContent =
+              result.message +
+              (clanReturn
+                ? " After confirming your email, reopen the invitation to join."
+                : "");
           } else {
+            if (typeof BroadcastChannel === "function") {
+              const channel = new BroadcastChannel("rel-auth");
+              channel.postMessage("changed");
+              channel.close();
+            }
             location.assign(
-              result.account?.roles?.some((role) =>
-                ["owner", "list_contributor", "application_reviewer"].includes(
-                  role,
-                ),
-              )
-                ? "/admin/"
-                : "/account/",
+              clanReturn || next ||
+                (result.account?.roles?.some((role) =>
+                  [
+                    "owner",
+                    "list_contributor",
+                    "application_reviewer",
+                  ].includes(role),
+                )
+                  ? "/admin/"
+                  : "/account/"),
             );
           }
         } catch (error) {

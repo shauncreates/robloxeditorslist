@@ -1,6 +1,6 @@
 # Editor applications
 
-## Current main behavior
+## Earlier main behavior
 
 The public `/apply/` form submits through `POST /api/applications`. It accepts a display name, TikTok/YouTube profile, software, styles, example link and optional notes. Browser/server validation and a honeypot are implemented. Submission currently does not require an REL account and does not send a transactional receipt email.
 
@@ -10,9 +10,11 @@ List Contributors can separately convert an approved application into an editor 
 
 Application rows and review reasons are private. Browser roles cannot read or write the table directly. Protected review calls require a verified account and checked database permissions; the public submission Function validates its payload before using server-only access.
 
-## Separate notification and archive work
+## Tracking, notifications and archives
 
-`feat/application-notifications-audit` contains work toward account-required applications, transactional submission/decision emails and Owner-managed private application archives. That branch has commits outside `main`. Do not describe those capabilities as released or delete that branch as merged.
+`feat/application-tracking` reconciles the earlier notification work with current main and adds account-owned status, separate applicant messages/private notes, transactional emails and Owner archives. See [the implementation and release guide](APPLICATION_TRACKING_AND_YOUTUBE.md). Production activation remains separate from this branch's implementation.
+
+The older `feat/application-notifications-audit` branch still has commits outside main. Its migration must not be applied alongside the replacement tracking migration without a reviewed compatibility plan. Do not delete it as fully merged based only on similar features appearing in another branch.
 
 Resend integration must be reviewed and configured for a separate release, with real delivery tested using an approved recipient. Supabase signup confirmation and password-recovery emails are separate Auth flows. Rate limits/CAPTCHA also require environment setup and verification.
 

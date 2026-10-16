@@ -18,6 +18,8 @@ The interface uses HTML, CSS and JavaScript. Cloudflare Pages Functions handle t
 ## Explore the website
 
 - **Browse by editing style.** Switch between Overall, Nate, Hypic, Block Glitch and Transition/3D, or search for an editor by name or handle.
+- **Compare channel audiences.** The development version adds a separate Popularity list for ranked editors with confirmed TikTok or YouTube connections, showing follower/subscriber snapshots and update dates. [Preview and setup](docs/POPULARITY.md).
+- **Join a clan.** The development version adds invite-based clans with creator-set four-character prefixes and member rankings. Joining requires confirmation. [Preview and guide](docs/CLANS.md).
 - **Open a profile.** See an editor's list placements, links, software and any published showcase. Accounts and contributor credits have shareable profiles too.
 - **Manage your own details.** Create and confirm an account, then request an Owner-verified link to your editor profile. That link gives access to your details without granting ranking permissions.
 - **Help maintain REL.** Staff permissions separate ranking edits, application reviews and Owner account management. Public contributor tiers credit Owners, Developers, Reviewers and Rankers.
@@ -101,10 +103,16 @@ Applications contain an editor's profile, styles and example work. Reviewers app
 | --- | --- |
 | Ranking filters, search and editor details | [`list/index.html`](list/index.html) |
 | Public profile rendering and data | [`assets/public-profile.js`](assets/public-profile.js), [`functions/api/profiles.js`](functions/api/profiles.js) |
+| TikTok/YouTube main platforms and pictures | [`assets/editor-platform.js`](assets/editor-platform.js), [platform setup](docs/EDITOR_PLATFORMS.md) |
+| TikTok account ownership confirmation | [`assets/tiktok-connection.js`](assets/tiktok-connection.js), [setup and verification](docs/TIKTOK_CONNECTION.md) |
+| Popularity and YouTube authorisation | [`popularity/index.html`](popularity/index.html), [`functions/api/popularity.js`](functions/api/popularity.js), [setup and previews](docs/POPULARITY.md) |
+| Clans, prefixes and invitations | [`assets/clans.js`](assets/clans.js), [`functions/api/account/clans.js`](functions/api/account/clans.js), [clan guide](docs/CLANS.md) |
 | Sessions, verified accounts and permissions | [`functions/_auth.js`](functions/_auth.js), [`supabase/auth-roles.sql`](supabase/auth-roles.sql) |
 | Application submission and staff review | [`functions/api/applications.js`](functions/api/applications.js), [`functions/api/applications/admin.js`](functions/api/applications/admin.js) |
 | Ranking saves and conflict handling | [`functions/api/save.js`](functions/api/save.js), [ranking preservation guide](docs/RANKING_STORAGE.md) |
 | Contributor tiers and Owner editing | [`assets/contributors.js`](assets/contributors.js), [`assets/contributors-admin.js`](assets/contributors-admin.js) |
+| Security, privacy and optional video loading | [Review and release requirements](docs/SECURITY_REVIEW.md), [`assets/video-consent.js`](assets/video-consent.js) |
+| Application tracking, notifications and YouTube authorisation | [Implementation and release guide](docs/APPLICATION_TRACKING_AND_YOUTUBE.md) |
 | Isolated account and database tests | [`tests/`](tests/), [development guide](docs/DEPLOY_AND_TEST.md) |
 
 ## Try the development version
@@ -124,12 +132,12 @@ The build writes static files to `dist/`. `npm run check:cloudflare` compiles th
 
 ## What is still being developed
 
-Account-required applications, submission/decision emails and Owner-managed application archiving remain on the separate `feat/application-notifications-audit` branch. They are not part of the current main application flow. Transactional email configuration and real delivery tests belong to that feature's rollout.
+This development branch combines account-required applications, applicant status, submission/decision emails, private archives, social ownership verification, popularity rankings and clans. Provider configuration, ordered SQL prerequisites and approved live checks remain necessary before release. See the [combined branch review](docs/COMBINED_BRANCH.md).
 
-New environments also need the SQL prerequisites for accounts, public profiles and [contributor editing](docs/CONTRIBUTOR_TIERS.md). Real email delivery and launch abuse controls need verification in the intended environment; the local fixture cannot prove those settings.
+New environments also need the SQL prerequisites for accounts, public profiles, [contributor editing](docs/CONTRIBUTOR_TIERS.md) and [request limits](docs/SECURITY_REVIEW.md#required-release-order). The request-limit migration must be applied before releasing the dependent website code. Real email delivery and provider abuse controls need verification in the intended environment; the local fixture cannot prove those settings.
 
 ## Working on REL
 
-Read the [documentation index](docs/README.md) and [contribution guide](CONTRIBUTING.md). New work starts on a branch from the latest `origin/main`. Production deploys from `main` through Cloudflare Pages after the owner's approval.
+Read the [documentation index](docs/README.md) and [contribution guide](CONTRIBUTING.md). Continue changes on `fix/account-layout-navigation` throughout this review cycle. A new branch starts from the latest `origin/main` only after an approved release cycle is complete. Production deploys from `main` through Cloudflare Pages after the owner's approval.
 
 Preserve editor rankings and `data.js`. Website builds do not initialize the live database or apply migrations. Keep credentials and private backups out of Git, and use the isolated fixture for fictional edits.

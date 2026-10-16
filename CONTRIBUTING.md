@@ -2,14 +2,14 @@
 
 ## Start a change
 
-Fetch the latest repository state and create a new branch from `origin/main`:
+Fetch the latest repository state and continue on the existing development branch:
 
 ```sh
 git fetch origin --prune
-git switch -c feat/describe-the-change origin/main
+git switch fix/account-layout-navigation
 ```
 
-Preserve or commit existing local work before switching. Use `feat/` for features, `fix/` for fixes and `docs/` for documentation. The old stage-1 branch is not the starting point for new work.
+Preserve existing local work before switching. Reuse this branch for further changes throughout the review cycle. Create a new branch from the latest `origin/main` only after the owner-approved commit, merge, push and deployment cycle is complete. Keep using that new branch until its release cycle is complete.
 
 Read [AGENTS.md](AGENTS.md) when using a coding assistant. Follow the [development guide](docs/DEPLOY_AND_TEST.md), using the isolated fixture for account, application and ranking edits.
 

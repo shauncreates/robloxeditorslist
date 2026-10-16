@@ -4,3 +4,21 @@
 SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVER_ONLY_SERVICE_ROLE_KEY
+
+# Optional application notifications. Configure securely in the intended deployment.
+RESEND_API_KEY=
+REL_EMAIL_FROM=
+
+# Optional TikTok ownership verification. Configure only in the intended deployment.
+REL_TIKTOK_CLIENT_KEY=
+REL_TIKTOK_CLIENT_SECRET=
+REL_TIKTOK_REDIRECT_URI=
+
+# Optional YouTube authorisation. Keep credentials server-side in the intended deployment.
+REL_GOOGLE_CLIENT_ID=
+REL_GOOGLE_CLIENT_SECRET=
+REL_GOOGLE_TOKEN_KEY=
+REL_YOUTUBE_REDIRECT_URI=
+
+# Optional public YouTube channel pictures, server-only YouTube Data API key.
+REL_YOUTUBE_API_KEY=

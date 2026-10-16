@@ -1,0 +1,7 @@
+{
+  "name": "rel-application-email-retry",
+  "main": "workers/application-email-retry.js",
+  "compatibility_date": "2026-10-13",
+  "workers_dev": false,
+  "triggers": { "crons": ["*/5 * * * *"] }
+}
