@@ -111,13 +111,13 @@ test("username and link APIs enforce ownership, roles, uniqueness and private re
     for(const role of [null,"member","reviewer","contributor"])assert.equal((await request("/api/account/links",role)).status,role?403:401);
     assert.equal((await request("/api/account/links","owner")).status,200);
     const id=await insertApplication(service.db);
-    const body={action:"update",id,status:"rejected",reason:"Missing examples.",reviewed_by:ids.owner,reviewer_username:"owner"};
+    const body={action:"update",id,status:"rejected",reason:"Missing examples.",message:"Please share a public showreel with more examples.",reviewed_by:ids.owner,reviewer_username:"owner"};
     assert.equal((await request("/api/applications/admin","reviewer",{...body,reason:""})).status,400);
     const result=await request("/api/applications/admin","reviewer",body);
     assert.equal(result.status,200);assert.equal((await result.json()).application.reviewer_username,"reviewer");
     assert.equal((await request("/api/applications/admin","owner",{...body,status:"approved"})).status,409);
     assert.equal((await request("/api/applications/admin","owner",{...body,status:"pending"})).status,400);
-    const listed=await (await request("/api/applications/admin","reviewer",{action:"list"})).json();
+    const listed=await (await request("/api/applications/admin","owner",{action:"list_reviewed"})).json();
     assert.ok(!JSON.stringify(listed).includes("@example.test"));
   }finally{await service.close()}
 });

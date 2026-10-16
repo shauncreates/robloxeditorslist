@@ -8,6 +8,7 @@ Use the root [README](../README.md) for the project overview and commands. These
 | [Accounts and permissions](AUTH_SETUP.md) | Roles, verified editor links, sessions and database authorization |
 | [Account layout and navigation](ACCOUNT_NAVIGATION.md) | Desktop/dashboard sizing and session-aware account buttons |
 | [Applications](APPLICATIONS_STAGE_1.md) | Current submission/review behavior and unfinished notification work |
+| [Application tracking and YouTube](APPLICATION_TRACKING_AND_YOUTUBE.md) | Account-owned status, decision emails, private archives, Google authorisation and release prerequisites |
 | [Public profiles](PUBLIC_PROFILES.md) | Stable profile links, contributor account links and public fields |
 | [Connect TikTok](TIKTOK_CONNECTION.md) | Optional ownership confirmation, privacy, provider setup and cleanup |
 | [Popularity and YouTube](POPULARITY.md) | Ranked-editor audience lists, counts, Google setup and retention |

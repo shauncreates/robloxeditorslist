@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../assets/youtube-connection.css">
   <link rel="stylesheet" href="../assets/actions.css">
   <link rel="stylesheet" href="../assets/account-dashboard.css">
+  <link rel="stylesheet" href="../assets/account-features.css">
   <script type="module" src="../assets/action-buttons.js"></script>
 </head>
 <body><main class="account-wrap account-dashboard">
@@ -19,6 +20,7 @@
   <form id="usernameForm" hidden><label for="accountUsername">Username</label><input id="accountUsername" minlength="3" maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9_\-]{2,39}" required autocomplete="nickname" autocapitalize="none" spellcheck="false" aria-describedby="usernameHint usernameAvailability"><p class="hint" id="usernameHint">Use 3 to 40 letters, digits, underscores or hyphens, starting with a letter or digit. Stored in lowercase. Reviews show your username; sign-in still uses your email.</p><p class="hint" id="usernameAvailability" role="status"></p><button data-icon="save" type="submit">Save username</button></form><p id="usernameNotice" role="status"></p>
   <div class="account-connections"><section id="tiktokConnection" class="tiktok-connection" aria-labelledby="tiktokTitle" aria-busy="true"><h2 id="tiktokTitle">Connect TikTok</h2><p role="status">Loading TikTok connection…</p></section>
   <section id="youtubeConnection" class="youtube-connection" aria-labelledby="youtubeConnectionTitle" aria-busy="true"><h2 id="youtubeConnectionTitle">YouTube connection</h2><p role="status">Loading YouTube connection…</p></section></div>
+  <section id="myApplications" class="account-feature" aria-labelledby="myApplicationsTitle" aria-busy="true"><h2 id="myApplicationsTitle">Your applications</h2><p role="status">Loading your applications…</p></section>
   <p id="status" role="status">Loading your account…</p><div id="profile"></div>
-</main><script type="module" src="../assets/profile-page.js"></script><script type="module" src="../assets/tiktok-connection.js"></script><script type="module" src="../assets/youtube-connection.js"></script></body>
+</main><script type="module" src="../assets/profile-page.js"></script><script type="module" src="../assets/tiktok-connection.js"></script><script type="module" src="../assets/youtube-connection.js"></script><script type="module" src="../assets/account-applications.js"></script></body>
 </html>

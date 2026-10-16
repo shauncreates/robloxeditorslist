@@ -3,11 +3,11 @@ import { randomUUID } from "node:crypto";
 import { onRequest as middleware } from "../functions/api/_middleware.js";
 import { secureResponse } from "../functions/_security.js";
 
-export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server"};
+export const env={SUPABASE_URL:"https://rel-test.invalid",SUPABASE_PUBLISHABLE_KEY:"test-public",SUPABASE_SERVICE_ROLE_KEY:"test-server",RESEND_API_KEY:"fixture-email-key",REL_EMAIL_FROM:"REL <fixture@example.test>"};
 const baseEnv=env;
 export async function mockService({tiktok=false,google=false,origin="https://rel.example.test"}={}){
   const env={...baseEnv,...(tiktok?{REL_TIKTOK_CLIENT_KEY:"fixture-client-key",REL_TIKTOK_CLIENT_SECRET:"fixture-client-secret",REL_TIKTOK_REDIRECT_URI:origin+"/api/account/tiktok/callback"}:{}),...(google?{REL_GOOGLE_CLIENT_ID:"fixture-client.apps.googleusercontent.com",REL_GOOGLE_CLIENT_SECRET:"fixture-google-secret",REL_GOOGLE_TOKEN_KEY:Buffer.alloc(32,1).toString('base64'),REL_YOUTUBE_REDIRECT_URI:origin+"/api/account/youtube/callback"}:{})};
-  const {db,rpc}=await fixture({profiles:true,tiktok:true,youtube:true,popularity:true,clans:true});
+  const {db,rpc}=await fixture({profiles:true,notifications:true,tiktok:true,youtube:true,popularity:true,clans:true});
   const googleState={channels:[{id:"UC"+"a".repeat(22),snippet:{title:"Fixture YouTube channel"},statistics:{subscriberCount:"12500",hiddenSubscriberCount:false}}]},googleLog=[];
   const originalFetch=globalThis.fetch;
   const users=new Map(Object.keys(ids).map(name=>[name,{id:ids[name],email:name+"@example.test",email_confirmed_at:"2026-10-14T00:00:00Z"}]));
@@ -15,10 +15,17 @@ export async function mockService({tiktok=false,google=false,origin="https://rel
   const passwords=new Map([...users.values()].map(user=>[user.id,"test-password-123"]));
   const recoveryCodes=new Map(),failures={};
   const providerRequests=[],usedTikTokCodes=new Set();
+  const emails=[],emailKeys=new Map();
   let requestLog=[];
   const response=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json"}});
   globalThis.fetch=async(input,options={})=>{
     const url=new URL(input);
+    if(url.href==="https://api.resend.com/emails"){
+      if(failures.email)return response({message:"Synthetic email failure"},failures.email);
+      const key=new Headers(options.headers).get("idempotency-key");
+      if(!emailKeys.has(key)){emailKeys.set(key,randomUUID());emails.push(JSON.parse(options.body))}
+      return response({id:emailKeys.get(key)});
+    }
     if(google&&url.origin==="https://oauth2.googleapis.com"){
       googleLog.push({path:url.pathname,body:options.body});
       if(url.pathname==='/revoke')return response({},failures.googleRevoke?503:200);
@@ -111,6 +118,15 @@ export async function mockService({tiktok=false,google=false,origin="https://rel
       return new Response(null,{status:204});
     }
     if(url.pathname.startsWith("/rest/v1/rpc/")){
+      if(url.pathname.endsWith('/rel_email_work')&&token===env.SUPABASE_SERVICE_ROLE_KEY){
+        const args=JSON.parse(options.body),keys=Object.keys(args);
+        if(failures.emailAck&&args.p_action==="sent")return response({},503);
+        try{return response(await db.transaction(async tx=>{
+          await tx.exec("set local role service_role");
+          await tx.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({role:"service_role"})]);
+          return (await tx.query(`select public.rel_email_work(${keys.map((key,i)=>key+'=> $'+(i+1)).join(',')}) as result`,Object.values(args))).rows[0].result;
+        }))}catch(error){return response({message:error.message,code:error.code},400)}
+      }
       if(url.pathname.endsWith('/rel_take_rate_limit')&&token===env.SUPABASE_SERVICE_ROLE_KEY){
         if(failures.rateLimit)return response({},failures.rateLimit);
         const body=JSON.parse(options.body);
@@ -154,6 +170,8 @@ export async function mockService({tiktok=false,google=false,origin="https://rel
     "/api/data":"data", "/api/popularity":"popularity", "/api/save":"save", "/api/avatar":"avatar", "/api/applications":"applications", "/api/profiles":"profiles", "/api/contributors":"contributors",
     "/api/applications/admin":"applications/admin",
     "/api/applications/pending":"applications/pending",
+    "/api/applications/notifications":"applications/notifications",
+    "/api/account/activity":"account/activity", "/api/account/applications":"account/applications",
     ...Object.fromEntries(["signin","signup","session","refresh","signout","forgot-password","reset-password","confirmation"].map(name=>["/api/auth/"+name,"auth/"+name])),
     ...Object.fromEntries(["site","profile","claim","users","username","links","contributor","contributors"].map(name=>["/api/account/"+name,"account/"+name])),
     ...Object.fromEntries(["tiktok","tiktok/start","tiktok/callback"].map(name=>["/api/account/"+name,"account/"+name])),
@@ -173,5 +191,5 @@ export async function mockService({tiktok=false,google=false,origin="https://rel
   }
   const {onRequest:adminGate}=await import("../functions/admin/_middleware.js");
   const handleAdmin=async(request,next)=>secureResponse(await adminGate({request,env,next}));
-  return {db,rpc,env,handle,handleAdmin,sessions,recoveryCodes,failures,providerRequests,googleState,googleLog,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
+  return {db,rpc,env,handle,handleAdmin,sessions,recoveryCodes,failures,providerRequests,googleState,googleLog,emails,log:()=>requestLog,clearLog:()=>{requestLog=[]},close:async()=>{globalThis.fetch=originalFetch;await db.close()}};
 }

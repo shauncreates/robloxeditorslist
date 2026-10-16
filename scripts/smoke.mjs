@@ -16,7 +16,8 @@ try{
   if(!Array.isArray(data.editors)||!Array.isArray(data.styles)||!data.lists)throw new Error('Invalid ranking response.');
   console.log(JSON.stringify({editors:data.editors.length,styles:data.styles.length,lists:Object.fromEntries(Object.entries(data.lists).map(([key,list])=>[key,list.length]))}));
   await check('/api/auth/session','GET',401);
-  for(const path of ['/api/save','/api/avatar','/api/applications/admin','/api/account/users','/api/account/profile','/api/account/claim'])await check(path,'POST',401);
+  for(const path of ['/api/save','/api/avatar','/api/applications','/api/applications/admin','/api/applications/notifications','/api/account/users','/api/account/profile','/api/account/claim','/api/account/youtube/start','/api/account/youtube'])await check(path,'POST',401);
+  for(const path of ['/api/account/applications','/api/account/activity','/api/account/youtube'])await check(path,'GET',401);
   const crossOrigin=await fetch(new URL('/api/save',base),{method:'POST',headers:{Origin:'https://rel-test.invalid','Content-Type':'application/json'},body:'{}'});
   if(crossOrigin.status!==403)throw new Error('Cross-origin save was not denied.');
   console.log('PASS cross-origin save: 403');

@@ -5,6 +5,10 @@ SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVER_ONLY_SERVICE_ROLE_KEY
 
+# Optional application notifications. Configure securely in the intended deployment.
+RESEND_API_KEY=
+REL_EMAIL_FROM=
+
 # Optional TikTok ownership verification. Configure only in the intended deployment.
 REL_TIKTOK_CLIENT_KEY=
 REL_TIKTOK_CLIENT_SECRET=

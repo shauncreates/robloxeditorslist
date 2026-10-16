@@ -1,5 +1,7 @@
 # Website screenshots
 
+`application-tracking.png`, `youtube-confirmation.png` and `application-approved-email.png` were captured on 16 October 2026 against fictional local records. Provider responses are simulated, and the email capture shows generated HTML rather than a real delivery. These documentation assets are excluded from the website build.
+
 The `account-dashboard-desktop.png`, `account-dashboard-mobile.png` and `account-nav-signed-out.png` captures show the 16 October 2026 account-layout/navigation fix in the isolated fixture. They use fictional accounts and ranking data with locally loaded Red Hat Text. See [account navigation](../ACCOUNT_NAVIGATION.md). They contain no production account records or credentials.
 
 The `popularity-tiktok.png`, `popularity-youtube-mobile.png`, `clan-members.png` and `clan-invitation-mobile.png` previews were captured on 16 October 2026 from this development branch's actual local UI. They use fictional accounts, audience counts and a test clan from the isolated fixture, rather than production memberships or real social statistics. Red Hat Text was loaded locally. No production request or private production data was used. See the [Popularity](../POPULARITY.md) and [Clans](../CLANS.md) guides for setup and limits.

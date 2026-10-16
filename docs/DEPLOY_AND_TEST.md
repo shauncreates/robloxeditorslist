@@ -95,6 +95,8 @@ Database migration status and SMTP/provider settings must be checked separately 
 
 ## Release an approved change
 
+The combined application and YouTube work has [ordered SQL prerequisites, a coordinated submit/review maintenance window and an email retry worker](APPLICATION_TRACKING_AND_YOUTUBE.md#release-order-and-production-boundaries). Follow those requirements alongside the security, platform, popularity and clan guides before any approved release.
+
 For the security/privacy change, first review [the request-limit prerequisite and rollout order](SECURITY_REVIEW.md#required-release-order). Its new SQL function must exist before the dependent website code is released; otherwise limited endpoints return 503. Applying that migration to production requires separate permission.
 
 1. Start a new feature branch from freshly fetched `origin/main`, preserving local work. Follow [CONTRIBUTING.md](../CONTRIBUTING.md).

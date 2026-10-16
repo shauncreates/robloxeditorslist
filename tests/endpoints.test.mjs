@@ -65,11 +65,12 @@ test('public submission, profile claims, role changes and permitted avatars work
       method:body===undefined?'GET':'POST',headers:{origin:'https://rel.example.test','Content-Type':'application/json',...(token?{cookie:'__Host-rel_access='+token}:{})},body:body===undefined?undefined:JSON.stringify(body),
     }));
     assert.deepEqual(await(await request('/api/data')).json(),rankings);
-    const application={displayName:'Test applicant',platform:'YouTube',profileUrl:'https://youtube.com/@fixture',software:'Blender',styles:[rankings.styles[0].name],examplesUrl:'https://example.test/showreel',notes:'Synthetic test'};
-    assert.equal((await request('/api/applications',null,application)).status,201);
-    assert.equal((await request('/api/applications',null,{...application,styles:[]})).status,400);
-    assert.equal((await request('/api/applications',null,{...application,profileUrl:'https://evil.example.test'})).status,400);
-    assert.equal((await request('/api/applications',null,{website:'honeypot'})).status,200);
+    const application={requestId:crypto.randomUUID(),displayName:'Test applicant',platform:'YouTube',profileUrl:'https://youtube.com/@fixture',software:'Blender',styles:[rankings.styles[0].name],examplesUrl:'https://example.test/showreel',notes:'Synthetic test'};
+    assert.equal((await request('/api/applications',null,application)).status,401);
+    assert.equal((await request('/api/applications','member',application)).status,201);
+    assert.equal((await request('/api/applications','member',{...application,styles:[]})).status,400);
+    assert.equal((await request('/api/applications','member',{...application,profileUrl:'https://evil.example.test'})).status,400);
+    assert.equal((await request('/api/applications','member',{website:'honeypot'})).status,200);
     assert.equal((await service.db.query('select count(*)::int as n from public.editor_applications')).rows[0].n,1);
     const before=await(await request('/api/account/site','owner')).json();
     assert.equal((await request('/api/account/claim','stranger',{editorId:'editor2',message:'Please verify the listed account.'})).status,200);
