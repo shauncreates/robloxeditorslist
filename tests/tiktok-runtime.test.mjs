@@ -5,6 +5,7 @@ import { build } from "esbuild";
 import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 
 test("TikTok verifies and revokes access in Cloudflare without following redirects", async () => {
+  const accessToken = "act.fixture+token/with=padding!*%:";
   const bundle = await build({
     stdin: {
       resolveDir: fileURLToPath(new URL("../", import.meta.url)),
@@ -39,18 +40,18 @@ test("TikTok verifies and revokes access in Cloudflare without following redirec
         assert.equal(body.get("code"), "fixture-code");
         assert.equal(body.get("client_secret"), "fixture-secret");
         return Response.json({
-          access_token: "fixture-access-token", open_id: "fixture-open-id", token_type: "Bearer",
+          access_token: accessToken, open_id: "fixture-open-id", token_type: "Bearer",
           scope: "user.info.basic,user.info.profile,user.info.stats",
         });
       }
       if (url.pathname === "/v2/user/info/") {
-        assert.equal(request.headers.get("Authorization"), "Bearer fixture-access-token");
+        assert.equal(request.headers.get("Authorization"), "Bearer " + accessToken);
         return Response.json({data: {user: {
           open_id: "fixture-open-id", username: "fixture_editor", display_name: "Fixture editor", follower_count: 12500,
         }}, error: {code: "ok"}});
       }
       assert.equal(url.pathname, "/v2/oauth/revoke/");
-      assert.equal(new URLSearchParams(await request.text()).get("token"), "fixture-access-token");
+      assert.equal(new URLSearchParams(await request.text()).get("token"), accessToken);
       return new Response(null, {status: 204});
     },
   }));
