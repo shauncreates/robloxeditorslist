@@ -217,7 +217,9 @@ export async function proveAccount(config, code) {
     stage = "token_response";
     if (
       typeof token.access_token !== "string" ||
-      !/^[A-Za-z0-9._~+/-]{1,4096}$/.test(token.access_token)
+      token.access_token.length === 0 ||
+      token.access_token.length > 4096 ||
+      /[^\x21-\x7e]/.test(token.access_token)
     )
       throw failure("invalid_token_response");
     accessToken = token.access_token;
