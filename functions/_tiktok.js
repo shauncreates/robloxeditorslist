@@ -96,7 +96,7 @@ export async function exchangeRpc(env, args) {
 export async function providerJson(url, options = {}, allowEmpty = false) {
   const response = await fetch(url, {
     ...options,
-    redirect: "error",
+    redirect: "manual",
     signal: AbortSignal.timeout(10000),
   });
   if (!response.ok)

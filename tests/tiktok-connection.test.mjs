@@ -561,7 +561,7 @@ test("bounded TikTok responses and immediate revocation do not retain provider t
     let calls = 0;
     globalThis.fetch = async (url, options) => {
       calls++;
-      assert.equal(options.redirect, "error");
+      assert.equal(options.redirect, "manual");
       assert.ok(options.signal);
       if (String(url).includes("/oauth/token/"))
         return new Response(
