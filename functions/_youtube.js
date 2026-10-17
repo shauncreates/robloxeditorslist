@@ -143,7 +143,7 @@ export function youtubeCallbackDiagnostic(stage, error) {
 export async function providerJson(url, options) {
   const response = await fetch(url, {
     ...options,
-    redirect: "error",
+    redirect: "manual",
     signal: AbortSignal.timeout(10000),
   });
   if (!response.ok) {
@@ -202,7 +202,7 @@ export async function revokeToken(env, ciphertext) {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ token }).toString(),
-    redirect: "error",
+    redirect: "manual",
     signal: AbortSignal.timeout(10000),
   });
   const alreadyRevoked =
