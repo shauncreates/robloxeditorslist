@@ -12,7 +12,7 @@ export const rankings = {
   editors:[{id:"editor1",name:"One",flares:["style"],note:"Original"},{id:"editor2",name:"Two",flares:[],note:"Original two"}],
   lists:{main:["editor2","editor1"],style:["editor1"]},
 };
-export async function fixture({reviews=true,decisions=reviews,usernames=decisions,profiles=false,tiers=profiles,requestLimits=true,notifications=false,legacyApplications=false,tiktok=false,youtube=false,popularity=false,clans=false,platforms=reviews}={}){
+export async function fixture({reviews=true,decisions=reviews,usernames=decisions,profiles=false,tiers=profiles,requestLimits=true,notifications=false,legacyApplications=false,tiktok=false,youtube=false,popularity=false,clans=false,platforms=reviews,autoLinks=notifications&&tiktok&&platforms}={}){
   const db = new PGlite();
   await db.exec(`
     create role anon; create role authenticated; create role service_role bypassrls;
@@ -68,6 +68,7 @@ export async function fixture({reviews=true,decisions=reviews,usernames=decision
   if(popularity)await db.exec(await readFile(new URL("../supabase/migrations/20261016190000_rel_editor_popularity.sql",import.meta.url),"utf8"));
   if(clans)await db.exec(await readFile(new URL("../supabase/migrations/20261016200000_rel_clans.sql",import.meta.url),"utf8"));
   if(notifications&&platforms)await db.exec(await readFile(new URL("../supabase/migrations/20261016210000_rel_integrated_pending_editors.sql",import.meta.url),"utf8"));
+  if(autoLinks)await db.exec(await readFile(new URL("../supabase/migrations/20261017140000_rel_automatic_editor_links.sql",import.meta.url),"utf8"));
   const asUser = (id,sql,args=[])=>db.transaction(async tx=>{
     await tx.exec("set local role authenticated");
     await tx.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:id,session_id:sessionId(id),role:"authenticated"})]);

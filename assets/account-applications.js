@@ -1,5 +1,6 @@
 import { accountFetch } from "./account.js";
 import { watchChanges } from "./autosave.js";
+import { applicationIdentityText } from "./editor-linking.js";
 const root = document.querySelector("#myApplications"),
   esc = (value) =>
     String(value ?? "").replace(
@@ -44,6 +45,7 @@ async function load() {
         return `<article class="application-card"><div class="application-heading"><div><h3>${esc(app.display_name)}</h3><p class="hint">${esc(app.platform)} · ${esc(app.software)} · Submitted ${esc(date)}</p></div><span class="application-state">${state}</span></div>
         <p>${app.archived ? "This application was archived by an Owner. Its record is kept here for you." : app.status === "pending" ? "Your application has been sent and is waiting for review. We'll email you when there is a decision." : app.status === "approved" ? "Your application was approved. A List Contributor decides when to add your profile to the rankings." : "Your application was denied. Read the reviewer's message below."}</p>
         ${app.applicant_message ? `<div class="applicant-message"><h4>Message from the reviewer</h4><p>${esc(app.applicant_message)}</p></div>` : app.status !== "pending" ? '<p class="hint">No applicant-facing message was recorded for this decision.</p>' : ""}
+        ${app.platform === "TikTok" ? `<p class="hint">${esc(applicationIdentityText(app.tiktok_check))}</p>` : ""}
         ${app.listed_editor_id ? `<a class="account-inline-link" href="/profile/?editor=${encodeURIComponent(app.listed_editor_id)}">View your editor profile</a>` : ""}</article>`;
       })
       .join("");

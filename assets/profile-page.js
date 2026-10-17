@@ -82,7 +82,7 @@ function render() {
     });
     animateDisclosures($("#profile"));
   } else {
-    $("#profile").innerHTML = `<h2>Link your editor profile</h2><p class="hint">Choose your existing profile and explain how an Owner can verify it belongs to you. Linking must be approved before you can edit.</p>${account.claim_status?`<p class="hint">Last request: ${esc(account.claim_status)}.</p>`:""}
+    $("#profile").innerHTML = `<h2>Link your editor profile</h2><p class="hint">Connect TikTok to link an unclaimed editor profile with the same TikTok username automatically. If REL cannot match it, choose your profile below and request Owner review.</p>${account.claim_status?`<p class="hint">Last request: ${esc(account.claim_status)}.</p>`:""}
       <form id="claimForm"><label for="claimEditor">Your editor profile</label><select id="claimEditor" required><option value="">Choose your profile</option>${site.editors.map(editor=>`<option value="${esc(editor.id)}">${esc(editor.name)}</option>`).join("")}</select>
       <label for="claimMessage">Verification details</label><textarea id="claimMessage" required maxlength="1000"></textarea><button class="pri" data-icon="link">Request profile link</button></form><p id="claimNotice" role="status">${account.claim_status==="pending"?"Request sent. An Owner will verify your profile before linking it.":""}</p>`;
     $("#claimForm").addEventListener("submit",async event=>{
@@ -135,5 +135,6 @@ async function refresh() {
   if(revision && $("#profile").contains(document.activeElement))return;
   if(changed){account=nextAccount;site=next.data;revision=next.revision;render();status("Changes save automatically.")}
 }
+window.addEventListener("rel-profile-linked",()=>{void refresh().catch(error=>status(error.message,true))});
 try{await refresh()}catch(error){status(error.message,true)}
 watchChanges(refresh);

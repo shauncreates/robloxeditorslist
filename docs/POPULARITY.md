@@ -6,7 +6,7 @@ The work is now integrated with application tracking, security/privacy, editor m
 
 ## Eligibility and ordering
 
-An account must be active, email-confirmed and non-anonymous, with an **Owner-approved editor link** pointing to an editor currently in the overall rankings (`lists.main`). It needs a confirmed TikTok or YouTube connection with a known public count. Removed editors, unlinked/disabled/banned accounts, hidden/missing counts and expired snapshots are excluded on each request. Connecting a channel does not claim a ranked profile or grant permissions.
+An account must be active, email-confirmed and non-anonymous, with an editor link pointing to an editor currently in the overall rankings (`lists.main`). That association can come from Owner review or an exact verified TikTok match after the [automatic-linking migration](AUTOMATIC_EDITOR_LINKS.md). It needs a confirmed TikTok or YouTube connection with a known public count. Removed editors, unlinked/disabled/banned accounts, hidden/missing counts and expired snapshots are excluded on each request. Automatic linking grants access to edit the member's profile; staff roles and ranking permissions stay separate.
 
 Counts sort highest first. Equal counts share a place, with stable editor-ID ordering within ties. Real zeros are included. YouTube rounds counts down to three significant figures; equal subscriber counts need not represent equal exact audiences. Platforms are never added together.
 
