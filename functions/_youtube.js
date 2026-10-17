@@ -109,11 +109,36 @@ export async function exchangeRpc(env, args) {
     signal: AbortSignal.timeout(10000),
   });
   if (!response.ok)
-    throw new HttpError(
-      400,
-      "This YouTube authorisation has expired or was already used. Start again from My account.",
+    throw Object.assign(
+      new HttpError(
+        400,
+        "This YouTube authorisation has expired or was already used. Start again from My account.",
+      ),
+      { serviceStatus: response.status },
     );
   return response.json();
+}
+const googleErrorCodes = new Set([
+  "invalid_client", "invalid_grant", "invalid_scope", "unauthorized_client",
+  "access_denied", "temporarily_unavailable", "server_error",
+  "accessNotConfigured", "insufficientPermissions", "youtubeSignupRequired",
+  "quotaExceeded", "dailyLimitExceeded", "keyInvalid", "ipRefererBlocked",
+  "SERVICE_DISABLED", "API_KEY_INVALID", "PERMISSION_DENIED", "UNAUTHENTICATED",
+]);
+const callbackReasons = new Set([
+  "invalid_state", "missing_code", "missing_scope", "missing_refresh_token",
+  "invalid_token_response", "no_channels", "too_many_channels", "invalid_channels",
+]);
+export function youtubeCallbackDiagnostic(stage, error) {
+  const status = (value) => Number.isInteger(value) && value >= 100 && value <= 599;
+  return {
+    event: "rel_youtube_callback_failed",
+    stage,
+    reason: callbackReasons.has(error?.callbackReason) ? error.callbackReason : "unexpected_failure",
+    ...(googleErrorCodes.has(error?.providerCode) ? { provider_code: error.providerCode } : {}),
+    ...(status(error?.providerStatus) ? { provider_status: error.providerStatus } : {}),
+    ...(status(error?.serviceStatus) ? { service_status: error.serviceStatus } : {}),
+  };
 }
 export async function providerJson(url, options) {
   const response = await fetch(url, {
@@ -121,14 +146,25 @@ export async function providerJson(url, options) {
     redirect: "error",
     signal: AbortSignal.timeout(10000),
   });
-  if (!response.ok)
-    throw Object.assign(
+  if (!response.ok) {
+    const error = Object.assign(
       new HttpError(
         502,
         "Google could not complete the YouTube connection. Start again from My account.",
       ),
       { providerStatus: response.status },
     );
+    try {
+      const data = await readProviderJson(response);
+      const codes = [data?.error, data?.error?.status, data?.error?.errors?.[0]?.reason, data?.error?.details?.[0]?.reason];
+      const code = codes.find((value) => googleErrorCodes.has(value));
+      if (code) error.providerCode = code;
+    } catch {}
+    throw error;
+  }
+  return readProviderJson(response);
+}
+async function readProviderJson(response) {
   const reader = response.body.getReader();
   let size = 0,
     text = "";
