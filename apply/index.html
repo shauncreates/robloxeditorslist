@@ -68,6 +68,7 @@
   <script type="module">
     import {watchChanges,announceChange} from "../assets/autosave.js";
     import {accountFetch} from "../assets/account.js";
+    import {applicationLinkingNotice} from "../assets/editor-linking.js";
     const form = document.querySelector("#applicationForm");
     const message = document.querySelector("#message");
     const button = document.querySelector("#submitButton");
@@ -164,7 +165,7 @@
         syncOtherStyle();
         announceChange();
         message.className = "message ok";
-        message.textContent = "Your application to the Roblox Editors list has been sent. Your request will be reviewed shortly. Check My account for your status; email updates may take a little longer.";
+        message.textContent = "Your application to the Roblox Editors list has been sent. Your request will be reviewed shortly. Check My account for your status; email updates may take a little longer. " + applicationLinkingNotice(result.tiktok_check);
       } catch (error) {
         message.className = "message error";
         message.textContent = error.message || "Something went wrong. Please try again.";

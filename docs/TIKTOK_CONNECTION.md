@@ -1,6 +1,6 @@
 # Connect and verify TikTok
 
-This feature connects a TikTok account to an existing, email-confirmed REL account. It does **not** add TikTok sign-in or signup, change passwords, grant roles, claim a ranked editor profile or change rankings. Owner-reviewed editor linking remains available.
+This feature connects a TikTok account to an existing, email-confirmed REL account. Confirming a connection can also link one unclaimed editor profile with the same TikTok username. It grants access to edit that profile while staff retain control of rankings and roles. Owner-reviewed linking remains available for conflicts and unmatched profiles. [Automatic editor linking and its migration](AUTOMATIC_EDITOR_LINKS.md).
 
 ## What a member sees
 

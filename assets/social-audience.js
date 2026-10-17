@@ -13,4 +13,4 @@ export function countText(count, platform) {
   );
 }
 export const publicationNotice =
-  "Confirming publishes this count and its update date in Popularity if your REL account has an Owner-approved link to an editor in the overall rankings. Reconnect to update it; counts expire after 29 days.";
+  "Confirming publishes this count and its update date in Popularity if your REL account is linked to an editor in the overall rankings. Reconnect to update it; counts expire after 29 days.";
