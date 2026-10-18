@@ -15,7 +15,7 @@ Confirmation states that membership, username and prefix are public. Each member
 
 ## Clan rankings
 
-Clan pages filter Overall and existing style lists to their linked editors, preserving **original rank numbers**. A member at #12 overall still shows #12. Unranked accounts remain in the member list. An account's editor link remains a separate Owner-reviewed process.
+Clan pages default to Overall and number their linked ranked editors **#1, #2, #3 within the clan**, following the overall list's order. For example, members at #4, #12 and #27 overall appear as #1, #2 and #3 in their clan. Selecting an existing style list follows that style's order and starts the clan positions at #1 again. Overall and style rank numbers are not displayed in the clan ranking rows or written back to the saved lists. Unranked accounts remain in the member list. An account needs an editor link, through verified matching or Owner review, to appear in member rankings.
 
 Popularity keeps audience ordering and snapshot dates; the clan prefix is only a label. Clan changes preserve `data.js`, saved ranks and permissions.
 

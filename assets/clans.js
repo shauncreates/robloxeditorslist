@@ -57,14 +57,14 @@ function renderRankings(style = "main") {
   );
   const editors = new Map(site.editors.map((editor) => [editor.id, editor]));
   const ranked = (site.lists[style] || [])
-    .map((id, index) => ({ editor: editors.get(id), rank: index + 1 }))
-    .filter((row) => row.editor && members.has(row.editor.id));
+    .map((id) => editors.get(id))
+    .filter((editor) => editor && members.has(editor.id));
   target.innerHTML = ranked.length
-    ? `<ol class="clan-ranking">${ranked.map((row) => `<li><a href="/profile/?editor=${encodeURIComponent(row.editor.id)}"><span class="clan-global-rank">#${row.rank}</span><span>${tag(current)} ${esc(row.editor.name)}</span>${icon("arrow")}</a></li>`).join("")}</ol>`
+    ? `<ol class="clan-ranking" aria-label="Clan positions">${ranked.map((editor, index) => `<li><a href="/profile/?editor=${encodeURIComponent(editor.id)}"><span class="clan-rank" aria-label="Clan position ${index + 1}">#${index + 1}</span><span>${tag(current)} ${esc(editor.name)}</span>${icon("arrow")}</a></li>`).join("")}</ol>`
     : "<p>No clan members are ranked on this list yet.</p>";
 }
 function renderClan(clan) {
-  return `<a class="clan-browse-link rel-text-link" href="/clans/">${icon("back")} All clans</a><section class="clan-panel"><h2>${tag(clan)} ${esc(clan.name)}</h2><p>${clan.members.length} ${clan.members.length === 1 ? "member" : "members"}</p><h3>Member rankings</h3><p>Rank numbers are the members’ existing REL placements. The order of the main list is unchanged.</p><label for="clanRankingStyle">Ranked list</label><select id="clanRankingStyle" class="clan-style"><option value="main">Overall</option>${site.styles.map((style) => `<option value="${esc(style.id)}">${esc(style.name)}</option>`).join("")}</select><div id="clanRankings"></div><h3>Members</h3><ul class="clan-member-list">${clan.members.map((member) => `<li><a href="/profile/?account=${encodeURIComponent(member.account_id)}">${tag(clan)} ${esc(member.username)}${member.is_creator ? "<small>Creator</small>" : ""}</a>${own?.is_creator && own.id === clan.id && !member.is_creator ? `<button class="rel-action" data-action="remove" data-member="${esc(member.account_id)}" type="button" aria-label="Remove ${esc(member.username)} from clan">Remove</button>` : ""}</li>`).join("")}</ul></section>`;
+  return `<a class="clan-browse-link rel-text-link" href="/clans/">${icon("back")} All clans</a><section class="clan-panel"><h2>${tag(clan)} ${esc(clan.name)}</h2><p>${clan.members.length} ${clan.members.length === 1 ? "member" : "members"}</p><h3>Member rankings</h3><p>Clan positions start at #1 and follow the selected REL list.</p><label for="clanRankingStyle">Ranked list</label><select id="clanRankingStyle" class="clan-style"><option value="main">Overall</option>${site.styles.map((style) => `<option value="${esc(style.id)}">${esc(style.name)}</option>`).join("")}</select><div id="clanRankings"></div><h3>Members</h3><ul class="clan-member-list">${clan.members.map((member) => `<li><a href="/profile/?account=${encodeURIComponent(member.account_id)}">${tag(clan)} ${esc(member.username)}${member.is_creator ? "<small>Creator</small>" : ""}</a>${own?.is_creator && own.id === clan.id && !member.is_creator ? `<button class="rel-action" data-action="remove" data-member="${esc(member.account_id)}" type="button" aria-label="Remove ${esc(member.username)} from clan">Remove</button>` : ""}</li>`).join("")}</ul></section>`;
 }
 async function load() {
   root.setAttribute("aria-busy", "true");
