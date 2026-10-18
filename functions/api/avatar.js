@@ -65,7 +65,7 @@ export async function onRequestPost({ request, env }) {
 
     const image = await fetch(source, {
       headers: { "User-Agent": USER_AGENT, Referer: "https://www.tiktok.com/" },
-      redirect: "error", signal: AbortSignal.timeout(10000),
+      redirect: "manual", signal: AbortSignal.timeout(10000),
     });
     if (!image.ok) return json({ error: `picture download failed (${image.status})` }, 502);
 
@@ -78,7 +78,7 @@ export async function onRequestPost({ request, env }) {
     const path = `avatars/${body.editorId}/${crypto.randomUUID()}`;
     const upload = await fetch(`${url}/storage/v1/object/editor-avatars/${path}`, {
       method: "POST",
-      redirect: "error", signal: AbortSignal.timeout(10000),
+      redirect: "manual", signal: AbortSignal.timeout(10000),
       headers: {
         apikey: key,
         Authorization: `Bearer ${key}`,

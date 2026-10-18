@@ -143,7 +143,7 @@ test("TikTok redirects stay within the allowlist and avatar downloads never foll
     }
     globalThis.fetch = async (url, options) => {
       if(String(url)==="https://p16.tiktokcdn.com/fixture-avatar.png") {
-        assert.equal(options.redirect, "error");
+        assert.equal(options.redirect, "manual");
         return new Response(null, {status:302,headers:{Location:"http://127.0.0.1/private"}});
       }
       return mockedFetch(url, options);
