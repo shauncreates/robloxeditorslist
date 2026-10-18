@@ -9,7 +9,7 @@ REL uses Google authorisation to confirm YouTube channel control and read public
 - YouTube connection details: `https://robloxeditors.com/youtube-privacy/`
 - Terms: `https://robloxeditors.com/terms/`
 
-The homepage introduces the directory in static HTML and links to the main privacy notice. YouTube connection explanations belong in My account and the privacy notices. The main privacy notice describes the Google data accessed, its purpose, public fields, service providers, credential protection, retention and removal. The supplementary notice adds connection details. These public pages do not require a REL login; account actions do.
+The homepage introduces the directory in static HTML, with one short note below its main buttons about YouTube ownership confirmation and subscriber counts. Its “YouTube privacy” link opens the public YouTube privacy notice. Detailed explanations stay in My account and the privacy notices. The main privacy notice describes the Google data accessed, its purpose, public fields, service providers, credential protection, retention and removal. The supplementary notice adds connection details. These public pages do not require a REL login; account actions do.
 
 `build.mjs` publishes these pages as static files. Its Pages Functions routes include only `/api/*` and `/admin` paths. There is no homepage or policy-page authentication gate in the repository. Keep the public explanation available even if a visitor declines cookies, disables JavaScript or cannot load the contributors API.
 
