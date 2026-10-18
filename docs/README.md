@@ -15,6 +15,7 @@ Use the root [README](../README.md) for the project overview and commands. These
 | [Connect TikTok](TIKTOK_CONNECTION.md) | Optional ownership confirmation, privacy, provider setup and cleanup |
 | [Automatic editor links](AUTOMATIC_EDITOR_LINKS.md) | Verified TikTok matches, applicant-to-editor links and the required migration |
 | [Popularity and YouTube](POPULARITY.md) | Ranked-editor audience lists, counts, Google setup and retention |
+| [Google app verification](GOOGLE_APP_VERIFICATION.md) | Public homepage and privacy disclosures, domain ownership and review prerequisites |
 | [Clans](CLANS.md) | Creator-set prefixes, invitation confirmation and member rankings |
 | [Contributor tiers](CONTRIBUTOR_TIERS.md) | Owner editing and the required contributor migration |
 | [Signup email](SIGNUP_EMAIL_SETUP.md) | Supabase confirmation templates and SMTP configuration reference |
