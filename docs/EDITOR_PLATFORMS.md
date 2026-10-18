@@ -32,6 +32,8 @@ An old `/c/name` custom link can be used as the ranking destination; picture fet
 
 TikTok fetching continues to read the public profile and copy its picture into Supabase's public `editor-avatars` bucket. TikTok sometimes blocks server requests; paste a picture URL when that happens.
 
+TikTok image downloads and Storage uploads use Cloudflare's supported manual redirect mode and reject non-success responses. Image and upload redirects are not followed. The runtime regression uses synthetic profile HTML, image bytes and Storage responses to check the complete authenticated fetch, redirect rejection, size/type checks and permission failures without contacting production services.
+
 YouTube pictures use a stable HTTPS REL URL at `/api/youtube-avatar?channel=UC…`. On a cache miss, this route refreshes the picture through Google's API. The image cache lasts at most one day at each Cloudflare location, and browsers cache it for one hour. No permanent copy of the YouTube thumbnail or Google API response is stored in Supabase. Public cache misses are limited to channel IDs referenced by an editor's saved picture URL; the public route cannot query arbitrary channel IDs. Fetching an unsaved profile is authenticated and warms the same cache.
 
 Google's default quota allows free use within its limits. An initial picture fetch needs one channel lookup; later cache misses need another per channel and Cloudflare location. This is not an unlimited-use guarantee. Provider quota failures show an error; public image failures fall back to the editor's initial. Monitor Google quota before increasing traffic. This feature adds no paid service or deployment.
@@ -43,5 +45,7 @@ Official references: [channels.list](https://developers.google.com/youtube/v3/do
 ## Development checks
 
 `npm test`, `npm run build` and `npm run check:cloudflare` cover the feature without production services. The fixture intercepts Google and TikTok requests and uses a tiny synthetic PNG. No genuine API key, external account or production database is involved.
+
+`node --test --test-isolation=none tests/avatar-runtime.test.mjs` checks the TikTok image download and upload in the actual local Cloudflare runtime. Standard Node fetch mocks do not reproduce Cloudflare rejecting `redirect: "error"` before a request is sent.
 
 `node --test --test-isolation=none tests/editor-platform.test.mjs` shows the individual platform, migration, permission, conversion, image-validation and caching cases. The focused browser review is `node tests/platform-browser-review.mjs` with the fixture and Chromium DevTools running as described in the development guide. Its local HTTP fixture substitutes an HTTPS image URL in the response because production picture fields require HTTPS. Real Google availability, live key restrictions and Cloudflare's cache expiry require release-environment verification.
