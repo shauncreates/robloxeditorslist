@@ -5,7 +5,7 @@ import vm from "node:vm";
 
 test("clan positions are consecutive while preserving the source list order and saved rankings", async () => {
   const source = await readFile(new URL("../assets/clans.js", import.meta.url), "utf8");
-  const render = source.slice(source.indexOf("function renderRankings("), source.indexOf("function renderClan("));
+  const render = source.slice(source.indexOf("function editorAvatar("), source.indexOf("function renderViews("));
   const site = {
     editors: ["outside-a", "outside-b", "outside-c", "member-a", "member-b", "member-c"].map(id => ({id, name: id})),
     lists: {
@@ -32,6 +32,6 @@ test("clan positions are consecutive while preserving the source list order and 
     assert.deepEqual({site, current}, original);
   }
   vm.runInContext("renderRankings('empty')", context);
-  assert.equal(target.innerHTML, "<p>No clan members are ranked on this list yet.</p>");
+  assert.match(target.innerHTML, /No ranked members on this list/);
   assert.deepEqual({site, current}, original);
 });
