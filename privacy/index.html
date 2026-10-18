@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacy | Roblox Editors List</title>
-  <meta name="description" content="How REL uses account, application and public editor information, and how to make a privacy request.">
+  <meta name="description" content="How REL collects, uses, stores and shares account, application and Google/YouTube information, and how to disconnect or request deletion.">
   <link rel="stylesheet" href="/assets/typography.css"><link rel="stylesheet" href="/assets/policies.css">
 </head>
 <body><div class="policy-wrap">
   <header class="policy-header"><a class="rel-brand" href="/" aria-label="Roblox Editors List home"><img src="/media/logo.svg" alt="Roblox Editors List"></a><a href="/list/">View rankings</a></header>
   <main>
-    <h1>Privacy</h1><p class="policy-date">Last updated: 16 October 2026</p>
-    <p>Roblox Editors List (REL) is a UK-operated community website. The REL owner is responsible for how the project uses personal information. This notice explains what happens when you browse, create an account or submit an application.</p>
+    <h1>Privacy</h1><p class="policy-date">Last updated: 18 October 2026</p>
+    <p>Roblox Editors List (REL) is a UK-operated community website. The REL owner is responsible for how the project uses personal information. This notice explains what happens when you browse, create an account, submit an application or connect a YouTube channel through Google.</p>
     <h2>What REL collects and why</h2>
     <ul>
       <li><strong>Accounts:</strong> your email address, username, authentication records and account permissions let us sign you in, protect your account and provide account features. Passwords are handled by Supabase Auth; REL staff cannot view your password.</li>
@@ -22,6 +22,13 @@
     <h2>What becomes public</h2>
     <p>Your confirmed, active account can have a public page showing your username, contributor credits and linked editor profile. Account email addresses and permission roles are not included in that public page.</p>
     <p>Applications are available to authorised REL staff. When a Contributor converts an approved application into an editor profile, its public profile details become visible. Submission notes, verification messages and review reasons remain private to authorised staff.</p>
+    <h2 id="google-youtube">Google authorisation and YouTube information</h2>
+    <p>Connecting YouTube is optional. After signing into REL, you can authorise read-only YouTube access through Google and confirm the channel you want to connect. REL uses YouTube API Services to read your channel ID, channel title and public subscriber count, and to check that you continue to control the connected channel. REL does not request permission to upload, post or edit videos, and does not receive your Google password.</p>
+    <p>Your confirmed channel ID, title and verification date can appear on your public REL account profile. If your REL account is linked to an editor in the overall rankings, your public subscriber count and its update date can appear in Popularity. YouTube rounds subscriber counts; hidden or unavailable counts are excluded. Popularity is separate from the editing rankings.</p>
+    <p>Cloudflare processes the connection requests and Supabase stores the connection records. A Google refresh credential is encrypted in private server-side storage so REL can recheck channel access. Access tokens are used temporarily on the server and are not sent to your browser or shown publicly. Temporary cookies protect the authorisation flow and last up to ten minutes.</p>
+    <p>REL uses Google user data only to provide and secure these channel-connection and Popularity features. REL does not sell it, use it for advertising or use it to train artificial intelligence models. REL's use and transfer of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including its Limited Use requirements. Google processes authorisation and API requests under the <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.</p>
+    <p>Subscriber counts are read when you connect or reconnect. They stop appearing after 29 days, and the maintenance job deletes expired snapshots. REL schedules channel-access checks approximately daily. A connection stops appearing publicly after two days without a successful check; the maintenance job removes stored connections after 29 days without a successful check. Revoked or inaccessible connections are removed when detected.</p>
+    <p>To revoke access and remove the stored YouTube connection, credential and subscriber count, choose Disconnect YouTube in <a href="/account/#youtubeConnection">My account</a>. If revocation fails, REL asks you to retry. You can also remove REL's permission in <a href="https://myaccount.google.com/connections">your Google account connections</a>; REL detects external revocations during scheduled checks. For a deletion request or help accessing your account, email <a href="mailto:shaun@seeshaun.xyz">shaun@seeshaun.xyz</a>. Read the <a href="/youtube-privacy/">YouTube connection privacy notice</a> for the full connection and retention details.</p>
     <h2>Our reasons for using information</h2>
     <p>We use information needed to provide the account and application services you request. We also rely on legitimate interests in running a community directory, crediting contributors, keeping accurate rankings and preventing abuse, while considering the interests and rights of the people involved. Where processing requires consent, we ask before it happens. You choose whether to load a YouTube video.</p>
     <h2>Service providers and other websites</h2>

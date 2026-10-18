@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Roblox Editors</title>
+    <title>Roblox Editors List</title>
     <meta
       name="description"
-      content="Discover the Roblox editing community and explore our ranked list of editors."
+      content="Discover the Roblox editing community, explore rankings by editing style and visit editor profiles to see their work."
     />
     <link rel="icon" type="image/svg+xml" href="media/icon.svg" />
     <meta name="theme-color" content="#050706" />
@@ -180,6 +180,19 @@
         margin-top: 24px;
       }
       .hero-actions .btn { gap: 9px; }
+      .connection-note {
+        max-width: 60ch;
+        margin: 20px auto 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .connection-note .rel-text-link {
+        min-height: 44px;
+        color: var(--text-2);
+        font-size: inherit;
+        font-weight: 500;
+      }
       .bar { padding-block: 8px; }
       .bar .brand img { max-width: min(160px, 28vw); }
       .bar .rel-action { font-size:14px;padding-inline:12px;white-space:nowrap; }
@@ -312,8 +325,8 @@
   <body>
     <header class="top">
       <div class="wrap bar">
-        <a class="brand" id="brand" href="/" aria-label="Roblox Funk Editors"
-          ><img src="media/logo.svg" alt="Roblox Funk Editors"
+        <a class="brand" id="brand" href="/" aria-label="Roblox Editors List home"
+          ><img src="media/logo.svg" alt="Roblox Editors List"
         /></a>
         <a class="rel-action rel-action--account" href="/signin/"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#account"/></svg><span>Sign in / Sign up</span></a>
       </div>
@@ -321,15 +334,21 @@
 
     <main class="wrap">
       <section class="hero">
-        <h1>Welcome to the Roblox Editor List</h1>
+        <h1>Welcome to the Roblox Editors List</h1>
         <p class="intro">
-          Discover the editors behind the style. Explore our ranked list of
-          editors, with separate rankings for each editing style.
+          Roblox Editors List (REL) is a community directory of Roblox video
+          editors. Explore rankings by editing style, visit editor profiles
+          and discover their work.
         </p>
         <div class="hero-actions">
           <a class="btn" href="list/"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#rankings"/></svg><span>View rankings</span></a>
           <a class="rel-action" href="/apply/" aria-label="Apply"><svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#applications"/></svg><span>Apply</span></a>
         </div>
+        <p class="connection-note">
+          Editors can connect YouTube to confirm channel ownership and share
+          subscriber counts in Popularity.
+          <a class="rel-text-link" href="/youtube-privacy/">YouTube privacy<svg class="rel-icon" aria-hidden="true"><use href="/media/action-icons.svg#arrow"/></svg></a>
+        </p>
       </section>
 
       <section class="section">
@@ -390,9 +409,9 @@
           site = window.SITE_DATA && window.SITE_DATA.site;
         }
         if (site) {
-          document.title = site.title || "Roblox Funk Editors";
+          document.title = site.title || "Roblox Editors List";
           var brandImg = $("#brand img");
-          if (brandImg) brandImg.alt = site.title || "Roblox Funk Editors";
+          if (brandImg) brandImg.alt = site.title || "Roblox Editors List";
 
           var updated = String(site.updated || "").trim();
           $("#footNote").textContent =

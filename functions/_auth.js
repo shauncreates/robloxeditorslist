@@ -62,6 +62,7 @@ export async function userRpc(env, token, name, args = {}) {
       "REL_LAST_OWNER": [409, "The last active Owner cannot be removed or disabled."],
       "REL_INVALID": [400, "Invalid request or profile link."],
       "REL_APPLICATION_LISTED": [409, "This application is already an editor profile. A List Contributor must manage that profile."],
+      "REL_EDITOR_ALREADY_LISTED": [409, "This TikTok profile is already on the list. Use the existing editor profile and ask an Owner to resolve any account-link conflict."],
       "REL_APPLICATION_LOCKED": [409, "This application has already been decided. The decision is locked."],
       "REL_APPLICATION_PENDING": [409, "You already have an application waiting for review."],
       "REL_APPLICATION_ARCHIVED": [409, "This application has been archived by an Owner."],

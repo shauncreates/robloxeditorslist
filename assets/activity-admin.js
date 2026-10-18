@@ -31,6 +31,7 @@ export function mountActivity(root, accountFetch, api) {
         review_application: "Application reviewed",
         archive_application: "Application archived",
         convert_application: "Application added to the list",
+        auto_link_editor: "Editor profile linked automatically",
         link_youtube: "YouTube channel linked",
         unlink_youtube: "YouTube channel disconnected",
       };
