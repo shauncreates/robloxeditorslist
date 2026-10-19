@@ -6,6 +6,7 @@
   <a href="https://robloxeditors.com"><strong>Visit REL</strong></a> ·
   <a href="https://robloxeditors.com/list/">View rankings</a> ·
   <a href="#how-rel-works">How it works</a> ·
+  <a href="https://robloxeditors.com/changelog/">Changelog</a> ·
   <a href="docs/README.md">Developer docs</a>
 </p>
 
@@ -18,15 +19,17 @@ The interface uses HTML, CSS and JavaScript. Cloudflare Pages Functions handle t
 ## Explore the website
 
 - **Browse by editing style.** Switch between Overall, Nate, Hypic, Block Glitch and Transition/3D, or search for an editor by name or handle.
-- **Compare channel audiences.** The development version adds a separate Popularity list for ranked editors with confirmed TikTok or YouTube connections, showing follower/subscriber snapshots and update dates. [Preview and setup](docs/POPULARITY.md).
-- **Join a clan.** The development version adds invite-based clans with creator-set four-character prefixes and member rankings. Joining requires confirmation. [Preview and guide](docs/CLANS.md).
+- **Compare channel audiences.** Separate [Popularity lists](https://robloxeditors.com/popularity/) show ranked editors by confirmed TikTok follower or YouTube subscriber counts. Counts include an update date; reconnect to refresh them. [Eligibility and limits](docs/POPULARITY.md).
+- **Join a clan.** [Browse clans](https://robloxeditors.com/clans/) by name, prefix or member count. Each clan has a four-character prefix, invite links and its own member rankings. Joining requires confirmation. [Clan guide](docs/CLANS.md).
 - **Open a profile.** See an editor's list placements, links, software and any published showcase. Accounts and contributor credits have shareable profiles too.
-- **Manage your own details.** Create and confirm an account, then request an Owner-verified link to your editor profile. That link gives access to your details without granting ranking permissions.
+- **Connect your editor profile.** Confirm your TikTok account to link an available editor profile with a matching TikTok username, or request Owner review. Linked members can edit their own details without gaining ranking permissions.
+- **Choose your main platform.** Editor tiles open TikTok or YouTube according to the editor's main platform, which also selects the source when fetching a profile picture.
+- **Apply and follow your review.** Submit from a confirmed REL account, view your status and review message in My account, and receive receipt and decision emails.
 - **Help maintain REL.** Staff permissions separate ranking edits, application reviews and Owner account management. Public contributor tiers credit Owners, Developers, Reviewers and Rankers.
 
 ## Take a closer look
 
-Expand a section to see that part of the website. Public screenshots use a read-only snapshot of REL's public data; the staff screenshot uses the isolated development fixture. [Screenshot notes](docs/images/README.md).
+Expand a section to see that part of the website. These gallery screenshots were captured on 15 October 2026, before the latest updates. Public screenshots use a read-only snapshot of REL's public data; the staff screenshot uses the isolated development fixture. [Screenshot notes](docs/images/README.md).
 
 <details>
 <summary><strong>The homepage and the people behind REL</strong></summary>
@@ -40,7 +43,7 @@ The homepage introduces the list, links to applications and groups contributors 
 <details>
 <summary><strong>Profiles that connect editors, accounts and placements</strong></summary>
 
-Profile URLs use stable IDs so renaming an editor or account does not change their link. Editor pages bring placements and public links together; an Owner verifies the connection between an account and an existing editor.
+Profile URLs use stable IDs so renaming an editor or account does not change their link. Editor pages bring placements and public links together. An account can link through an exact confirmed TikTok match or Owner review; a matching REL display name alone does not prove ownership.
 
 ![A public editor profile with its picture, editing styles, TikTok link and placements across the lists.](docs/images/profile.webp)
 
@@ -85,9 +88,13 @@ flowchart LR
     API --> Auth["Supabase Auth"]
     API --> Database["Supabase Postgres"]
     API --> Pictures["Supabase Storage"]
+    API --> Social["Google / YouTube and TikTok APIs"]
+    API --> Email["Resend application emails"]
 ```
 
 The browser loads the pages and calls same-origin `/api/` endpoints for data and account actions. Functions validate requests and verify the current account. Database functions check roles and ownership again before protected operations. Session tokens stay in HttpOnly cookies, and public profiles exclude emails, account permissions and private review records.
+
+Scheduled Cloudflare Workers retry queued application emails, check YouTube connections and remove expired social confirmations and audience snapshots. Social connections confirm channel ownership; REL sign-in still uses its own email/password account.
 
 ### Editing without overwriting someone else's work
 
@@ -95,7 +102,15 @@ Ranking saves include the revision that staff originally loaded. If two people e
 
 ### Reviewing applications separately from rankings
 
-Applications contain an editor's profile, styles and example work. Reviewers approve or reject pending submissions with a private reason and recorded reviewer attribution. Decisions are locked afterward. Approval alone does not change the rankings; a List Contributor must separately add the approved editor through the staff workflow.
+Applications contain an editor's profile, styles and example work. Applicants use a confirmed REL account and can follow their status in My account. Submission sends a receipt; approval or denial sends the applicant-facing review message. Staff notes stay private.
+
+Decisions are locked and leave the active queue. Owners can archive reviewed applications while retaining their history. Staff activity records identify who reviewed an application or changed a ranking. Approval alone does not publish an editor; a List Contributor separately adds them to the list. At publication, a fresh matching TikTok confirmation can link the original applicant's account to the new editor profile.
+
+### Clan positions and audience counts
+
+Clan pages separate Rankings, Members and clan management. If three members are #4, #12 and #27 overall, their clan positions are **#1, #2 and #3**, in the same order. A style view uses that style's order. Members without a ranked editor profile still appear in Members. Prefixes appear before names, such as **[EDIT] Editor**, and do not rewrite the saved names or rankings.
+
+Popularity is separate from editing-skill rankings. TikTok followers and YouTube subscribers have their own lists, and only eligible ranked editors with confirmed connections and public counts appear. Counts are dated snapshots, expire after 29 days and update when the member reconnects. TikTok statistics permission is optional; hidden YouTube subscriber counts are excluded.
 
 ## Read the implementation
 
@@ -105,14 +120,15 @@ Applications contain an editor's profile, styles and example work. Reviewers app
 | Public profile rendering and data | [`assets/public-profile.js`](assets/public-profile.js), [`functions/api/profiles.js`](functions/api/profiles.js) |
 | TikTok/YouTube main platforms and pictures | [`assets/editor-platform.js`](assets/editor-platform.js), [platform setup](docs/EDITOR_PLATFORMS.md) |
 | TikTok account ownership confirmation | [`assets/tiktok-connection.js`](assets/tiktok-connection.js), [setup and verification](docs/TIKTOK_CONNECTION.md) |
+| Automatic editor links and accepted applicants | [Matching rules and conflicts](docs/AUTOMATIC_EDITOR_LINKS.md) |
 | Popularity and YouTube authorisation | [`popularity/index.html`](popularity/index.html), [`functions/api/popularity.js`](functions/api/popularity.js), [setup and previews](docs/POPULARITY.md) |
 | Clans, prefixes and invitations | [`assets/clans.js`](assets/clans.js), [`functions/api/account/clans.js`](functions/api/account/clans.js), [clan guide](docs/CLANS.md) |
 | Sessions, verified accounts and permissions | [`functions/_auth.js`](functions/_auth.js), [`supabase/auth-roles.sql`](supabase/auth-roles.sql) |
-| Application submission and staff review | [`functions/api/applications.js`](functions/api/applications.js), [`functions/api/applications/admin.js`](functions/api/applications/admin.js) |
+| Application submission, tracking and staff review | [`functions/api/applications.js`](functions/api/applications.js), [`assets/account-applications.js`](assets/account-applications.js), [`functions/api/applications/admin.js`](functions/api/applications/admin.js) |
 | Ranking saves and conflict handling | [`functions/api/save.js`](functions/api/save.js), [ranking preservation guide](docs/RANKING_STORAGE.md) |
 | Contributor tiers and Owner editing | [`assets/contributors.js`](assets/contributors.js), [`assets/contributors-admin.js`](assets/contributors-admin.js) |
 | Security, privacy and optional video loading | [Review and release requirements](docs/SECURITY_REVIEW.md), [`assets/video-consent.js`](assets/video-consent.js) |
-| Application tracking, notifications and YouTube authorisation | [Implementation and release guide](docs/APPLICATION_TRACKING_AND_YOUTUBE.md) |
+| Application emails and YouTube authorisation | [`functions/_application-email.js`](functions/_application-email.js), [`assets/youtube-connection.js`](assets/youtube-connection.js), [setup guide](docs/APPLICATION_TRACKING_AND_YOUTUBE.md) |
 | Isolated account and database tests | [`tests/`](tests/), [development guide](docs/DEPLOY_AND_TEST.md) |
 
 ## Try the development version
@@ -130,14 +146,18 @@ The preview starts an isolated site on loopback port `8789` with fictional accou
 
 The build writes static files to `dist/`. `npm run check:cloudflare` compiles the Functions without deploying. See the [development guide](docs/DEPLOY_AND_TEST.md) for the other test roles, real Functions, browser checks and separate Supabase test-project setup.
 
-## What is still being developed
+## Service setup and limits
 
-This development branch combines account-required applications, applicant status, submission/decision emails, private archives, social ownership verification, popularity rankings and clans. Provider configuration, ordered SQL prerequisites and approved live checks remain necessary before release. See the [combined branch review](docs/COMBINED_BRANCH.md).
+Application tracking, notifications, social connections, Popularity and clans are implemented on `main`. The [public changelog](changelog/index.html) records shipped changes. Google and TikTok control access to their integrations through app review, consent settings and quotas; implementation does not imply unrestricted provider approval.
 
-New environments also need the SQL prerequisites for accounts, public profiles, [contributor editing](docs/CONTRIBUTOR_TIERS.md) and [request limits](docs/SECURITY_REVIEW.md#required-release-order). The request-limit migration must be applied before releasing the dependent website code. Real email delivery and provider abuse controls need verification in the intended environment; the local fixture cannot prove those settings.
+New environments need the existing SQL prerequisites and their own provider settings. Follow the [development guide](docs/DEPLOY_AND_TEST.md), [migration checklist](docs/COMBINED_BRANCH.md) and feature guides before enabling dependent code. Earlier guides include historical branch and release notes; use the changelog for the shipped feature summary. Website builds do not apply SQL or deploy the scheduled Workers. The local fixture cannot prove real email delivery, provider approval or cron execution.
+
+The integrations use existing Cloudflare/Supabase allowances, Resend email limits and provider API quotas. No paid API subscription is required by the code; usage limits still apply. Keep production credentials out of the development environment.
 
 ## Working on REL
 
 Read the [documentation index](docs/README.md) and [contribution guide](CONTRIBUTING.md). Continue changes on `fix/account-layout-navigation` throughout this review cycle. A new branch starts from the latest `origin/main` only after an approved release cycle is complete. Production deploys from `main` through Cloudflare Pages after the owner's approval.
+
+When adding or changing a feature, update this README and the [public changelog](changelog/index.html) in the same change. Keep feature descriptions accurate, distinguish upcoming work from released changes, and include any required setup in the relevant developer guide.
 
 Preserve editor rankings and `data.js`. Website builds do not initialize the live database or apply migrations. Keep credentials and private backups out of Git, and use the isolated fixture for fictional edits.

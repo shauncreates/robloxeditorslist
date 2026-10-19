@@ -25,6 +25,8 @@ npm run check:cloudflare
 
 For interface changes, check keyboard access, narrow screens, error/empty states and the affected account roles in the fixture. For documentation-only changes, check relative links, command accuracy and the build.
 
+Include README and public changelog updates with each new feature or user-visible behavior change. Explain what users can do, keep unreleased work clearly labelled, and use the actual release date when publishing. Put setup and migration requirements in the relevant developer guide. Public release notes must exclude credentials, private records and storage/access details. Routine documentation maintenance does not need its own changelog entry.
+
 Commit and push the feature branch, then open a pull request into `main`. Explain the resulting behavior, relevant checks and any required database or environment setup. Keep generated `dist/`, `.wrangler/`, credentials and private backups out of the commit.
 
 The project owner approves merges and releases. Pushing or merging into `main` triggers the production Cloudflare build, so a documentation merge also triggers that integration.

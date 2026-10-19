@@ -16,3 +16,7 @@ To update antislop later: `npx antislop-ai --update`, or run `npx antislop-ai` a
 ## Git checkpoints
 
 Continue development on the existing `fix/account-layout-navigation` branch, which combines the outstanding feature work. Do not create another branch for each change. Create a new feature branch only after the owner-approved commit, merge, push and production deployment cycle is complete, then reuse that branch for subsequent changes. Fetch before integration and preserve existing local work. After each completed request that changes files, run the relevant checks, commit the changes and push the current feature branch unless the user asks otherwise. Exclude credentials, private backups and generated output. Do not merge into main or deploy without explicit permission. Preserve actual editor data, rankings and `data.js`; live database migrations require explicit permission.
+
+## Feature documentation
+
+For each feature addition or user-visible behavior change, update `README.md` and `changelog/index.html` in the same change. Describe the final implemented behavior and relevant limits; label unreleased work clearly and use the actual release date when publishing. Keep public changelog entries focused on user-facing changes, without credentials, private records or storage/access details. Update the relevant developer guide for new setup or migration requirements. Documentation-only maintenance does not need its own public changelog entry.
