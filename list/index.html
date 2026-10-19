@@ -438,12 +438,20 @@
       }
       .who {
         grid-area: who;
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
         min-width: 0;
+      }
+      .who .rel-clan-prefix {
+        flex: none;
+        margin-right: 0;
       }
       .editor-identity-link {
         display: flex;
         flex-direction: column;
         justify-content: center;
+        min-width: 0;
         min-height: 44px;
         text-decoration: none;
       }
@@ -1248,7 +1256,7 @@
             (tt ? '<a class="avatar-link" href="' + esc(tt) + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + esc(e.name) + ' on ' + primary.platform + ' in a new tab">' + avatar(e) + '</a>' : avatar(e)) +
             '<span class="who">' +
             (clanPrefixes[e.id] ? '<a class="rel-clan-prefix" href="/clans/?id='+encodeURIComponent(clanPrefixes[e.id].id)+'" aria-label="View clan '+esc(clanPrefixes[e.id].name)+'">['+esc(clanPrefixes[e.id].prefix)+']</a>' : '') +
-            (tt ? '<a class="editor-identity-link" href="' + esc(tt) + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + esc(e.name) + ' on ' + primary.platform + ' in a new tab">' : '<span>') + '<span class="nm">' +
+            (tt ? '<a class="editor-identity-link" href="' + esc(tt) + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + esc(e.name) + ' on ' + primary.platform + ' in a new tab">' : '<span class="editor-identity-link">') + '<span class="nm">' +
             esc(e.name) +
             '</span>' +
             handleHtml +

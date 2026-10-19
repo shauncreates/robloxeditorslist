@@ -124,6 +124,7 @@ async function login(page, name) {
   await wait(page, "location.pathname==='/account/'");
   await navigate(page, "/clans/");
   await ready(page);
+  await click(page, "[data-clan-view=manage]");
 }
 async function enter(page, selector) {
   await evaluate(
@@ -164,6 +165,22 @@ async function layout(page, name) {
       true,
       name + " overflow at " + width,
     );
+    if (name === "clan-ranked-prefix") {
+      assert.equal(
+        await evaluate(page, `(() => {
+          const prefix = document.querySelector('.who .rel-clan-prefix');
+          const name = prefix.parentElement.querySelector('.nm');
+          const prefixText = document.createRange(), nameText = document.createRange();
+          prefixText.selectNodeContents(prefix);
+          nameText.setStart(name.firstChild, 0);
+          nameText.setEnd(name.firstChild, 1);
+          const p = prefixText.getBoundingClientRect(), n = nameText.getBoundingClientRect();
+          return p.right <= n.left && p.top < n.bottom && n.top < p.bottom;
+        })()`),
+        true,
+        "Clan prefix must appear to the left of the first name line at " + width,
+      );
+    }
     assert.equal(
       await evaluate(
         page,
@@ -241,7 +258,7 @@ try {
       creator,
       "document.querySelector('#clanRankings').textContent",
     ),
-    /#2.*\[EDIT\].*One/s,
+    /#1.*One/s,
   );
   await layout(creator, "clan-created");
   await click(creator, "[data-action=invite]");
@@ -287,6 +304,7 @@ try {
   await wait(guest, "document.querySelector('[data-action=leave]')");
   await ready(guest);
   assert.equal((await members(id)).length, 2);
+  await click(guest, "[data-clan-view=manage]");
   await layout(guest, "clan-member");
   await navigate(creator, "/clans/?id=" + id);
   await ready(creator);
@@ -303,6 +321,7 @@ try {
     ),
     /#1.*One/s,
   );
+  await click(creator, "[data-clan-view=manage]");
   await fill(creator, "#clanPrefix", "VFX1");
   await enter(creator, "#updateClan button");
   await wait(
@@ -343,6 +362,7 @@ try {
   await layout(creator, "clan-popularity-prefix");
   await navigate(creator, "/clans/?id=" + id);
   await ready(creator);
+  await click(creator, "[data-clan-view=members]");
   await click(creator, "[data-action=remove]");
   await wait(
     creator,
@@ -354,12 +374,14 @@ try {
   await ready(guest);
   await click(guest, "[data-action=join]");
   await wait(guest, "document.querySelector('[data-action=leave]')");
+  await click(guest, "[data-clan-view=manage]");
   await click(guest, "[data-action=leave]");
   await wait(
     guest,
     "document.querySelector('#clanNotice').textContent.includes('You left')",
   );
   assert.equal((await members(id)).length, 1);
+  await click(creator, "[data-clan-view=manage]");
   await click(creator, "[data-action=invite]");
   await wait(creator, "document.querySelector('#clanInviteUrl')");
   await navigate(guest, invitePath);
@@ -408,7 +430,7 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS create/preview, exact prefix validation, private fragment invites, cancel without joining, sign-in return and keyboard confirmation, style/global rank preservation, prefix propagation, member removal/leave, invite replacement/revocation, disband, reduced motion and 200% text.",
+    "PASS create/preview, exact prefix validation, private fragment invites, cancel without joining, sign-in return and keyboard confirmation, clan positions in source order, profile/members/management views, prefix propagation, member removal/leave, invite replacement/revocation, disband, reduced motion and 200% text.",
   );
 } finally {
   for (const browserContextId of contexts)
