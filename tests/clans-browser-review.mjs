@@ -165,6 +165,22 @@ async function layout(page, name) {
       true,
       name + " overflow at " + width,
     );
+    if (name === "clan-ranked-prefix") {
+      assert.equal(
+        await evaluate(page, `(() => {
+          const prefix = document.querySelector('.who .rel-clan-prefix');
+          const name = prefix.parentElement.querySelector('.nm');
+          const prefixText = document.createRange(), nameText = document.createRange();
+          prefixText.selectNodeContents(prefix);
+          nameText.setStart(name.firstChild, 0);
+          nameText.setEnd(name.firstChild, 1);
+          const p = prefixText.getBoundingClientRect(), n = nameText.getBoundingClientRect();
+          return p.right <= n.left && p.top < n.bottom && n.top < p.bottom;
+        })()`),
+        true,
+        "Clan prefix must appear to the left of the first name line at " + width,
+      );
+    }
     assert.equal(
       await evaluate(
         page,
