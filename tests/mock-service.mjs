@@ -79,7 +79,7 @@ export async function mockService({tiktok=false,google=false,origin="https://rel
       if(failures.recover)return response({},failures.recover);
       const email=JSON.parse(options.body).email.toLowerCase();
       const account=[...users.values()].find(user=>user.email===email);
-      if(account)recoveryCodes.set(email,{user:account,code:"123456",expires:Date.now()+60000});
+      if(account)recoveryCodes.set(email,{user:account,code:"000001",expires:Date.now()+60000});
       return response({});
     }
     if(url.pathname==="/auth/v1/verify"){

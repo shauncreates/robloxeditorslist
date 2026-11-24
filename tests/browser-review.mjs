@@ -405,6 +405,8 @@ try {
   await fill(recoveryPage,"#email","reviewer@example.test");
   await click(recoveryPage,"#haveCode");
   assert.equal(await evaluate(recoveryPage,"document.querySelector('#recoveryFields').hidden"),false);
+  await fill(recoveryPage,"#code","12a٣456789");
+  assert.equal(await evaluate(recoveryPage,"document.querySelector('#code').value"),"124567");
   await click(recoveryPage,"#changeEmail");
   assert.equal(await evaluate(recoveryPage,"document.querySelector('#email').readOnly"),false);
   await click(recoveryPage,"#submit");

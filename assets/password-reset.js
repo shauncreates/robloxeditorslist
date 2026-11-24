@@ -1,5 +1,11 @@
 const $ = (selector) => document.querySelector(selector);
 const form = $("#resetForm");
+const codeInput = $("#code");
+
+codeInput.addEventListener("input", () => {
+  const digits = codeInput.value.replace(/[^0-9]/g, "").slice(0, 6);
+  if (codeInput.value !== digits) codeInput.value = digits;
+});
 
 let recovering = false;
 let busy = false;

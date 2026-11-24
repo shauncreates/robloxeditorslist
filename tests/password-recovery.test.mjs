@@ -1,7 +1,20 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
+import {readFile} from "node:fs/promises";
 import {mockService} from "./mock-service.mjs";
 import {ids} from "./auth-fixture.mjs";
+
+test("recovery code length is configured for Supabase and displayed unchanged in the email",async()=>{
+  const [config,template,page]=await Promise.all([
+    readFile(new URL("../supabase/config.toml",import.meta.url),"utf8"),
+    readFile(new URL("../supabase/email-templates/reset-password.html",import.meta.url),"utf8"),
+    readFile(new URL("../reset-password/index.html",import.meta.url),"utf8"),
+  ]);
+  assert.match(config,/\[auth\.email\][\s\S]*?otp_length\s*=\s*6/);
+  assert.match(template,/\{\{\s*\.Token\s*\}\}/);
+  assert.match(page,/pattern="\[0-9\]\{6\}"/);
+  assert.match(page,/inputmode="numeric"/);
+});
 
 const request=(service,path,body,origin="https://rel.example.test",token)=>service.handle(new Request("https://rel.example.test/api/auth/"+path,{
   method:"POST",headers:{origin,"Content-Type":"application/json",...(token?{cookie:"__Host-rel_access="+token}:{})},body:JSON.stringify(body),
@@ -33,7 +46,7 @@ test("password recovery verifies an email code, preserves roles and rankings, an
     assert.deepEqual(recovery.body,{email:"owner@example.test"});
     assert.equal((await request(service,"forgot-password",{email:"bad"})).status,400);
     assert.equal((await request(service,"forgot-password",{email:"owner@example.test"},"https://evil.example.test")).status,403);
-    const body={email:"owner@example.test",code:"123456",password:"Abcdef12",confirmPassword:"Abcdef12",roles:["member"],type:"signup",access_token:"member"};
+    const body={email:"owner@example.test",code:"000001",password:"Abcdef12",confirmPassword:"Abcdef12",roles:["member"],type:"signup",access_token:"member"};
     for(const invalid of [{code:"000000"},{code:"12345"},{password:"abcdefgh1",confirmPassword:"abcdefgh1"},{confirmPassword:"Different123"},{email:"member@example.test"}]){
       assert.equal((await request(service,"reset-password",{...body,...invalid},undefined,"owner")).status,400);
     }
@@ -62,7 +75,7 @@ test("password recovery verifies an email code, preserves roles and rankings, an
 test("recovery retains rate limits, rejects disabled accounts, and reports provider failures",async()=>{
   const service=await mockService();
   try{
-    const body={email:"owner@example.test",code:"123456",password:"Abcdef12",confirmPassword:"Abcdef12"};
+    const body={email:"owner@example.test",code:"000001",password:"Abcdef12",confirmPassword:"Abcdef12"};
     service.failures.recover=429;
     assert.equal((await request(service,"forgot-password",{email:body.email})).status,429);
     service.failures.recover=500;
