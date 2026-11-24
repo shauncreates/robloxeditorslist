@@ -52,7 +52,7 @@ Profile URLs use stable IDs so renaming an editor or account does not change the
 <details>
 <summary><strong>Accounts, confirmation and password recovery</strong></summary>
 
-Supabase Auth handles email/password accounts. New accounts start as Members and must confirm their email before signing in. Recovery uses an emailed code; confirming an account does not grant staff permissions.
+Supabase Auth handles email/password accounts. New accounts start as Members and must confirm their email before signing in. Password recovery emails contain a six-digit numeric code. Each code expires and can be used once; confirming an account does not grant staff permissions.
 
 ![REL sign-in page with email and password fields, create-account and password-recovery links.](docs/images/signin.webp)
 

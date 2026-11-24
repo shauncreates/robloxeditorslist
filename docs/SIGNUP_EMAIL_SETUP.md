@@ -49,6 +49,11 @@ confirmed user before the success message appears. The user then follows the
 sign-in link and enters their password. Existing server/database checks reject
 unconfirmed users. The recovery template uses `Token` and `RedirectTo` instead.
 
+Password recovery uses a six-digit numeric code. In Supabase, open
+**Authentication → Sign In / Providers → Email** and set **Email OTP Length** to
+`6`. Keep the existing expiration period and rate limits. The matching local
+setting is `auth.email.otp_length = 6` in [`supabase/config.toml`](../supabase/config.toml).
+
 ## Verification before launch
 
 After configuration is approved, use an explicitly authorized recipient address
